@@ -21,7 +21,7 @@ func main() {
 
 	e := echo.New()
 	e.GET("/", handlers.GetHomePageHandler())
-	e.POST("/signup", handlers.CreateUserHandler(db))
-	e.POST("/signin", handlers.LoginUserHandler(db)) // This one works
+	e.POST("/signup", handlers.SignUpHandler(db))
+	e.POST("/signin", handlers.LoginUserHandler(db))
 	e.Logger.Fatal(e.Start(":3030"))
 }

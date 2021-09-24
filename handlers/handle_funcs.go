@@ -3,9 +3,10 @@ package handlers
 import (
 	"2021_2_LostPointer/models"
 	"database/sql"
-	"fmt"
 	"github.com/labstack/echo"
+	"github.com/satori/go.uuid"
 	"net/http"
+	"time"
 )
 
 func CreateUserHandler(db *sql.DB) echo.HandlerFunc {
@@ -17,17 +18,29 @@ func CreateUserHandler(db *sql.DB) echo.HandlerFunc {
 func LoginUserHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var user models.User
-		c.Bind(&user)
-		isExists, err := models.IsUserExists(db, &user)
-		if err == nil {
-			if !isExists {
-				return c.JSON(http.StatusNotFound, "User not registered")
-			}
-			return c.JSON(http.StatusOK, "User exists")
-		} else {
-			fmt.Println(err)
+		err := c.Bind(&user)
+		if err != nil {
 			return err
 		}
+		isExists, err := models.IsUserExists(db, &user)
+		if err != nil {
+			return err
+		}
+		if !isExists {
+			return c.JSON(http.StatusNotFound, "ERR: User is not registered")
+		}
+		sessionToken, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+		cookie := &http.Cookie{
+			Name: "Session_token",
+			Value: sessionToken.String(),
+			HttpOnly: true,
+			Expires: time.Now().Add(365 * 24 * time.Hour),
+		}
+		c.SetCookie(cookie)
+		return c.JSON(http.StatusOK, "OK: User is registered")
 	}
 }
 

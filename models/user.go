@@ -23,7 +23,8 @@ func IsUserExists(db *sql.DB, user *User) (bool, error) {
 	hashedPassword := getHash(user.Password)
 
 	rows, err := db.Query(
-		"SELECT EXISTS(SELECT id FROM users WHERE username = $1 AND password = $2)",
+		`SELECT EXISTS(SELECT id FROM users WHERE
+			username = $1 AND password = $2)`,
 		user.Login, hashedPassword)
 	if err != nil {
 		return false, err

@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func LoginUserHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc{
+func LoginUserHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var user models.User
 		if err := c.Bind(&user); err != nil {
@@ -89,6 +89,11 @@ func SignUpHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
 
 func GetHomePageHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return c.JSON(http.StatusOK, "DEVELOPING")
+		tracks, err := models.GetSelectionForHomePage(db)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, tracks)
 	}
 }

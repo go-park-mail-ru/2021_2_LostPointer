@@ -20,13 +20,13 @@ func main() {
 		log.Fatal(err)
 	}
 	redisConnection := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
+		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
 		Password: "",
-		DB: 1,
+		DB:       1,
 	})
 
 	e := echo.New()
-	/*e.GET("/", handlers.GetHomePageHandler())*/
+	e.GET("/", handlers.GetHomePageHandler(db))
 	e.POST("/signup", handlers.SignUpHandler(db, redisConnection))
 	e.POST("/signin", handlers.LoginUserHandler(db, redisConnection))
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))

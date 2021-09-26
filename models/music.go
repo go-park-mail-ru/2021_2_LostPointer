@@ -10,10 +10,14 @@ const playlistsSelectionLimit = 4
 const artistsSelectionLimit = 4
 
 type Track struct {
-	Id     int64
-	Name   string
-	Artist string
-	Album  string
+	Id       int64
+	Name     string
+	Artist   int64
+	Album    int64
+	Explicit bool
+	Genre    int64
+	Number   int64
+	File     string
 }
 
 type Artist struct {
@@ -36,18 +40,23 @@ type SelectionFroHomePage struct {
 
 func GetTracks(amount int, db *sql.DB) ([]Track, error) {
 	tracks := make([]Track, 0)
+	fmt.Println("1")
 	rows, err := db.Query(fmt.Sprintf(`SELECT * FROM tracks LIMIT %d`, amount))
 	if err != nil {
+		fmt.Println("2")
 		return nil, err
 	}
 
 	var track Track
 	for rows.Next() {
-		if err := rows.Scan(&track.Id, &track.Name, &track.Artist, &track.Album); err != nil {
+		if err := rows.Scan(&track.Id, &track.Name, &track.Artist, &track.Album,
+			&track.Explicit, &track.Genre, &track.Number, &track.File); err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
 		tracks = append(tracks, track)
 	}
+	fmt.Println(tracks)
 
 	return tracks, nil
 }

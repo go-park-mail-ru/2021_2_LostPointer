@@ -89,11 +89,11 @@ func SignUpHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
 
 func GetHomePageHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		tracks, err := models.GetSelectionForHomePage(db)
+		selectionForHomePage, err := models.GetSelectionForHomePage(db)
 		if err != nil {
 			return err
 		}
 
-		return c.JSON(http.StatusOK, tracks)
+		return c.JSON(http.StatusOK, selectionForHomePage)
 	}
 }

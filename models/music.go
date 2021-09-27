@@ -10,14 +10,15 @@ const playlistsSelectionLimit = 4
 const artistsSelectionLimit = 4
 
 type Track struct {
-	Id       int64
-	Name     string
-	Artist   int64
-	Album    int64
-	Explicit bool
-	Genre    int64
-	Number   int64
-	File     string
+	Id          int64
+	Title       string
+	Artist      string
+	Album       string
+	Explicit    bool
+	Genre       string
+	Number      int32
+	File        string
+	ListenCount uint64
 }
 
 type Artist struct {
@@ -40,23 +41,23 @@ type SelectionFroHomePage struct {
 
 func GetTracks(amount int, db *sql.DB) ([]Track, error) {
 	tracks := make([]Track, 0)
-	fmt.Println("1")
-	rows, err := db.Query(fmt.Sprintf(`SELECT * FROM tracks LIMIT %d`, amount))
+	rows, err := db.Query(fmt.Sprintf(`SELECT DISTINCT ON(alb.title, g.name) t.id, t.title, art.name, alb.title,  t.explicit, g.name, t.number, t.file, t.listen_count FROM tracks t
+    											LEFT JOIN albums alb ON alb.id = t.album
+    											LEFT JOIN artists art ON art.id = t.artist
+    											LEFT JOIN genres g ON g.id = t.genre
+    											LIMIT %d`, amount))
 	if err != nil {
-		fmt.Println("2")
 		return nil, err
 	}
 
 	var track Track
 	for rows.Next() {
-		if err := rows.Scan(&track.Id, &track.Name, &track.Artist, &track.Album,
-			&track.Explicit, &track.Genre, &track.Number, &track.File); err != nil {
-			fmt.Println(err)
+		if err := rows.Scan(&track.Id, &track.Title, &track.Artist, &track.Album, &track.Explicit, &track.Genre,
+			&track.Number, &track.File, &track.ListenCount); err != nil {
 			return nil, err
 		}
 		tracks = append(tracks, track)
 	}
-	fmt.Println(tracks)
 
 	return tracks, nil
 }

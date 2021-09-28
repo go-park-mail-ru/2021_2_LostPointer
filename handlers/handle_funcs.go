@@ -123,7 +123,7 @@ func LogoutHandler() echo.HandlerFunc {
 
 func GetHomePageHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		selectionForHomePage, err := models.GetSelectionForHomePage(db)
+		selectionForHomePage, err := utils.GetSelectionForHomePage(db)
 		if err != nil {
 			return err
 		}

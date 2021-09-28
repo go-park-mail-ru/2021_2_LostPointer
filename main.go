@@ -27,7 +27,9 @@ func main() {
 
 	e := echo.New()
 	e.GET("/", handlers.GetHomePageHandler(db))
-	e.POST("/signup", handlers.SignUpHandler(db, redisConnection))
-	e.POST("/signin", handlers.LoginUserHandler(db, redisConnection))
+	e.POST("/api/v1/user/signup", handlers.SignUpHandler(db, redisConnection))
+	e.POST("/api/v1/user/signin", handlers.LoginUserHandler(db, redisConnection))
+	e.DELETE("/api/v1/user/signin", handlers.LogoutHandler())
+
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

@@ -47,7 +47,7 @@ func LoginUser(c echo.Context, args *Arguments) error {
 		log.Fatalln(err)
 	}
 
-	return c.JSON(http.StatusOK, "OK: We can authorize user")
+	return c.JSON(http.StatusOK, "OK: User is authorized")
 }
 
 func LoginUserHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
@@ -105,6 +105,19 @@ func SignUpHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
 			return err
 		}
 		return nil
+	}
+}
+
+func LogoutHandler() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		cookie, err := c.Cookie("Session_cookie")
+		if err != nil {
+			return err
+		}
+		cookie.Expires = time.Now().AddDate(0, 0, -1)
+		c.SetCookie(cookie)
+
+		return c.NoContent(http.StatusOK)
 	}
 }
 

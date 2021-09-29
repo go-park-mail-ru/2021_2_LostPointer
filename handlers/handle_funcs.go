@@ -16,6 +16,8 @@ type Arguments struct {
 	redisConnection *redis.Client
 }
 
+const SessionTokenLength = 40
+
 func LoginUser(c echo.Context, args *Arguments) error {
 	var user models.User
 	if err := c.Bind(&user); err != nil {
@@ -29,19 +31,19 @@ func LoginUser(c echo.Context, args *Arguments) error {
 		return c.JSON(http.StatusNotFound, "ERROR: User not found")
 	}
 
-	sessionToken := utils.GetRandomString(40)
+	sessionToken := utils.GetRandomString(SessionTokenLength)
 	if err != nil {
 		return err
 	}
-	cookie := new(http.Cookie)
-	cookie.Name = "Session_cookie"
-	cookie.Path = "/"
-	cookie.Domain = "http://localhost:3000"
-	cookie.SameSite = http.SameSiteNoneMode
-	cookie.Secure = true
-	cookie.Value = sessionToken
-	cookie.HttpOnly = true
-	cookie.Expires = time.Now().Add(time.Hour * 24 * 30)
+
+	cookie := &http.Cookie{ // Setting up cookies
+		Name: "Session_cookie",
+		Value: sessionToken,
+		Path: "/",
+		Secure: true,
+		HttpOnly: true,
+		Expires: time.Now().Add(time.Hour * 24 * 30),
+	}
 	c.SetCookie(cookie)
 
 	err = utils.StoreSession(args.redisConnection,
@@ -81,20 +83,18 @@ func SignUp(c echo.Context, args *Arguments) error {
 		return err
 	}
 
-	sessionToken := utils.GetRandomString(40)
+	sessionToken := utils.GetRandomString(SessionTokenLength)
 	if err != nil {
 		return err
 	}
-	cookie := new(http.Cookie)
-	cookie.Name = "Session_cookie"
-	cookie.Value = sessionToken
-	cookie.HttpOnly = true
-	cookie.Path = "/"
-	cookie.Domain = "http://localhost:3000"
-	cookie.SameSite = http.SameSiteNoneMode
-	cookie.Secure = true
-	cookie.Domain = "http://localhost:3000"
-	cookie.Expires = time.Now().Add(time.Hour * 24 * 30)
+	cookie := &http.Cookie{ // Setting up cookies
+		Name: "Session_cookie",
+		Value: sessionToken,
+		Path: "/",
+		Secure: true,
+		HttpOnly: true,
+		Expires: time.Now().Add(time.Hour * 24 * 30),
+	}
 	c.SetCookie(cookie)
 
 	err = utils.StoreSession(args.redisConnection,
@@ -116,12 +116,16 @@ func SignUpHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
 	}
 }
 
-func LogoutHandler() echo.HandlerFunc {
+func LogoutHandler(redisConnection *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("Session_cookie")
+		log.Println("Cookies: ", cookie)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
+		log.Println(cookie.Value)
+		redisConnection.Del(cookie.Value)
 		cookie.Expires = time.Now().AddDate(0, 0, -1)
 		c.SetCookie(cookie)
 
@@ -131,7 +135,7 @@ func LogoutHandler() echo.HandlerFunc {
 
 func GetHomePageHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		selectionForHomePage, err := models.GetSelectionForHomePage(db)
+		selectionForHomePage, err := utils.GetSelectionForHomePage(db)
 		if err != nil {
 			return err
 		}

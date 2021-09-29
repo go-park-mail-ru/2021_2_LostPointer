@@ -14,9 +14,9 @@ import (
 
 func CORSMiddlewareWrapper(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		req := ctx.Request()
+		// req := ctx.Request()
 		dynamicCORSConfig := middleware.CORSConfig{
-			AllowOrigins:     []string{req.Header.Get("Origin")}, // Разобраться и поменять!!!
+			AllowOrigins:     []string{"http://lostpointer.site", "http://localhost:3000"},
 			AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With"},
 			AllowCredentials: true,
 		}
@@ -41,20 +41,12 @@ func main() {
 	})
 
 	e := echo.New()
-	//e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-	//	AllowOrigins: []string{"http://lostpointer.site", "http://localhost"},
-	//	AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
-	//}))
-
 	e.Use(CORSMiddlewareWrapper)
-
-	//e.Use(middleware.CORS())
-
 	e.GET("/api/v1/home", handlers.GetHomePageHandler(db))
 	e.GET("/api/v1/auth", handlers.AuthHandler(redisConnection))
 	e.POST("/api/v1/user/signup", handlers.SignUpHandler(db, redisConnection))
 	e.POST("/api/v1/user/signin", handlers.LoginUserHandler(db, redisConnection))
-	e.DELETE("/api/v1/user/signin", handlers.LogoutHandler())
+	e.POST("/api/v1/user/logout", handlers.LogoutHandler(redisConnection))
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

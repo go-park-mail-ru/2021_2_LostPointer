@@ -17,7 +17,6 @@ func StoreSession(redisConnection *redis.Client, session *models.Session) error 
 }
 
 func GetSessionUser(redisConnection *redis.Client, session string) (int, error) {
-	log.Println(session)
 	res, err := redisConnection.Get(session).Result()
 	if err != nil {
 		log.Println(err)

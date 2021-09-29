@@ -12,20 +12,6 @@ import (
 	"os"
 )
 
-func CORSMiddlewareWrapper(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(ctx echo.Context) error {
-		// req := ctx.Request()
-		dynamicCORSConfig := middleware.CORSConfig{
-			AllowOrigins:     []string{"http://lostpointer.site", "http://localhost:3000"},
-			AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With"},
-			AllowCredentials: true,
-		}
-		CORSMiddleware := middleware.CORSWithConfig(dynamicCORSConfig)
-		CORSHandler := CORSMiddleware(next)
-		return CORSHandler(ctx)
-	}
-}
-
 func main() {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		os.Getenv("DBUSER"), os.Getenv("DBPASS"), os.Getenv("DBHOST"), os.Getenv("DBPORT"),
@@ -41,7 +27,11 @@ func main() {
 	})
 
 	e := echo.New()
-	e.Use(CORSMiddlewareWrapper)
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"http://lostpointer.site", "http://localhost:3000"},
+		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With"},
+		AllowCredentials: true,
+	}))
 	e.GET("/api/v1/home", handlers.GetHomePageHandler(db))
 	e.GET("/api/v1/auth", handlers.AuthHandler(redisConnection))
 	e.POST("/api/v1/user/signup", handlers.SignUpHandler(db, redisConnection))

@@ -32,17 +32,15 @@ func LoginUser(c echo.Context, args *Arguments) error {
 	}
 
 	sessionToken := utils.GetRandomString(SessionTokenLength)
-	if err != nil {
-		return err
-	}
 
 	cookie := &http.Cookie{ // Setting up cookies
-		Name: "Session_cookie",
-		Value: sessionToken,
-		Path: "/",
-		Secure: true,
+		Name:     "Session_cookie",
+		Value:    sessionToken,
+		Path:     "/",
+		Secure:   true,
 		HttpOnly: true,
-		Expires: time.Now().Add(time.Hour * 24 * 30),
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().Add(time.Hour * 24 * 30),
 	}
 	c.SetCookie(cookie)
 
@@ -88,12 +86,13 @@ func SignUp(c echo.Context, args *Arguments) error {
 		return err
 	}
 	cookie := &http.Cookie{ // Setting up cookies
-		Name: "Session_cookie",
-		Value: sessionToken,
-		Path: "/",
-		Secure: true,
+		Name:     "Session_cookie",
+		Value:    sessionToken,
+		Path:     "/",
+		Secure:   true,
 		HttpOnly: true,
-		Expires: time.Now().Add(time.Hour * 24 * 30),
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().Add(time.Hour * 24 * 30),
 	}
 	c.SetCookie(cookie)
 

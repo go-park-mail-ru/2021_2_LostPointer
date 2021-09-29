@@ -6,14 +6,13 @@ import (
 	"database/sql"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
-	uuid "github.com/satori/go.uuid"
 	"log"
 	"net/http"
 	"time"
 )
 
 type Arguments struct {
-	db *sql.DB
+	db              *sql.DB
 	redisConnection *redis.Client
 }
 
@@ -30,15 +29,19 @@ func LoginUser(c echo.Context, args *Arguments) error {
 		return c.JSON(http.StatusNotFound, "ERROR: User not found")
 	}
 
-	sessionToken, err := uuid.NewV4()
+	sessionToken := utils.GetRandomString(40)
 	if err != nil {
 		return err
 	}
 	cookie := new(http.Cookie)
 	cookie.Name = "Session_cookie"
-	cookie.Value = sessionToken.String()
+	cookie.Path = "/"
+	cookie.Domain = "http://localhost:3000"
+	cookie.SameSite = http.SameSiteNoneMode
+	cookie.Secure = true
+	cookie.Value = sessionToken
 	cookie.HttpOnly = true
-	cookie.Expires = time.Now().Add(time.Hour)
+	cookie.Expires = time.Now().Add(time.Hour * 24 * 30)
 	c.SetCookie(cookie)
 
 	err = utils.StoreSession(args.redisConnection,
@@ -78,15 +81,20 @@ func SignUp(c echo.Context, args *Arguments) error {
 		return err
 	}
 
-	sessionToken, err := uuid.NewV4()
+	sessionToken := utils.GetRandomString(40)
 	if err != nil {
 		return err
 	}
 	cookie := new(http.Cookie)
 	cookie.Name = "Session_cookie"
-	cookie.Value = sessionToken.String()
+	cookie.Value = sessionToken
 	cookie.HttpOnly = true
-	cookie.Expires = time.Now().Add(time.Hour)
+	cookie.Path = "/"
+	cookie.Domain = "http://localhost:3000"
+	cookie.SameSite = http.SameSiteNoneMode
+	cookie.Secure = true
+	cookie.Domain = "http://localhost:3000"
+	cookie.Expires = time.Now().Add(time.Hour * 24 * 30)
 	c.SetCookie(cookie)
 
 	err = utils.StoreSession(args.redisConnection,
@@ -129,5 +137,21 @@ func GetHomePageHandler(db *sql.DB) echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, selectionForHomePage)
+	}
+}
+
+func AuthHandler(redisConnection *redis.Client) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		cookie, err := c.Cookie("Session_cookie")
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		id, err := utils.GetSessionUser(redisConnection, cookie.Value)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		return c.JSON(http.StatusOK, id)
 	}
 }

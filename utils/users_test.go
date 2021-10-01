@@ -88,16 +88,18 @@ func TestCreateUser(t *testing.T) {
 		Username: "alex",
 		Password: "1234",
 		Salt: GetRandomString(SaltLength),
+		Name: "Leonid",
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO users(username, password, salt)
-		VALUES($1, $2, $3)
+		INSERT INTO users(username, password, salt, name)
+		VALUES($1, $2, $3, $4)
 		RETURNING id
 	`)).WithArgs(
 		driver.Value(user.Username),
 		driver.Value(GetHash(user.Password + user.Salt)),
 		driver.Value(user.Salt),
+		driver.Value(user.Name),
 	).WillReturnRows(func() *sqlmock.Rows {
 		rr := sqlmock.NewRows([]string{"id"})
 		rr.AddRow(user.ID)

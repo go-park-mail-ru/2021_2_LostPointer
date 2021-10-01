@@ -56,11 +56,12 @@ func CreateUser(db *sql.DB, user models.User, customSalt ...string) (uint64, err
 	} else {
 		salt = GetRandomString(SaltLength)
 	}
-	err := db.QueryRow(`INSERT INTO users(username, password, salt)
-			VALUES($1, $2, $3) RETURNING id`,
+	err := db.QueryRow(`INSERT INTO users(username, password, salt, name)
+			VALUES($1, $2, $3, $4) RETURNING id`,
 			user.Username,
 			GetHash(user.Password + salt),
-			salt).Scan(&lastID)
+			salt,
+			user.Name).Scan(&lastID)
 	if err != nil {
 		log.Fatal(err)
 		return 0, err

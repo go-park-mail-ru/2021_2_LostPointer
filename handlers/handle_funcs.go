@@ -28,7 +28,7 @@ func LoginUser(c echo.Context, args *Arguments) error {
 		return err
 	}
 	if userID == 0 {
-		return c.JSON(http.StatusNotFound, "ERROR: User not found")
+		return c.JSON(http.StatusNotFound, &models.Response{Message: "User was not found"})
 	}
 
 	sessionToken := utils.GetRandomString(SessionTokenLength)
@@ -50,7 +50,7 @@ func LoginUser(c echo.Context, args *Arguments) error {
 		log.Fatalln(err)
 	}
 
-	return c.JSON(http.StatusOK, "OK: User is authorized")
+	return c.JSON(http.StatusOK, &models.Response{Message: "User is authorized"})
 }
 
 func LoginUserHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
@@ -74,7 +74,7 @@ func SignUp(c echo.Context, args *Arguments) error {
 	}
 
 	if !isUnique {
-		return c.JSON(http.StatusBadRequest, "ERROR: User is not unique")
+		return c.JSON(http.StatusBadRequest, &models.Response{Message: "User is not unique"})
 	}
 	userID, err := utils.CreateUser(args.db, user)
 	if err != nil {
@@ -102,7 +102,7 @@ func SignUp(c echo.Context, args *Arguments) error {
 		log.Fatalln(err)
 	}
 
-	return c.JSON(http.StatusCreated, "OK: User created")
+	return c.JSON(http.StatusCreated, &models.Response{Message: "User is created"})
 }
 
 func SignUpHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
@@ -147,14 +147,17 @@ func AuthHandler(redisConnection *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("Session_cookie")
 		if err != nil {
-			log.Println(err)
 			return err
 		}
 		id, err := utils.GetSessionUser(redisConnection, cookie.Value)
+		if id == 0 {
+			return c.JSON(http.StatusUnauthorized,
+				&models.Response{Message: "User not authorized"})
+		}
 		if err != nil {
-			log.Println(err)
 			return err
 		}
-		return c.JSON(http.StatusOK, id)
+		return c.JSON(http.StatusOK,
+			&models.Response{Message: "User is authorized"})
 	}
 }

@@ -68,6 +68,13 @@ func SignUp(c echo.Context, args *Arguments) error {
 	if err := c.Bind(&user); err != nil {
 		return err
 	}
+
+	isCorrect, err := utils.ValidateSignUp(&user)
+	if err != nil {
+		return err
+	}
+	log.Println(isCorrect)
+
 	isUnique, err := utils.IsUserUnique(args.db, user)
 	if err != nil {
 		return err

@@ -5,4 +5,5 @@ type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Salt     string
+	Name 	 string `json:"name"`
 }

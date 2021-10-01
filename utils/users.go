@@ -67,3 +67,15 @@ func CreateUser(db *sql.DB, user models.User, customSalt ...string) (uint64, err
 	}
 	return lastID, nil
 }
+
+type PGS struct {
+
+}
+
+func (p *PGS) Add() {
+
+}
+
+func (p *PGS) Delete() {
+
+}

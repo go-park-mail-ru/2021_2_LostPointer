@@ -73,7 +73,9 @@ func SignUp(c echo.Context, args *Arguments) error {
 	if err != nil {
 		return err
 	}
-	log.Println(isCorrect)
+	if !isCorrect {
+		return c.JSON(http.StatusBadRequest, &models.Response{Message: "Invalid credentials"})
+	}
 
 	isUnique, err := utils.IsUserUnique(args.db, user)
 	if err != nil {

@@ -25,9 +25,9 @@ func TestUserExistsLogin(t *testing.T) {
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		SELECT id, username, password, salt
+		SELECT id, email, password, salt
 		FROM users
-		WHERE username=$1
+		WHERE email=$1
 	`)).WithArgs(
 		driver.Value(user.Email),
 	).WillReturnRows(func() *sqlmock.Rows {
@@ -59,7 +59,7 @@ func TestIsUserUnique(t *testing.T) {
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		SELECT id FROM users WHERE username=$1
+		SELECT id FROM users WHERE email=$1
 	`)).WithArgs(
 		driver.Value(user.Email),
 	).WillReturnRows(func() *sqlmock.Rows {
@@ -92,7 +92,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO users(username, password, salt, name)
+		INSERT INTO users(email, password, salt, name)
 		VALUES($1, $2, $3, $4)
 		RETURNING id
 	`)).WithArgs(

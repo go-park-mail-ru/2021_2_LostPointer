@@ -35,7 +35,7 @@ func validatePassword(password string) (bool, string, error) {
 		return false, "Password must contain at least one lowercase letter", nil
 	}
 
-	containSpecial, err := regexp.MatchString(`[\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`, password)
+	containSpecial, err := regexp.MatchString(`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`, password)
 	if err != nil {
 		return false, "", err
 	}

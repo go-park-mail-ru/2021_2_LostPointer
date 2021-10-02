@@ -128,17 +128,17 @@ func SignUpHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
 func LogoutHandler(redisConnection *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("Session_cookie")
-		log.Println("Cookies: ", cookie)
 		if err != nil {
 			log.Println(err)
-			return err
+			return c.JSON(http.StatusUnauthorized, &models.Response{Message: "Unauthorized"})
 		}
+		log.Println("Cookies: ", cookie)
 		log.Println(cookie.Value)
 		redisConnection.Del(cookie.Value)
 		cookie.Expires = time.Now().AddDate(0, 0, -1)
 		c.SetCookie(cookie)
 
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, &models.Response{Message: "Logged out"})
 	}
 }
 

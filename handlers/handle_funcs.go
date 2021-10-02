@@ -69,12 +69,12 @@ func SignUp(c echo.Context, args *Arguments) error {
 		return err
 	}
 
-	isCorrect, err := utils.ValidateSignUp(&user)
+	isCorrect, message, err := utils.ValidateSignUp(&user)
 	if err != nil {
 		return err
 	}
 	if !isCorrect {
-		return c.JSON(http.StatusBadRequest, &models.Response{Message: "Invalid credentials"})
+		return c.JSON(http.StatusBadRequest, &models.Response{Message: message})
 	}
 
 	isUnique, err := utils.IsUserUnique(args.db, user)

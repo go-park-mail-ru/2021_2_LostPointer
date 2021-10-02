@@ -52,7 +52,8 @@ func ValidateSignUp(user *models.User) (bool, string, error) {
 		return false, "", err
 	}
 	if !nameValid {
-		return false, "The length of the name must be from 2 to 15 characters and must not contain spaces, special characters and numbers", nil
+		return false, "The length of the name must be from 2 to 15 characters and must not contain spaces," +
+			" special characters and numbers", nil
 	}
 
 	usernameValid, err := regexp.MatchString(`[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`, user.Username)

@@ -35,7 +35,7 @@ func validatePassword(password string) (bool, string, error) {
 		return false, "Password must contain at least one lowercase letter", nil
 	}
 
-	containSpecial, err := regexp.MatchString(`[\!\@\#\$\%\^\&\*]`, password)
+	containSpecial, err := regexp.MatchString(`[\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`, password)
 	if err != nil {
 		return false, "", err
 	}
@@ -56,7 +56,7 @@ func ValidateSignUp(user *models.User) (bool, string, error) {
 			" special characters and numbers", nil
 	}
 
-	usernameValid, err := regexp.MatchString(`[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`, user.Username)
+	usernameValid, err := regexp.MatchString(`[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`, user.Email)
 	if err != nil {
 		return false, "", err
 	}

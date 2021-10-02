@@ -9,8 +9,8 @@ import (
 const SaltLength = 5
 
 func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
-	rows, err := db.Query(`SELECT id, username, password, salt FROM users
-			WHERE username=$1`, user.Username)
+	rows, err := db.Query(`SELECT id, email, password, salt FROM users
+			WHERE email=$1`, user.Email)
 	if err != nil {
 		log.Fatalln(err)
 		return 0, err
@@ -21,7 +21,7 @@ func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
 		return 0, nil
 	}
 	var u models.User
-	if err := rows.Scan(&u.ID, &u.Username, &u.Password, &u.Salt); err != nil {
+	if err := rows.Scan(&u.ID, &u.Email, &u.Password, &u.Salt); err != nil {
 		return 0, err
 	}
 
@@ -33,7 +33,7 @@ func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
 }
 
 func IsUserUnique(db *sql.DB, user models.User) (bool, error) {
-	rows, err := db.Query(`SELECT id FROM users WHERE username=$1`, user.Username)
+	rows, err := db.Query(`SELECT id FROM users WHERE email=$1`, user.Email)
 	if err != nil {
 		return false, err
 	}
@@ -51,9 +51,9 @@ func CreateUser(db *sql.DB, user models.User, customSalt ...string) (uint64, err
 	} else {
 		salt = GetRandomString(SaltLength)
 	}
-	err := db.QueryRow(`INSERT INTO users(username, password, salt, name)
+	err := db.QueryRow(`INSERT INTO users(email, password, salt, name)
 			VALUES($1, $2, $3, $4) RETURNING id`,
-			user.Username,
+			user.Email,
 			GetHash(user.Password + salt),
 			salt,
 			user.Name).Scan(&lastID)

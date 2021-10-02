@@ -28,7 +28,8 @@ func LoginUser(c echo.Context, args *Arguments) error {
 		return err
 	}
 	if userID == 0 {
-		return c.JSON(http.StatusNotFound, &models.Response{Message: "User was not found"})
+		return c.JSON(http.StatusUnauthorized,
+			&models.Response{Message: "Wrong username and/or password"})
 	}
 
 	sessionToken := utils.GetRandomString(SessionTokenLength)

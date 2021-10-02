@@ -8,8 +8,6 @@ import (
 
 const SaltLength = 5
 
-// UserExistsLogin - используется обработчиком LoginUserHandler. Проверяет, что пользователь,
-// который пытается авторизоваться есть в базе данных.
 func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
 	rows, err := db.Query(`SELECT id, username, password, salt FROM users
 			WHERE username=$1`, user.Username)
@@ -34,20 +32,17 @@ func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
 	return u.ID, nil
 }
 
-// IsUserUnique - используется обработчиком SignUpHandler. Проверяет что пользователь с указанным
-// при регистрации username уникален.
 func IsUserUnique(db *sql.DB, user models.User) (bool, error) {
 	rows, err := db.Query(`SELECT id FROM users WHERE username=$1`, user.Username)
 	if err != nil {
 		return false, err
 	}
-	if rows.Next() { // Пользователь с таким username зарегистрирован
+	if rows.Next() {
 		return false, nil
 	}
 	return true, nil
 }
 
-// CreateUser - создаем пользователя в базе
 func CreateUser(db *sql.DB, user models.User, customSalt ...string) (uint64, error) {
 	var lastID uint64 = 0
 	var salt string
@@ -67,16 +62,4 @@ func CreateUser(db *sql.DB, user models.User, customSalt ...string) (uint64, err
 		return 0, err
 	}
 	return lastID, nil
-}
-
-type PGS struct {
-
-}
-
-func (p *PGS) Add() {
-
-}
-
-func (p *PGS) Delete() {
-
 }

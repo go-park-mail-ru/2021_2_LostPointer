@@ -6,7 +6,7 @@ import (
 )
 
 func validatePassword(password string) (bool, string, error) {
-	isLong := len(password) > 8
+	isLong := len(password) >= 8
 	if !isLong {
 		return false, "Password must contain at least 8 characters", nil
 	}

@@ -61,7 +61,7 @@ func ValidateSignUp(user *models.User) (bool, string, error) {
 		return false, "", err
 	}
 	if !usernameValid {
-		return false, `Invalid email`, nil
+		return false, "Invalid email", nil
 	}
 
 	passwordValid, message, err := validatePassword(user.Password)

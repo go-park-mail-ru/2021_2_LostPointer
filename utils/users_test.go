@@ -19,7 +19,7 @@ func TestUserExistsLogin(t *testing.T) {
 	// Data for testing
 	user := models.User{
 		ID: 1,
-		Username: "alex",
+		Email: "alex",
 		Password: "1234",
 		Salt: GetRandomString(SaltLength),
 	}
@@ -29,10 +29,10 @@ func TestUserExistsLogin(t *testing.T) {
 		FROM users
 		WHERE username=$1
 	`)).WithArgs(
-		driver.Value(user.Username),
+		driver.Value(user.Email),
 	).WillReturnRows(func() *sqlmock.Rows {
 		rr := sqlmock.NewRows([]string{"id", "username", "password", "salt"})
-		rr.AddRow(user.ID, user.Username, GetHash(user.Password + user.Salt), user.Salt)
+		rr.AddRow(user.ID, user.Email, GetHash(user.Password + user.Salt), user.Salt)
 		return rr
 	}())
 
@@ -53,7 +53,7 @@ func TestIsUserUnique(t *testing.T) {
 	// Data for testing
 	user := models.User{
 		ID: 1,
-		Username: "alex",
+		Email: "alex",
 		Password: "1234",
 		Salt: GetRandomString(SaltLength),
 	}
@@ -61,7 +61,7 @@ func TestIsUserUnique(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(`
 		SELECT id FROM users WHERE username=$1
 	`)).WithArgs(
-		driver.Value(user.Username),
+		driver.Value(user.Email),
 	).WillReturnRows(func() *sqlmock.Rows {
 		rr := sqlmock.NewRows([]string{"id"})
 		rr.AddRow(user.ID)
@@ -85,7 +85,7 @@ func TestCreateUser(t *testing.T) {
 	// Data for testing
 	user := models.User{
 		ID: 1,
-		Username: "alex",
+		Email: "alex",
 		Password: "1234",
 		Salt: GetRandomString(SaltLength),
 		Name: "Leonid",
@@ -96,7 +96,7 @@ func TestCreateUser(t *testing.T) {
 		VALUES($1, $2, $3, $4)
 		RETURNING id
 	`)).WithArgs(
-		driver.Value(user.Username),
+		driver.Value(user.Email),
 		driver.Value(GetHash(user.Password + user.Salt)),
 		driver.Value(user.Salt),
 		driver.Value(user.Name),

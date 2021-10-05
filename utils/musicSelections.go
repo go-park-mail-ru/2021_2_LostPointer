@@ -6,14 +6,30 @@ import (
 	"fmt"
 )
 
+const TracksSelectionLimit = 10
+const AlbumsSelectionLimit = 4
+const PlaylistsSelectionLimit = 4
+const ArtistsSelectionLimit = 4
+
 func GetTracks(amount int, db *sql.DB) ([]models.Track, error) {
 	tracks := make([]models.Track, 0)
-	rows, err := db.Query(fmt.Sprintf(`SELECT DISTINCT ON(alb.title, g.name) t.id, t.title, art.name, alb.title,
-												t.explicit, g.name, t.number, t.file, t.listen_count, t.duration, alb.artwork FROM tracks t
-    											LEFT JOIN albums alb ON alb.id = t.album
-    											LEFT JOIN artists art ON art.id = t.artist
-    											LEFT JOIN genres g ON g.id = t.genre
-    											LIMIT %d`, amount))
+	rows, err := db.Query(fmt.Sprintf(`SELECT DISTINCT ON (alb.title) t.id,
+												                              t.title,
+												                              art.name,
+												                              alb.title,
+												                              t.explicit,
+												                              g.name,
+												                              t.number,
+												                              t.file,
+												                              t.listen_count,
+												                              t.duration,
+												                              alb.artwork
+												FROM tracks t
+												         LEFT JOIN albums alb ON alb.id = t.album
+												         LEFT JOIN artists art ON art.id = t.artist
+												         LEFT JOIN genres g ON g.id = t.genre
+												WHERE RANDOM() < 0.5
+												LIMIT %d`, amount))
 	if err != nil {
 		return nil, err
 	}
@@ -23,8 +39,6 @@ func GetTracks(amount int, db *sql.DB) ([]models.Track, error) {
 	for rows.Next() {
 		if err := rows.Scan(&track.Id, &track.Title, &track.Artist, &track.Album, &track.Explicit, &track.Genre,
 			&track.Number, &track.File, &track.ListenCount, &track.Duration, &track.Cover); err != nil {
-			fmt.Println("4")
-
 			return nil, err
 		}
 		tracks = append(tracks, track)
@@ -35,10 +49,21 @@ func GetTracks(amount int, db *sql.DB) ([]models.Track, error) {
 
 func GetAlbums(amount int, db *sql.DB) ([]models.Album, error) {
 	albums := make([]models.Album, 0)
-	rows, err := db.Query(fmt.Sprintf(`SELECT a.id, a.title, a.year, art.name, a.artwork, a.track_count, SUM(t.duration) as tracksDuration FROM albums a
-    											LEFT JOIN artists art ON art.id = a.artist
-    											JOIN tracks t on t.album = a.id
-    											GROUP BY a.id, a.title, a.year, art.name, a.artwork, a.track_count LIMIT %d`, amount))
+	rows, err := db.Query(fmt.Sprintf(`SELECT DISTINCT ON (u.title) *
+												FROM (SELECT DISTINCT ON (art.name) a.id,
+												                                    a.title,
+												                                    a.year,
+												                                    art.name,
+												                                    a.artwork,
+												                                    a.track_count,
+												                                    SUM(t.duration) as tracksDuration
+												      FROM albums a
+												               LEFT JOIN artists art ON art.id = a.artist
+												               JOIN tracks t on t.album = a.id
+												      WHERE RANDOM() <= 0.1
+												      GROUP BY a.id, a.title, a.year, art.name, a.artwork, a.track_count
+												      LIMIT %d) as u`, amount))
+
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +82,7 @@ func GetAlbums(amount int, db *sql.DB) ([]models.Album, error) {
 func GetArtists(amount int, db *sql.DB) ([]models.Artist, error) {
 	artists := make([]models.Artist, 0)
 
-	rows, err := db.Query(fmt.Sprintf(`SELECT * FROM artists LIMIT %d`, amount))
+	rows, err := db.Query(fmt.Sprintf(`SELECT artists.id, artists.name, artists.bio FROM artists LIMIT %d`, amount))
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +102,7 @@ func GetArtists(amount int, db *sql.DB) ([]models.Artist, error) {
 
 func GetPlaylists(amount int, db *sql.DB) ([]models.Playlist, error) {
 	playlists := make([]models.Playlist, 0)
-	rows, err := db.Query(fmt.Sprintf(`SELECT * FROM playlists LIMIT %d`, amount))
+	rows, err := db.Query(fmt.Sprintf(`SELECT playlists.id, playlists.title, playlists.user FROM playlists LIMIT %d`, amount))
 	if err != nil {
 		return nil, err
 	}
@@ -97,16 +122,16 @@ func GetSelectionForHomePage(db *sql.DB) (*models.SelectionFroHomePage, error) {
 	var selectionForHomePage = new(models.SelectionFroHomePage)
 	var err error
 
-	if selectionForHomePage.Tracks, err = GetTracks(models.TracksSelectionLimit, db); err != nil {
+	if selectionForHomePage.Tracks, err = GetTracks(TracksSelectionLimit, db); err != nil {
 		return nil, err
 	}
-	if selectionForHomePage.Albums, err = GetAlbums(models.AlbumsSelectionLimit, db); err != nil {
+	if selectionForHomePage.Albums, err = GetAlbums(AlbumsSelectionLimit, db); err != nil {
 		return nil, err
 	}
-	if selectionForHomePage.Playlists, err = GetPlaylists(models.PlaylistsSelectionLimit, db); err != nil {
+	if selectionForHomePage.Playlists, err = GetPlaylists(PlaylistsSelectionLimit, db); err != nil {
 		return nil, err
 	}
-	if selectionForHomePage.Artists, err = GetArtists(models.ArtistsSelectionLimit, db); err != nil {
+	if selectionForHomePage.Artists, err = GetArtists(ArtistsSelectionLimit, db); err != nil {
 		return nil, err
 	}
 

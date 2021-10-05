@@ -1,10 +1,5 @@
 package models
 
-const TracksSelectionLimit = 10
-const AlbumsSelectionLimit = 4
-const PlaylistsSelectionLimit = 4
-const ArtistsSelectionLimit = 4
-
 type Track struct {
 	Id          int64  `json:"id"`
 	Title       string `json:"title"`

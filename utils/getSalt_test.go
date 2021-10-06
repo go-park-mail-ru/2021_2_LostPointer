@@ -5,13 +5,13 @@ import (
 	"testing"
 )
 
-func TestGetRandomString(t *testing.T) {
+func TestGetRandomStringReturnsCorrectLengthString(t *testing.T) {
 	length := 10
 	str := GetRandomString(length)
 	assert.Equal(t, len(str), length)
 }
 
-func TestRandInt(t *testing.T) {
+func TestRandIntReturnsNumberInGivenRange(t *testing.T) {
 	min := -10
 	max := 10
 	res := RandInt(min, max)

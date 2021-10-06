@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func validatePassword(password string) (bool, string, error) {
+func ValidatePassword(password string) (bool, string, error) {
 	isLong := len(password) >= 8
 	if !isLong {
 		return false, "Password must contain at least 8 characters", nil
@@ -64,7 +64,7 @@ func ValidateSignUp(user *models.User) (bool, string, error) {
 		return false, "Invalid email", nil
 	}
 
-	passwordValid, message, err := validatePassword(user.Password)
+	passwordValid, message, err := ValidatePassword(user.Password)
 	if err != nil {
 		return false, "", err
 	}

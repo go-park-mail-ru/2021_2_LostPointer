@@ -9,11 +9,11 @@ func GetRandomString(l int) string {
 	rand.Seed(time.Now().UnixNano())
 	bytes := make([]byte, l)
 	for i := 0; i < l; i++ {
-		bytes[i] = byte(randInt(97, 122))
+		bytes[i] = byte(RandInt(97, 122))
 	}
 	return string(bytes)
 }
 
-func randInt(min int, max int) int {
+func RandInt(min int, max int) int {
 	return min + rand.Intn(max-min)
 }

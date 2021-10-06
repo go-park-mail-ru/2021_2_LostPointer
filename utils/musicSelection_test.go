@@ -33,12 +33,23 @@ func TestGetTracks(t *testing.T) {
 	tracks = append(tracks, track)
 
 	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(`
-		SELECT DISTINCT ON(alb.title, g.name) t.id, t.title, art.name, alb.title,
-		t.explicit, g.name, t.number, t.file, t.listen_count, t.duration, alb.artwork FROM tracks t
-		LEFT JOIN albums alb ON alb.id = t.album
-		LEFT JOIN artists art ON art.id = t.artist
-		LEFT JOIN genres g ON g.id = t.genre
-		LIMIT 1
+		SELECT DISTINCT ON (alb.title) t.id,
+												                              t.title,
+												                              art.name,
+												                              alb.title,
+												                              t.explicit,
+												                              g.name,
+												                              t.number,
+												                              t.file,
+												                              t.listen_count,
+												                              t.duration,
+												                              alb.artwork
+												FROM tracks t
+												         LEFT JOIN albums alb ON alb.id = t.album
+												         LEFT JOIN artists art ON art.id = t.artist
+												         LEFT JOIN genres g ON g.id = t.genre
+												WHERE RANDOM() < 0.5
+												LIMIT 1
 	`))).WillReturnRows(func() *sqlmock.Rows {
 		row := sqlmock.NewRows([]string{"id", "title", "artist", "album", "explicit", "genre", "number",
 			"file", "listen_count", "duration", "artwork"})
@@ -75,11 +86,20 @@ func TestGetAlbums(t *testing.T) {
 	albums = append(albums, album)
 
 	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(`
-		SELECT a.id, a.title, a.year, art.name, a.artwork, a.track_count, SUM(t.duration) as tracksDuration FROM albums a
-		LEFT JOIN artists art ON art.id = a.artist
-		JOIN tracks t on t.album = a.id
-		GROUP BY a.id, a.title, a.year, art.name, a.artwork, a.track_count
-		LIMIT 1
+		SELECT DISTINCT ON (u.title) *
+												FROM (SELECT DISTINCT ON (art.name) a.id,
+												                                    a.title,
+												                                    a.year,
+												                                    art.name,
+												                                    a.artwork,
+												                                    a.track_count,
+												                                    SUM(t.duration) as tracksDuration
+												      FROM albums a
+												               LEFT JOIN artists art ON art.id = a.artist
+												               JOIN tracks t on t.album = a.id
+												      WHERE RANDOM() <= 0.1
+												      GROUP BY a.id, a.title, a.year, art.name, a.artwork, a.track_count
+												      LIMIT 1) as u
 	`))).WillReturnRows(func() *sqlmock.Rows {
 		row := sqlmock.NewRows([]string{"id", "title", "year", "artist", "artwork", "track_count", "tracksDuration"})
 		row.AddRow(album.Id, album.Title, album.Year, album.Artist, album.ArtWork, album.TracksCount, album.TracksDuration)
@@ -110,7 +130,7 @@ func TestGetArtists(t *testing.T) {
 	artists = append(artists, artist)
 
 	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(`
-		SELECT * FROM artists LIMIT 1
+		SELECT artists.id, artists.name, artists.bio FROM artists LIMIT 1
 	`))).WillReturnRows(func() *sqlmock.Rows {
 		row := sqlmock.NewRows([]string{"id", "name", "bio"})
 		row.AddRow(artist.Id, artist.Name, artist.Bio)
@@ -135,13 +155,13 @@ func TestGetPlaylists(t *testing.T) {
 	playlist := models.Playlist{
 		Id:   1,
 		Name: "awa",
-		User:  1,
+		User: 1,
 	}
 	var playlists []models.Playlist
 	playlists = append(playlists, playlist)
 
 	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(`
-		SELECT * FROM playlists LIMIT 1
+		SELECT playlists.id, playlists.title, playlists.user FROM playlists LIMIT 1
 	`))).WillReturnRows(func() *sqlmock.Rows {
 		row := sqlmock.NewRows([]string{"id", "name", "user"})
 		row.AddRow(playlist.Id, playlist.Name, playlist.User)

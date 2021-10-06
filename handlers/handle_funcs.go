@@ -157,7 +157,8 @@ func AuthHandler(redisConnection *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("Session_cookie")
 		if err != nil {
-			return err
+			return c.JSON(http.StatusUnauthorized,
+				&models.Response{Message: "User not authorized"})
 		}
 		id, err := utils.GetSessionUser(redisConnection, cookie.Value)
 		if id == 0 {

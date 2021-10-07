@@ -28,7 +28,8 @@ func LoginUser(c echo.Context, args *Arguments) error {
 		return err
 	}
 	if userID == 0 {
-		return c.JSON(http.StatusNotFound, "ERROR: User not found")
+		return c.JSON(http.StatusUnauthorized,
+			&models.Response{Message: "Wrong username and/or password"})
 	}
 
 	sessionToken := utils.GetRandomString(SessionTokenLength)
@@ -50,7 +51,7 @@ func LoginUser(c echo.Context, args *Arguments) error {
 		log.Fatalln(err)
 	}
 
-	return c.JSON(http.StatusOK, "OK: User is authorized")
+	return c.JSON(http.StatusOK, &models.Response{Message: "User is authorized"})
 }
 
 func LoginUserHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
@@ -68,13 +69,22 @@ func SignUp(c echo.Context, args *Arguments) error {
 	if err := c.Bind(&user); err != nil {
 		return err
 	}
+
+	isCorrect, message, err := utils.ValidateSignUp(&user)
+	if err != nil {
+		return err
+	}
+	if !isCorrect {
+		return c.JSON(http.StatusBadRequest, &models.Response{Message: message})
+	}
+
 	isUnique, err := utils.IsUserUnique(args.db, user)
 	if err != nil {
 		return err
 	}
 
 	if !isUnique {
-		return c.JSON(http.StatusBadRequest, "ERROR: User is not unique")
+		return c.JSON(http.StatusBadRequest, &models.Response{Message: "User is not unique"})
 	}
 	userID, err := utils.CreateUser(args.db, user)
 	if err != nil {
@@ -102,7 +112,7 @@ func SignUp(c echo.Context, args *Arguments) error {
 		log.Fatalln(err)
 	}
 
-	return c.JSON(http.StatusCreated, "OK: User created")
+	return c.JSON(http.StatusCreated, &models.Response{Message: "User is created"})
 }
 
 func SignUpHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
@@ -118,17 +128,17 @@ func SignUpHandler(db *sql.DB, redisConnection *redis.Client) echo.HandlerFunc {
 func LogoutHandler(redisConnection *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("Session_cookie")
-		log.Println("Cookies: ", cookie)
 		if err != nil {
 			log.Println(err)
-			return err
+			return c.JSON(http.StatusUnauthorized, &models.Response{Message: "Unauthorized"})
 		}
+		log.Println("Cookies: ", cookie)
 		log.Println(cookie.Value)
 		redisConnection.Del(cookie.Value)
 		cookie.Expires = time.Now().AddDate(0, 0, -1)
 		c.SetCookie(cookie)
 
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, &models.Response{Message: "Logged out"})
 	}
 }
 
@@ -147,14 +157,18 @@ func AuthHandler(redisConnection *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("Session_cookie")
 		if err != nil {
-			log.Println(err)
-			return err
+			return c.JSON(http.StatusUnauthorized,
+				&models.Response{Message: "User not authorized"})
 		}
 		id, err := utils.GetSessionUser(redisConnection, cookie.Value)
+		if id == 0 {
+			return c.JSON(http.StatusUnauthorized,
+				&models.Response{Message: "User not authorized"})
+		}
 		if err != nil {
-			log.Println(err)
 			return err
 		}
-		return c.JSON(http.StatusOK, id)
+		return c.JSON(http.StatusOK,
+			&models.Response{Message: "User is authorized"})
 	}
 }

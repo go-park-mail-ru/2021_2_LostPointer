@@ -8,11 +8,9 @@ import (
 
 const SaltLength = 5
 
-// UserExistsLogin - используется обработчиком LoginUserHandler. Проверяет, что пользователь,
-// который пытается авторизоваться есть в базе данных.
 func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
-	rows, err := db.Query(`SELECT id, username, password, salt FROM users
-			WHERE username=$1`, user.Username)
+	rows, err := db.Query(`SELECT id, email, password, salt FROM users
+			WHERE email=$1`, user.Email)
 	if err != nil {
 		log.Fatalln(err)
 		return 0, err
@@ -23,7 +21,7 @@ func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
 		return 0, nil
 	}
 	var u models.User
-	if err := rows.Scan(&u.ID, &u.Username, &u.Password, &u.Salt); err != nil {
+	if err := rows.Scan(&u.ID, &u.Email, &u.Password, &u.Salt); err != nil {
 		return 0, err
 	}
 
@@ -34,20 +32,17 @@ func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
 	return u.ID, nil
 }
 
-// IsUserUnique - используется обработчиком SignUpHandler. Проверяет что пользователь с указанным
-// при регистрации username уникален.
 func IsUserUnique(db *sql.DB, user models.User) (bool, error) {
-	rows, err := db.Query(`SELECT id FROM users WHERE username=$1`, user.Username)
+	rows, err := db.Query(`SELECT id FROM users WHERE email=$1`, user.Email)
 	if err != nil {
 		return false, err
 	}
-	if rows.Next() { // Пользователь с таким username зарегистрирован
+	if rows.Next() {
 		return false, nil
 	}
 	return true, nil
 }
 
-// CreateUser - создаем пользователя в базе
 func CreateUser(db *sql.DB, user models.User, customSalt ...string) (uint64, error) {
 	var lastID uint64 = 0
 	var salt string
@@ -56,11 +51,12 @@ func CreateUser(db *sql.DB, user models.User, customSalt ...string) (uint64, err
 	} else {
 		salt = GetRandomString(SaltLength)
 	}
-	err := db.QueryRow(`INSERT INTO users(username, password, salt)
-			VALUES($1, $2, $3) RETURNING id`,
-			user.Username,
+	err := db.QueryRow(`INSERT INTO users(email, password, salt, name)
+			VALUES($1, $2, $3, $4) RETURNING id`,
+			user.Email,
 			GetHash(user.Password + salt),
-			salt).Scan(&lastID)
+			salt,
+			user.Name).Scan(&lastID)
 	if err != nil {
 		log.Fatal(err)
 		return 0, err

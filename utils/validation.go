@@ -2,7 +2,6 @@ package utils
 
 import (
 	"2021_2_LostPointer/models"
-	"log"
 	"regexp"
 )
 
@@ -20,7 +19,6 @@ func ValidatePassword(password string) (bool, string, error) {
 
 	for pattern, errorMessage := range patterns {
 		isValid, err := regexp.MatchString(pattern, password)
-		log.Println(pattern, isValid)
 		if err != nil {
 			return false, "", err
 		}

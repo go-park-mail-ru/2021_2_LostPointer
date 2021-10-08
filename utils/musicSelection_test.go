@@ -125,15 +125,16 @@ func TestGetArtists(t *testing.T) {
 		Id:   1,
 		Name: "awa",
 		Bio:  "awa",
+		Avatar: "awa",
 	}
 	var artists []models.Artist
 	artists = append(artists, artist)
 
 	mock.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(`
-		SELECT artists.id, artists.name, artists.bio FROM artists LIMIT 1
+		SELECT artists.id, artists.name, artists.bio, artists.avatar FROM artists LIMIT 1
 	`))).WillReturnRows(func() *sqlmock.Rows {
-		row := sqlmock.NewRows([]string{"id", "name", "bio"})
-		row.AddRow(artist.Id, artist.Name, artist.Bio)
+		row := sqlmock.NewRows([]string{"id", "name", "bio", "avatar"})
+		row.AddRow(artist.Id, artist.Name, artist.Bio, artist.Avatar)
 		return row
 	}())
 

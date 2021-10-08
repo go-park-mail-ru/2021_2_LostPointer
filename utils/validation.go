@@ -5,42 +5,26 @@ import (
 	"regexp"
 )
 
-func validatePassword(password string) (bool, string, error) {
-	isLong := len(password) >= 8
-	if !isLong {
-		return false, "Password must contain at least 8 characters", nil
+const passwordRequiredLength = "8"
+
+func ValidatePassword(password string) (bool, string, error) {
+	patterns := map[string]string {
+		`^.{` + passwordRequiredLength + `,}$`: "Password must contain at least" + passwordRequiredLength + "characters",
+		`[0-9]`: "Password must contain at least one digit",
+		`[A-Z]`: "Password must contain at least one uppercase letter",
+		`[a-z]`: "Password must contain at least one lowercase letter",
+		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: "Password must contain as least one special symbol",
+
 	}
 
-	containDigit, err := regexp.MatchString(`[0-9]`, password)
-	if err != nil {
-		return false, "", err
-	}
-	if !containDigit {
-		return false, "Password must contain at least one digit", nil
-	}
-
-	containUpper, err := regexp.MatchString(`[A-Z]`, password)
-	if err != nil {
-		return false, "", err
-	}
-	if !containUpper {
-		return false, "Password must contain at least one uppercase letter", nil
-	}
-
-	containLower, err := regexp.MatchString(`[a-z]`, password)
-	if err != nil {
-		return false, "", err
-	}
-	if !containLower {
-		return false, "Password must contain at least one lowercase letter", nil
-	}
-
-	containSpecial, err := regexp.MatchString(`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`, password)
-	if err != nil {
-		return false, "", err
-	}
-	if !containSpecial {
-		return false, "Password must contain as least one special symbol", nil
+	for pattern, errorMessage := range patterns {
+		isValid, err := regexp.MatchString(pattern, password)
+		if err != nil {
+			return false, "", err
+		}
+		if !isValid {
+			return false, errorMessage, err
+		}
 	}
 
 	return true, "", nil
@@ -64,7 +48,7 @@ func ValidateSignUp(user *models.User) (bool, string, error) {
 		return false, "Invalid email", nil
 	}
 
-	passwordValid, message, err := validatePassword(user.Password)
+	passwordValid, message, err := ValidatePassword(user.Password)
 	if err != nil {
 		return false, "", err
 	}

@@ -132,10 +132,9 @@ func LogoutHandler(redisConnection *redis.Client) echo.HandlerFunc {
 			log.Println(err)
 			return c.JSON(http.StatusUnauthorized, &models.Response{Message: "Unauthorized"})
 		}
-		log.Println("Cookies: ", cookie)
-		log.Println(cookie.Value)
 		redisConnection.Del(cookie.Value)
 		cookie.Expires = time.Now().AddDate(0, 0, -1)
+		cookie.Path = "/"
 		c.SetCookie(cookie)
 
 		return c.JSON(http.StatusOK, &models.Response{Message: "Logged out"})
@@ -157,7 +156,8 @@ func AuthHandler(redisConnection *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("Session_cookie")
 		if err != nil {
-			return err
+			return c.JSON(http.StatusUnauthorized,
+				&models.Response{Message: "User not authorized"})
 		}
 		id, err := utils.GetSessionUser(redisConnection, cookie.Value)
 		if id == 0 {

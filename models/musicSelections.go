@@ -27,7 +27,7 @@ type Album struct {
 type Artist struct {
 	Id   int64  `json:"id"`
 	Name string `json:"name"`
-	Bio  string `json:"bio"`
+	Avatar string `json:"avatar"`
 }
 
 type Playlist struct {

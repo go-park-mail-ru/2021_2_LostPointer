@@ -82,19 +82,16 @@ func GetAlbums(amount int, db *sql.DB) ([]models.Album, error) {
 func GetArtists(amount int, db *sql.DB) ([]models.Artist, error) {
 	artists := make([]models.Artist, 0)
 
-	rows, err := db.Query(fmt.Sprintf(`SELECT artists.id, artists.name, artists.bio, artists.avatar FROM artists LIMIT %d`, amount))
+	rows, err := db.Query(fmt.Sprintf(`SELECT artists.id, artists.name, artists.avatar FROM artists LIMIT %d`, amount))
 	if err != nil {
 		return nil, err
 	}
 
 	var artist models.Artist
 	for rows.Next() {
-		if err := rows.Scan(&artist.Id, &artist.Name, &artist.Bio, &artist.Avatar); err != nil {
-			if artist.Bio == "" && artist.Name == "" {
-				return nil, err
-			}
+		if err := rows.Scan(&artist.Id, &artist.Name, &artist.Avatar); err != nil {
+			return nil, err
 		}
-		fmt.Println(artist)
 		artists = append(artists, artist)
 	}
 

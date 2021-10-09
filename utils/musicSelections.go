@@ -107,7 +107,6 @@ func GetTracks(amount int, db *sql.DB, genres ...string) ([]models.Track, error)
 		return nil, err
 	}
 
-	fmt.Println(tracksId)
 	tracksIdRandom := make([]int, 0)
 	for i := 0; i < amount; {
 		newRandomTrackId := tracksId[rand.Intn(len(tracksId)-1)]
@@ -174,7 +173,7 @@ func GetAlbums(amount int, db *sql.DB) ([]models.Album, error) {
 func GetArtists(amount int, db *sql.DB) ([]models.Artist, error) {
 	artists := make([]models.Artist, 0)
 
-	rows, err := db.Query(fmt.Sprintf(`SELECT artists.id, artists.name, artists.avatar FROM artists LIMIT %d`, amount))
+	rows, err := db.Query(fmt.Sprintf(`SELECT artists.id, artists.name, artists.avatar FROM artists WHERE artists.avatar != 'frank_sinatra.jpg' LIMIT %d`, amount))
 	if err != nil {
 		return nil, err
 	}

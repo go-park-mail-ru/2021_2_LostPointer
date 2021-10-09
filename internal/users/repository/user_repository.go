@@ -2,33 +2,33 @@ package repository
 
 import (
 	"2021_2_LostPointer/internal/models"
-	"crypto/sha1"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
 	"github.com/go-redis/redis"
-	"log"
 	"math/rand"
-	"strconv"
+	"strings"
 	"time"
 )
 
 const SessionTokenLength = 40
 const SaltLength = 8
 
-type UserRepositoryRealisation struct {
+type UserRepository struct {
 	userDB 			*sql.DB
 	redisConnection *redis.Client
 }
 
-func NewUserRepositoryRealization(db *sql.DB, redisConnection *redis.Client) UserRepositoryRealisation {
-	return UserRepositoryRealisation{userDB: db, redisConnection: redisConnection}
+func NewUserRepository(db *sql.DB, redisConnection *redis.Client) UserRepository {
+	return UserRepository{userDB: db, redisConnection: redisConnection}
 }
 
 func GetRandomString(l int) string {
+	validCharacters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	rand.Seed(time.Now().UnixNano())
 	bytes := make([]byte, l)
 	for i := 0; i < l; i++ {
-		bytes[i] = byte(RandInt(97, 122))
+		bytes[i] = validCharacters[RandInt(0, len(validCharacters) - 1)]
 	}
 	return string(bytes)
 }
@@ -38,46 +38,32 @@ func RandInt(min int, max int) int {
 }
 
 func StoreSession(redisConnection *redis.Client, session *models.Session) error {
-	err := redisConnection.Set(session.Session, session.UserId, time.Hour).Err()
+	err := redisConnection.Set(session.Session, session.UserID, time.Hour).Err()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetSessionUser(redisConnection *redis.Client, session string) (int, error) {
-	res, err := redisConnection.Get(session).Result()
-	if err != nil {
-		log.Println(err)
-		return 0, err
-	}
-	id, err := strconv.Atoi(res)
-	if err != nil {
-		log.Println(err)
-		return 0, err
-	}
-	return id, err
-}
-
 func GetHash(str string) string {
-	hasher := sha1.New()
+	hasher := sha256.New()
 	hasher.Write([]byte(str))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (Data UserRepositoryRealisation) CreateUser(userData models.User) (string, error) {
-	var id uint64 = 0
+func (Data UserRepository) CreateUser(userData models.User) (string, error) {
+	var id uint64
 
 	salt := GetRandomString(SaltLength)
 	err := Data.userDB.QueryRow(
 		`INSERT INTO users(email, password, name, salt) VALUES($1, $2, $3, $4) RETURNING id`,
-		userData.Email, GetHash(userData.Password + salt), userData.NickName , salt,
+		strings.ToLower(userData.Email), GetHash(userData.Password + salt), userData.Nickname, salt,
 		).Scan(&id)
 	if err != nil {
 		return "", err
 	}
 	sessionToken := GetRandomString(SessionTokenLength)
-	err = StoreSession(Data.redisConnection, &models.Session{UserId: id, Session: sessionToken})
+	err = StoreSession(Data.redisConnection, &models.Session{UserID: id, Session: sessionToken})
 	if err != nil {
 		return "", err
 	}
@@ -85,8 +71,8 @@ func (Data UserRepositoryRealisation) CreateUser(userData models.User) (string, 
 	return sessionToken, err
 }
 
-func (Data UserRepositoryRealisation) IsEmailUnique(email string) (bool, error) {
-	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE email=$1`, email)
+func (Data UserRepository) IsEmailUnique(email string) (bool, error) {
+	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE lower(email)=$1`, strings.ToLower(email))
 	if err != nil {
 		return false, err
 	}
@@ -96,8 +82,9 @@ func (Data UserRepositoryRealisation) IsEmailUnique(email string) (bool, error) 
 	return true, nil
 }
 
-func (Data UserRepositoryRealisation) IsNicknameUnique(nickname string) (bool, error) {
-	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE name=$1`, nickname)
+func (Data UserRepository) IsNicknameUnique(nickname string) (bool, error) {
+	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE lower(name)=$1`, strings.ToLower(nickname))
+
 	if err != nil {
 		return false, err
 	}

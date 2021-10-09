@@ -9,11 +9,13 @@ import (
 	"time"
 )
 
-type UserDeliveryRealisation struct {
+const cookieLifetime = time.Hour * 24 * 30
+
+type UserDelivery struct {
 	userLogic users.UserUseCase
 }
 
-func (userD UserDeliveryRealisation) Register(ctx echo.Context) error {
+func (userD UserDelivery) Register(ctx echo.Context) error {
 	var userData models.User
 	err := ctx.Bind(&userData)
 	if err != nil {
@@ -37,17 +39,17 @@ func (userD UserDeliveryRealisation) Register(ctx echo.Context) error {
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode,
-		Expires:  time.Now().Add(time.Hour * 24 * 30),
+		Expires:  time.Now().Add(cookieLifetime),
 	}
 	ctx.SetCookie(cookie)
 
 	return ctx.JSON(http.StatusCreated, &models.Response{Message: "User successfully created"})
 }
 
-func NewUserDelivery(userRealization users.UserUseCase) UserDeliveryRealisation {
-	return UserDeliveryRealisation{userLogic: userRealization}
+func NewUserDelivery(userRealization users.UserUseCase) UserDelivery {
+	return UserDelivery{userLogic: userRealization}
 }
 
-func (userD UserDeliveryRealisation) InitHandlers(server *echo.Echo) {
+func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/signup", userD.Register)
 }

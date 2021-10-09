@@ -1,6 +1,6 @@
 package models
 
 type Session struct {
-	UserID  uint64
+	UserId  uint64
 	Session string
 }

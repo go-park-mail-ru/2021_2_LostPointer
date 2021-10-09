@@ -5,5 +5,5 @@ type User struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Salt     string
-	Name 	 string `json:"name"`
+	Nickname 	 string `json:"nickname"`
 }

@@ -22,6 +22,7 @@ func TestUserExistsLogin(t *testing.T) {
 		Email: "alex",
 		Password: "1234",
 		Salt: GetRandomString(SaltLength),
+		Nickname: "stas_gena_turbo",
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
@@ -43,7 +44,7 @@ func TestUserExistsLogin(t *testing.T) {
 	assert.Equal(t, user.ID, resultId)
 }
 
-func TestIsUserUnique(t *testing.T) {
+func TestIsUserEmailUnique(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Errorf("an error '%s' was not expected when opening a stub database connection", err)
@@ -68,7 +69,40 @@ func TestIsUserUnique(t *testing.T) {
 		return rr
 	}())
 
-	exists, err := IsUserUnique(db, user)
+	exists, err := IsUserEmailUnique(db, user.Email)
+	if err != nil {
+		t.Errorf("Error %s\n occurred during test case with %+v\n", err, user)
+	}
+	assert.Equal(t, false, exists)
+}
+
+func TestIsUserNicknameUnique(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	// Data for testing
+	user := models.User{
+		ID: 1,
+		Email: "alex",
+		Password: "1234",
+		Salt: GetRandomString(SaltLength),
+		Nickname: "stas_gena_turbo",
+	}
+
+	mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id FROM users WHERE nickname=$1
+	`)).WithArgs(
+		driver.Value(user.Nickname),
+	).WillReturnRows(func() *sqlmock.Rows {
+		rr := sqlmock.NewRows([]string{"id"})
+		rr.AddRow(user.ID)
+		return rr
+	}())
+
+	exists, err := IsUserNicknameUnique(db, user.Nickname)
 	if err != nil {
 		t.Errorf("Error %s\n occurred during test case with %+v\n", err, user)
 	}
@@ -88,18 +122,18 @@ func TestCreateUser(t *testing.T) {
 		Email: "alex",
 		Password: "1234",
 		Salt: GetRandomString(SaltLength),
-		Name: "Leonid",
+		Nickname: "stas_gena_turbo",
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO users(email, password, salt, name)
+		INSERT INTO users(email, password, salt, nickname)
 		VALUES($1, $2, $3, $4)
 		RETURNING id
 	`)).WithArgs(
 		driver.Value(user.Email),
 		driver.Value(GetHash(user.Password + user.Salt)),
 		driver.Value(user.Salt),
-		driver.Value(user.Name),
+		driver.Value(user.Nickname),
 	).WillReturnRows(func() *sqlmock.Rows {
 		rr := sqlmock.NewRows([]string{"id"})
 		rr.AddRow(user.ID)

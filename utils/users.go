@@ -32,8 +32,19 @@ func UserExistsLogin(db *sql.DB, user models.User) (uint64, error) {
 	return u.ID, nil
 }
 
-func IsUserUnique(db *sql.DB, user models.User) (bool, error) {
-	rows, err := db.Query(`SELECT id FROM users WHERE email=$1`, user.Email)
+func IsUserEmailUnique(db *sql.DB, email string) (bool, error) {
+	rows, err := db.Query(`SELECT id FROM users WHERE email=$1`, email)
+	if err != nil {
+		return false, err
+	}
+	if rows.Next() {
+		return false, nil
+	}
+	return true, nil
+}
+
+func IsUserNicknameUnique(db *sql.DB, nickname string) (bool, error) {
+	rows, err := db.Query(`SELECT id FROM users WHERE nickname=$1`, nickname)
 	if err != nil {
 		return false, err
 	}
@@ -51,12 +62,12 @@ func CreateUser(db *sql.DB, user models.User, customSalt ...string) (uint64, err
 	} else {
 		salt = GetRandomString(SaltLength)
 	}
-	err := db.QueryRow(`INSERT INTO users(email, password, salt, name)
+	err := db.QueryRow(`INSERT INTO users(email, password, salt, nickname)
 			VALUES($1, $2, $3, $4) RETURNING id`,
 			user.Email,
 			GetHash(user.Password + salt),
 			salt,
-			user.Name).Scan(&lastID)
+			user.Nickname).Scan(&lastID)
 	if err != nil {
 		log.Fatal(err)
 		return 0, err

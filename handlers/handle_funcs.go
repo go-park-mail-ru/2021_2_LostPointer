@@ -78,14 +78,22 @@ func SignUp(c echo.Context, args *Arguments) error {
 		return c.JSON(http.StatusBadRequest, &models.Response{Message: message})
 	}
 
-	isUnique, err := utils.IsUserUnique(args.db, user)
+	isEmailUnique, err := utils.IsUserEmailUnique(args.db, user.Email)
 	if err != nil {
 		return err
 	}
-
-	if !isUnique {
-		return c.JSON(http.StatusBadRequest, &models.Response{Message: "User is not unique"})
+	if !isEmailUnique {
+		return c.JSON(http.StatusBadRequest, &models.Response{Message: "Email is already taken"})
 	}
+	isNicknameUnique, err := utils.IsUserNicknameUnique(args.db, user.Nickname)
+	if err != nil {
+		return err
+	}
+	if !isNicknameUnique {
+		return c.JSON(http.StatusBadRequest, &models.Response{Message: "Nickname is already taken"})
+	}
+
+
 	userID, err := utils.CreateUser(args.db, user)
 	if err != nil {
 		return err

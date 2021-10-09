@@ -31,7 +31,7 @@ func TestValidateSignUpValid(t *testing.T) {
 		ID: 1,
 		Email: "alexeikasenke@gmail.com",
 		Password: "AlexRulitTankom2005!",
-		Name: "Kasenka",
+		Nickname: "Kasenka",
 		Salt: GetRandomString(SaltLength),
 	}
 	isValid, _, err := ValidateSignUp(user)
@@ -46,7 +46,7 @@ func TestValidateSignUpInvalidEmail(t *testing.T) {
 		ID: 1,
 		Email: "alexeikasenkegmail.com",
 		Password: "AlexRulitTankom2005!",
-		Name: "Kasenka",
+		Nickname: "Kasenka",
 		Salt: GetRandomString(SaltLength),
 	}
 	isValid, _, err := ValidateSignUp(user)
@@ -61,7 +61,7 @@ func TestValidateSignUpInvalidPassword(t *testing.T) {
 		ID: 1,
 		Email: "alexeikasenke@gmail.com",
 		Password: "AlexRulitTankom2005",
-		Name: "Kasenka",
+		Nickname: "Kasenka",
 		Salt: GetRandomString(SaltLength),
 	}
 	isValid, _, err := ValidateSignUp(user)
@@ -76,7 +76,7 @@ func TestValidateSignUpInvalidName(t *testing.T) {
 		ID: 1,
 		Email: "alexeikasenkegmail.com",
 		Password: "AlexRulitTankom2005!",
-		Name: "Kasenka_1",
+		Nickname: "Kasenka_1",
 		Salt: GetRandomString(SaltLength),
 	}
 	isValid, _, err := ValidateSignUp(user)

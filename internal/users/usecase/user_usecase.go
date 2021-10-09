@@ -3,13 +3,16 @@ package usecase
 import (
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
+	"log"
 	"regexp"
 )
 
 const passwordRequiredLength = "8"
+const minNicknameLength = "3"
+const maxNicknameLength = "15"
 
-type UserUseCaseRealisation struct {
-	userDB   		users.UserRepository
+type UserUseCase struct {
+	userDB	users.UserRepository
 }
 
 func ValidatePassword(password string) (bool, string, error) {
@@ -18,7 +21,7 @@ func ValidatePassword(password string) (bool, string, error) {
 		`[0-9]`: "Password must contain at least one digit",
 		`[A-Z]`: "Password must contain at least one uppercase letter",
 		`[a-z]`: "Password must contain at least one lowercase letter",
-		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: "Password must contain as least one special symbol",
+		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: "Password must contain as least one special character",
 
 	}
 
@@ -36,13 +39,13 @@ func ValidatePassword(password string) (bool, string, error) {
 }
 
 func ValidateRegisterCredentials(userData models.User) (bool, string, error) {
-	isNicknameValid, err := regexp.MatchString(`[a-z0-9_-]{3,15}`, userData.NickName)
+	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + minNicknameLength + `,` + maxNicknameLength + `}$`, userData.Nickname)
+	log.Println(userData.Nickname, isNicknameValid)
 	if err != nil {
 		return false, "", err
 	}
 	if !isNicknameValid {
-		return false, "The length of the name must be from 2 to 15 characters and must not contain spaces," +
-			" special characters and numbers", nil
+		return false, "The length of the name must be from " + minNicknameLength + " to " + maxNicknameLength + " characters", nil
 	}
 
 	isEmailValid, err := regexp.MatchString(`[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`, userData.Email)
@@ -64,7 +67,7 @@ func ValidateRegisterCredentials(userData models.User) (bool, string, error) {
 	return true, "", nil
 }
 
-func (userR UserUseCaseRealisation) Register(userData models.User) (string, string, error) {
+func (userR UserUseCase) Register(userData models.User) (string, string, error) {
 	isValidCredentials, msg, err := ValidateRegisterCredentials(userData)
 	if err != nil {
 		return "", "", err
@@ -81,7 +84,7 @@ func (userR UserUseCaseRealisation) Register(userData models.User) (string, stri
 		return "", "Email is already taken", nil
 	}
 
-	isNicknameUnique, err := userR.userDB.IsNicknameUnique(userData.NickName)
+	isNicknameUnique, err := userR.userDB.IsNicknameUnique(userData.Nickname)
 	if err != nil {
 		return "", "", err
 	}
@@ -97,8 +100,8 @@ func (userR UserUseCaseRealisation) Register(userData models.User) (string, stri
 	return sessionToken, "", nil
 }
 
-func NewUserUserCaseRealization(userDB users.UserRepository) UserUseCaseRealisation {
-	return UserUseCaseRealisation{
+func NewUserUserCase(userDB users.UserRepository) UserUseCase {
+	return UserUseCase{
 		userDB: userDB,
 	}
 }

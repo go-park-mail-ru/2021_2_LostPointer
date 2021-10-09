@@ -14,14 +14,16 @@ import (
 	usecaseUser "2021_2_LostPointer/internal/users/usecase"
 )
 
+const redisDB = 1
+
 type RequestHandlers struct {
-	userHandler deliveryUser.UserDeliveryRealisation
+	userHandler deliveryUser.UserDelivery
 }
 
 func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandlers {
-	userDB := repositoryUser.NewUserRepositoryRealization(db, redisConnection)
+	userDB := repositoryUser.NewUserRepository(db, redisConnection)
 
-	userUseCase := usecaseUser.NewUserUserCaseRealization(userDB)
+	userUseCase := usecaseUser.NewUserUserCase(userDB)
 
 	userH := deliveryUser.NewUserDelivery(userUseCase)
 
@@ -53,8 +55,8 @@ func InitializeDatabase() *sql.DB {
 func InitializeRedis() *redis.Client {
 	redisConnection := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
-		Password: "",
-		DB:       1,
+		Password: os.Getenv("REDIS_PASS"),
+		DB:       redisDB,
 	})
 
 	return redisConnection

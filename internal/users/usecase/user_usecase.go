@@ -172,14 +172,6 @@ func (userR UserUseCase) GetSession(cookieValue string) (bool, error) {
 	return true, nil
 }
 
-func (userR UserUseCase) DeleteSession(cookieValue string) (string, error) {
-	isAuthorized, err := userR.GetSession(cookieValue)
-	if err != nil {
-		return "", err
-	}
-	if !isAuthorized {
-		return "User not authorized", nil
-	}
+func (userR UserUseCase) DeleteSession(cookieValue string) {
 	userR.redisConnection.Del(cookieValue)
-	return "", nil
 }

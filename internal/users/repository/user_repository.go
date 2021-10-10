@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-const SessionTokenLength = 40
 const SaltLength = 8
 
 type UserRepository struct {
@@ -74,7 +73,7 @@ func (Data UserRepository) UserExits(authData models.Auth) (uint64, error) {
 		return 0, err
 	}
 	defer rows.Close()
-	// Пользователь с таким email нет в базе
+	// Пользователя с таким email нет в базе
 	if !rows.Next() {
 		return 0, nil
 	}
@@ -86,7 +85,7 @@ func (Data UserRepository) UserExits(authData models.Auth) (uint64, error) {
 		return 0, nil
 	}
 
-	return id, err
+	return id, nil
 }
 
 func (Data UserRepository) IsEmailUnique(email string) (bool, error) {

@@ -107,14 +107,7 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 		log.Println(err.Error())
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
-	message, err := userD.userLogic.DeleteSession(cookie.Value)
-	if err != nil {
-		log.Println(err.Error())
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
-	}
-	if message != "" {
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
-	}
+	userD.userLogic.DeleteSession(cookie.Value)
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
 	ctx.SetCookie(cookie)
 

@@ -16,11 +16,10 @@ const SaltLength = 8
 
 type UserRepository struct {
 	userDB 			*sql.DB
-	redisConnection *redis.Client
 }
 
-func NewUserRepository(db *sql.DB, redisConnection *redis.Client) UserRepository {
-	return UserRepository{userDB: db, redisConnection: redisConnection}
+func NewUserRepository(db *sql.DB) UserRepository {
+	return UserRepository{userDB: db}
 }
 
 func GetRandomString(l int) string {
@@ -51,24 +50,43 @@ func GetHash(str string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (Data UserRepository) CreateUser(userData models.User) (string, error) {
+func (Data UserRepository) CreateUser(userData models.User) (uint64, error) {
 	var id uint64
 
 	salt := GetRandomString(SaltLength)
 	err := Data.userDB.QueryRow(
-		`INSERT INTO users(email, password, name, salt) VALUES($1, $2, $3, $4) RETURNING id`,
+		`INSERT INTO users(email, password, nickname, salt) VALUES($1, $2, $3, $4) RETURNING id`,
 		strings.ToLower(userData.Email), GetHash(userData.Password + salt), userData.Nickname, salt,
 		).Scan(&id)
 	if err != nil {
-		return "", err
-	}
-	sessionToken := GetRandomString(SessionTokenLength)
-	err = StoreSession(Data.redisConnection, &models.Session{UserID: id, Session: sessionToken})
-	if err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return sessionToken, err
+	return id, nil
+}
+
+func (Data UserRepository) UserExits(authData models.Auth) (uint64, error) {
+	var id uint64
+	var password, salt string
+
+	rows, err := Data.userDB.Query(`SELECT id, password, salt FROM users WHERE email=$1`, authData.Email)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+	// Пользователь с таким email нет в базе
+	if !rows.Next() {
+		return 0, nil
+	}
+	if err := rows.Scan(&id, &password, &salt); err != nil {
+		return 0, nil
+	}
+	// Не совпадает пароль
+	if GetHash(authData.Password + salt) != password {
+		return 0, nil
+	}
+
+	return id, err
 }
 
 func (Data UserRepository) IsEmailUnique(email string) (bool, error) {
@@ -83,7 +101,7 @@ func (Data UserRepository) IsEmailUnique(email string) (bool, error) {
 }
 
 func (Data UserRepository) IsNicknameUnique(nickname string) (bool, error) {
-	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE lower(name)=$1`, strings.ToLower(nickname))
+	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE lower(nickname)=$1`, strings.ToLower(nickname))
 
 	if err != nil {
 		return false, err

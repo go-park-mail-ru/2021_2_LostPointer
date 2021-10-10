@@ -21,9 +21,9 @@ type RequestHandlers struct {
 }
 
 func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandlers {
-	userDB := repositoryUser.NewUserRepository(db, redisConnection)
+	userDB := repositoryUser.NewUserRepository(db)
 
-	userUseCase := usecaseUser.NewUserUserCase(userDB)
+	userUseCase := usecaseUser.NewUserUserCase(userDB, redisConnection)
 
 	userH := deliveryUser.NewUserDelivery(userUseCase)
 

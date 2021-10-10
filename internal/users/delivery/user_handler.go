@@ -15,8 +15,13 @@ type UserDelivery struct {
 	userLogic users.UserUseCase
 }
 
+func NewUserDelivery(userRealization users.UserUseCase) UserDelivery {
+	return UserDelivery{userLogic: userRealization}
+}
+
 func (userD UserDelivery) Register(ctx echo.Context) error {
 	var userData models.User
+
 	err := ctx.Bind(&userData)
 	if err != nil {
 		log.Println(err.Error())
@@ -46,10 +51,79 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, &models.Response{Message: "User successfully created"})
 }
 
-func NewUserDelivery(userRealization users.UserUseCase) UserDelivery {
-	return UserDelivery{userLogic: userRealization}
+func (userD UserDelivery) Login(ctx echo.Context) error {
+	var authData models.Auth
+
+	err := ctx.Bind(&authData)
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	sessionToken, err := userD.userLogic.Login(authData)
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	if len(sessionToken) == 0 {
+		return ctx.JSON(http.StatusBadRequest, &models.Response{Message: "Wrong username or password"})
+	}
+
+	cookie := &http.Cookie{
+		Name:     "Session_cookie",
+		Value:    sessionToken,
+		Path:     "/",
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().Add(cookieLifetime),
+	}
+	ctx.SetCookie(cookie)
+
+	return ctx.JSON(http.StatusOK, &models.Response{Message: "User is authorized"})
+}
+
+func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
+	cookie, err := ctx.Cookie("Session_cookie")
+	if err != nil {
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+	isAuthorized, err := userD.userLogic.GetSession(cookie.Value)
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+
+	if !isAuthorized {
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+	return ctx.JSON(http.StatusOK, &models.Response{Message: "User is authorized"})
+}
+
+func (userD UserDelivery) Logout(ctx echo.Context) error {
+	cookie, err := ctx.Cookie("Session_cookie")
+	log.Println(cookie.Value)
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+	message, err := userD.userLogic.DeleteSession(cookie.Value)
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+	if message != "" {
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+	cookie.Expires = time.Now().AddDate(0, 0, -1)
+	ctx.SetCookie(cookie)
+
+	return ctx.JSON(http.StatusOK, &models.Response{Message: "Logged out"})
 }
 
 func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/signup", userD.Register)
+	server.POST("/api/v1/user/signin", userD.Login)
+	server.POST("/api/v1/user/logout", userD.Logout)
+	server.GET("/api/v1/auth", userD.IsAuthorized)
 }

@@ -10,17 +10,17 @@ import (
 
 func TestUserUseCase_Login(t *testing.T) {
 	tests := []struct {
-		name 	  string
-		dbMock 	  *mock.MockUserRepositoryIFace
-		redisMock *mock.MockRedisStoreIFace
-		input 	  models.Auth
-		expected  string
+		name 	  	  string
+		dbMock 	  	  *mock.MockUserRepositoryIFace
+		redisMock 	  *mock.MockRedisStoreIFace
+		input 	  	  models.Auth
+		expected  	  string
 		expectedErr   bool
 	}{
 		{
 			name: "Successful login",
 			dbMock: &mock.MockUserRepositoryIFace{
-				UserExitsFunc: func(models.Auth) (uint64, error) {
+				DoesUserExistFunc: func(models.Auth) (uint64, error) {
 					return 1, nil
 				},
 			},
@@ -38,7 +38,7 @@ func TestUserUseCase_Login(t *testing.T) {
 		{
 			name: "Invalid credentials",
 			dbMock: &mock.MockUserRepositoryIFace{
-				UserExitsFunc: func(models.Auth) (uint64, error) {
+				DoesUserExistFunc: func(models.Auth) (uint64, error) {
 					return 0, nil
 				},
 			},
@@ -56,7 +56,7 @@ func TestUserUseCase_Login(t *testing.T) {
 		{
 			name: "StoreSession error",
 			dbMock: &mock.MockUserRepositoryIFace{
-				UserExitsFunc: func(models.Auth) (uint64, error) {
+				DoesUserExistFunc: func(models.Auth) (uint64, error) {
 					return 1, nil
 				},
 			},
@@ -73,9 +73,9 @@ func TestUserUseCase_Login(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name: "UserExist error",
+			name: "DoesUserExist error",
 			dbMock: &mock.MockUserRepositoryIFace{
-				UserExitsFunc: func(models.Auth) (uint64, error) {
+				DoesUserExistFunc: func(models.Auth) (uint64, error) {
 					return 0, errors.New("sql_error")
 				},
 			},
@@ -89,18 +89,18 @@ func TestUserUseCase_Login(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			var err error
 
-			r := NewUserUserCase(tt.dbMock, tt.redisMock)
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
 
-			got, err := r.Login(tt.input)
-			if tt.expectedErr {
+			got, err := r.Login(testCase.input)
+			if testCase.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 		})
 	}
@@ -108,11 +108,11 @@ func TestUserUseCase_Login(t *testing.T) {
 
 func TestUserUseCase_IsAuthorized(t *testing.T) {
 	tests := []struct {
-		name 	  string
-		dbMock 	  *mock.MockUserRepositoryIFace
-		redisMock *mock.MockRedisStoreIFace
-		input 	  string
-		expected  bool
+		name 	  	  string
+		dbMock 	  	  *mock.MockUserRepositoryIFace
+		redisMock 	  *mock.MockRedisStoreIFace
+		input 	  	  string
+		expected  	  bool
 		expectedErr   bool
 	}{
 		{
@@ -151,17 +151,17 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := NewUserUserCase(tt.dbMock, tt.redisMock)
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
 
-			got, err := r.IsAuthorized(tt.input)
+			got, err := r.IsAuthorized(testCase.input)
 
-			if tt.expectedErr {
+			if testCase.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 		})
 	}
@@ -175,8 +175,8 @@ func TestValidatePassword(t *testing.T) {
 	}
 
 	tests := []struct {
-		name 	 string
-		password string
+		name 	   string
+		password   string
 		expected   response
 	}{
 		{
@@ -193,7 +193,7 @@ func TestValidatePassword(t *testing.T) {
 			password: "Avt8!",
 			expected: response{
 				isValid: false,
-				message: "Password must contain at least 8 characters",
+				message: PasswordValidationInvalidLengthMessage,
 				err: nil,
 			},
 		},
@@ -202,7 +202,7 @@ func TestValidatePassword(t *testing.T) {
 			password: "AVTFAUDSADIAODIS8!",
 			expected: response{
 				isValid: false,
-				message: "Password must contain at least one lowercase letter",
+				message: PasswordValidationNoLowerCaseMessage,
 				err: nil,
 			},
 		},
@@ -211,7 +211,7 @@ func TestValidatePassword(t *testing.T) {
 			password: "avtdsaopdsodpasdos8!",
 			expected: response{
 				isValid: false,
-				message: "Password must contain at least one uppercase letter",
+				message: PasswordValidationNoUppercaseMessage,
 				err: nil,
 			},
 		},
@@ -220,7 +220,7 @@ func TestValidatePassword(t *testing.T) {
 			password: "Avtdskdksdlskdladkl!",
 			expected: response{
 				isValid: false,
-				message: "Password must contain at least one digit",
+				message: PasswordValidationNoDigitMessage,
 				err: nil,
 			},
 		},
@@ -229,19 +229,19 @@ func TestValidatePassword(t *testing.T) {
 			password: "Avtdskdksdlskd8",
 			expected: response{
 				isValid: false,
-				message: "Password must contain as least one special character",
+				message: PasswordValidationNoSpecialSymbolMessage,
 				err: nil,
 			},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			got := response{}
 
-			got.isValid, got.message, got.err = ValidatePassword(tt.password)
+			got.isValid, got.message, got.err = ValidatePassword(testCase.password)
 
-			assert.Equal(t, tt.expected, got)
+			assert.Equal(t, testCase.expected, got)
 		})
 	}
 }
@@ -266,8 +266,8 @@ func TestValidateRegisterCredentials(t *testing.T) {
 	}
 
 	tests := []struct {
-		name string
-		input models.User
+		name 	 string
+		input 	 models.User
 		expected response
 	}{
 		{
@@ -292,7 +292,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			},
 			expected: response{
 				isValid: false,
-				message: "The length of nickname must be from 3 to 15 characters",
+				message: NickNameValidationInvalidLengthMessage,
 				err: nil,
 			},
 		},
@@ -305,7 +305,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			},
 			expected: response{
 				isValid: false,
-				message: "Invalid email",
+				message: InvalidEmailMessage,
 				err: nil,
 			},
 		},
@@ -318,19 +318,19 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			},
 			expected: response{
 				isValid: false,
-				message: "Password must contain at least 8 characters",
+				message: PasswordValidationInvalidLengthMessage,
 				err: nil,
 			},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			got := response{}
 
-			got.isValid, got.message, got.err = ValidateRegisterCredentials(tt.input)
+			got.isValid, got.message, got.err = ValidateRegisterCredentials(testCase.input)
 
-			assert.Equal(t, tt.expected, got)
+			assert.Equal(t, testCase.expected, got)
 		})
 	}
 }
@@ -343,11 +343,11 @@ func TestUserUseCase_Register(t *testing.T) {
 	}
 
 	tests := []struct {
-		name 	  string
-		dbMock 	  *mock.MockUserRepositoryIFace
-		redisMock *mock.MockRedisStoreIFace
-		input 	  models.User
-		expected  response
+		name 	  	  string
+		dbMock 	  	  *mock.MockUserRepositoryIFace
+		redisMock 	  *mock.MockRedisStoreIFace
+		input 	  	  models.User
+		expected  	  response
 		expectedErr   bool
 	}{
 		{
@@ -390,7 +390,7 @@ func TestUserUseCase_Register(t *testing.T) {
 			},
 			expected: response{
 				sessionToken: "",
-				message: "Invalid email",
+				message: InvalidEmailMessage,
 				err: nil,
 			},
 		},
@@ -510,18 +510,18 @@ func TestUserUseCase_Register(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := NewUserUserCase(tt.dbMock, tt.redisMock)
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
 			got := response{}
 
-			got.sessionToken, got.message, got.err = r.Register(tt.input)
+			got.sessionToken, got.message, got.err = r.Register(testCase.input)
 
-			if tt.expectedErr {
+			if testCase.expectedErr {
 				assert.Error(t, got.err)
 			} else {
 				assert.NoError(t, got.err)
-				assert.Equal(t, tt.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 		})
 	}

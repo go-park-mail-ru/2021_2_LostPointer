@@ -2,7 +2,6 @@ package repository
 
 import (
 	"2021_2_LostPointer/pkg/models"
-	"database/sql"
 	"database/sql/driver"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -14,7 +13,7 @@ import (
 	"time"
 )
 
-func TestUserRepository_UserExits(t *testing.T) {
+func TestUserRepository_DoesUserExist(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -24,9 +23,9 @@ func TestUserRepository_UserExits(t *testing.T) {
 	r := NewUserRepository(db)
 
 	tests := []struct {
-		name 	string
-		mock 	func()
-		input 	models.Auth
+		name 		string
+		mock 		func()
+		input 		models.Auth
 		expected 	uint64
 		expectedErr bool
 	}{
@@ -74,16 +73,16 @@ func TestUserRepository_UserExits(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.mock()
 
-			got, err := r.UserExits(tt.input)
-			if tt.expectedErr {
+			got, err := r.DoesUserExist(testCase.input)
+			if testCase.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 		})
 	}
@@ -99,9 +98,9 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 	r := NewUserRepository(db)
 
 	tests := []struct {
-		name    string
-		mock    func()
-		input   string
+		name    	string
+		mock    	func()
+		input   	string
 		expected    bool
 		expectedErr bool
 	}{
@@ -137,16 +136,16 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.mock()
 
-			got, err := r.IsEmailUnique(tt.input)
-			if tt.expectedErr {
+			got, err := r.IsEmailUnique(testCase.input)
+			if testCase.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 		})
 	}
@@ -162,9 +161,9 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 	r := NewUserRepository(db)
 
 	tests := []struct {
-		name    string
-		mock    func()
-		input   string
+		name    	string
+		mock    	func()
+		input   	string
 		expected    bool
 		expectedErr bool
 	}{
@@ -200,16 +199,16 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.mock()
 
-			got, err := r.IsNicknameUnique(tt.input)
-			if tt.expectedErr {
+			got, err := r.IsNicknameUnique(testCase.input)
+			if testCase.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 		})
 	}
@@ -225,9 +224,9 @@ func TestUserRepository_CreateUser(t *testing.T) {
 	r := NewUserRepository(db)
 
 	tests := []struct {
-		name    string
-		mock    func()
-		input   models.User
+		name    	string
+		mock    	func()
+		input   	models.User
 		expected    uint64
 		expectedErr bool
 	}{
@@ -261,16 +260,16 @@ func TestUserRepository_CreateUser(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.mock()
 
-			got, err := r.CreateUser(tt.input, "1234")
-			if tt.expectedErr {
+			got, err := r.CreateUser(testCase.input, "1234")
+			if testCase.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 		})
 	}
@@ -315,10 +314,10 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 	defer db.Close()
 
 	tests := []struct {
-		name string
-		mock func()
-		input string
-		expected int
+		name 		string
+		mock 		func()
+		input 		string
+		expected 	int
 		expectedErr bool
 	}{
 		{
@@ -342,22 +341,22 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 
 	r := NewRedisStore(db)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T){
-			tt.mock()
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T){
+			testCase.mock()
 
-			got, err := r.GetSessionUserId(tt.input)
-			if tt.expectedErr {
+			got, err := r.GetSessionUserId(testCase.input)
+			if testCase.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 		})
 	}
 }
 
-func TestGetHash(t *testing.T) {
+func TestGetHashReturnsStringWithCorrectLength(t *testing.T) {
 	expected := "b603de426ed0b347d8ca096fb13ba40057d1cb21c9767f231cbb490f09fee088"
 
 	inputStr := "alex1234"
@@ -367,12 +366,16 @@ func TestGetHash(t *testing.T) {
 }
 
 func TestGetRandomString(t *testing.T) {
-	expectedLength := 10
+	uniqueStrings := make(map[string]bool)
 
-	inputLength := 10
-	got := GetRandomString(inputLength)
+	const testCasesAmount = 10000
+	const length = 10
+	for i := 0; i < testCasesAmount; i++ {
+		got := GetRandomString(length)
+		uniqueStrings[got] = true
+	}
 
-	assert.Equal(t, len(got), expectedLength)
+	assert.Equal(t, len(uniqueStrings), testCasesAmount)
 }
 
 func TestRandInt(t *testing.T) {
@@ -381,10 +384,4 @@ func TestRandInt(t *testing.T) {
 	got := RandInt(inputMin, inputMax)
 
 	assert.True(t, got >= inputMin && got <= inputMax)
-}
-
-func TestNewUserRepository(t *testing.T) {
-	db := new(sql.DB)
-	r := NewUserRepository(db)
-	assert.Equal(t, r.userDB, db)
 }

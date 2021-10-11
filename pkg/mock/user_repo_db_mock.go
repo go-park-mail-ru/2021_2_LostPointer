@@ -9,16 +9,16 @@ import (
 	"sync"
 )
 
-// Ensure, that MockUserRepository does implement users.UserRepository.
+// Ensure, that MockUserRepositoryIFace does implement users.UserRepositoryIFace.
 // If this is not the case, regenerate this file with moq.
-var _ users.UserRepository = &MockUserRepository{}
+var _ users.UserRepositoryIFace = &MockUserRepositoryIFace{}
 
-// MockUserRepository is a mock implementation of users.UserRepository.
+// MockUserRepositoryIFace is a mock implementation of users.UserRepositoryIFace.
 //
-// 	func TestSomethingThatUsesUserRepository(t *testing.T) {
+// 	func TestSomethingThatUsesUserRepositoryIFace(t *testing.T) {
 //
-// 		// make and configure a mocked users.UserRepository
-// 		mockedUserRepository := &MockUserRepository{
+// 		// make and configure a mocked users.UserRepositoryIFace
+// 		mockedUserRepositoryIFace := &MockUserRepositoryIFace{
 // 			CreateUserFunc: func(user models.User, strings ...string) (uint64, error) {
 // 				panic("mock out the CreateUser method")
 // 			},
@@ -33,11 +33,11 @@ var _ users.UserRepository = &MockUserRepository{}
 // 			},
 // 		}
 //
-// 		// use mockedUserRepository in code that requires users.UserRepository
+// 		// use mockedUserRepositoryIFace in code that requires users.UserRepositoryIFace
 // 		// and then make assertions.
 //
 // 	}
-type MockUserRepository struct {
+type MockUserRepositoryIFace struct {
 	// CreateUserFunc mocks the CreateUser method.
 	CreateUserFunc func(user models.User, strings ...string) (uint64, error)
 
@@ -82,9 +82,9 @@ type MockUserRepository struct {
 }
 
 // CreateUser calls CreateUserFunc.
-func (mock *MockUserRepository) CreateUser(user models.User, strings ...string) (uint64, error) {
+func (mock *MockUserRepositoryIFace) CreateUser(user models.User, strings ...string) (uint64, error) {
 	if mock.CreateUserFunc == nil {
-		panic("MockUserRepository.CreateUserFunc: method is nil but UserRepository.CreateUser was just called")
+		panic("MockUserRepositoryIFace.CreateUserFunc: method is nil but UserRepositoryIFace.CreateUser was just called")
 	}
 	callInfo := struct {
 		User    models.User
@@ -101,8 +101,8 @@ func (mock *MockUserRepository) CreateUser(user models.User, strings ...string) 
 
 // CreateUserCalls gets all the calls that were made to CreateUser.
 // Check the length with:
-//     len(mockedUserRepository.CreateUserCalls())
-func (mock *MockUserRepository) CreateUserCalls() []struct {
+//     len(mockedUserRepositoryIFace.CreateUserCalls())
+func (mock *MockUserRepositoryIFace) CreateUserCalls() []struct {
 	User    models.User
 	Strings []string
 } {
@@ -117,9 +117,9 @@ func (mock *MockUserRepository) CreateUserCalls() []struct {
 }
 
 // IsEmailUnique calls IsEmailUniqueFunc.
-func (mock *MockUserRepository) IsEmailUnique(s string) (bool, error) {
+func (mock *MockUserRepositoryIFace) IsEmailUnique(s string) (bool, error) {
 	if mock.IsEmailUniqueFunc == nil {
-		panic("MockUserRepository.IsEmailUniqueFunc: method is nil but UserRepository.IsEmailUnique was just called")
+		panic("MockUserRepositoryIFace.IsEmailUniqueFunc: method is nil but UserRepositoryIFace.IsEmailUnique was just called")
 	}
 	callInfo := struct {
 		S string
@@ -134,8 +134,8 @@ func (mock *MockUserRepository) IsEmailUnique(s string) (bool, error) {
 
 // IsEmailUniqueCalls gets all the calls that were made to IsEmailUnique.
 // Check the length with:
-//     len(mockedUserRepository.IsEmailUniqueCalls())
-func (mock *MockUserRepository) IsEmailUniqueCalls() []struct {
+//     len(mockedUserRepositoryIFace.IsEmailUniqueCalls())
+func (mock *MockUserRepositoryIFace) IsEmailUniqueCalls() []struct {
 	S string
 } {
 	var calls []struct {
@@ -148,9 +148,9 @@ func (mock *MockUserRepository) IsEmailUniqueCalls() []struct {
 }
 
 // IsNicknameUnique calls IsNicknameUniqueFunc.
-func (mock *MockUserRepository) IsNicknameUnique(s string) (bool, error) {
+func (mock *MockUserRepositoryIFace) IsNicknameUnique(s string) (bool, error) {
 	if mock.IsNicknameUniqueFunc == nil {
-		panic("MockUserRepository.IsNicknameUniqueFunc: method is nil but UserRepository.IsNicknameUnique was just called")
+		panic("MockUserRepositoryIFace.IsNicknameUniqueFunc: method is nil but UserRepositoryIFace.IsNicknameUnique was just called")
 	}
 	callInfo := struct {
 		S string
@@ -165,8 +165,8 @@ func (mock *MockUserRepository) IsNicknameUnique(s string) (bool, error) {
 
 // IsNicknameUniqueCalls gets all the calls that were made to IsNicknameUnique.
 // Check the length with:
-//     len(mockedUserRepository.IsNicknameUniqueCalls())
-func (mock *MockUserRepository) IsNicknameUniqueCalls() []struct {
+//     len(mockedUserRepositoryIFace.IsNicknameUniqueCalls())
+func (mock *MockUserRepositoryIFace) IsNicknameUniqueCalls() []struct {
 	S string
 } {
 	var calls []struct {
@@ -179,9 +179,9 @@ func (mock *MockUserRepository) IsNicknameUniqueCalls() []struct {
 }
 
 // UserExits calls UserExitsFunc.
-func (mock *MockUserRepository) UserExits(auth models.Auth) (uint64, error) {
+func (mock *MockUserRepositoryIFace) UserExits(auth models.Auth) (uint64, error) {
 	if mock.UserExitsFunc == nil {
-		panic("MockUserRepository.UserExitsFunc: method is nil but UserRepository.UserExits was just called")
+		panic("MockUserRepositoryIFace.UserExitsFunc: method is nil but UserRepositoryIFace.UserExits was just called")
 	}
 	callInfo := struct {
 		Auth models.Auth
@@ -196,8 +196,8 @@ func (mock *MockUserRepository) UserExits(auth models.Auth) (uint64, error) {
 
 // UserExitsCalls gets all the calls that were made to UserExits.
 // Check the length with:
-//     len(mockedUserRepository.UserExitsCalls())
-func (mock *MockUserRepository) UserExitsCalls() []struct {
+//     len(mockedUserRepositoryIFace.UserExitsCalls())
+func (mock *MockUserRepositoryIFace) UserExitsCalls() []struct {
 	Auth models.Auth
 } {
 	var calls []struct {

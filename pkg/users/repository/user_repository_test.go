@@ -4,6 +4,7 @@ import (
 	"2021_2_LostPointer/pkg/models"
 	"database/sql"
 	"database/sql/driver"
+	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-redis/redismock/v8"
 	"github.com/stretchr/testify/assert"
@@ -26,8 +27,8 @@ func TestUserRepository_UserExits(t *testing.T) {
 		name 	string
 		mock 	func()
 		input 	models.Auth
-		want 	uint64
-		wantErr bool
+		expected 	uint64
+		expectedErr bool
 	}{
 		{
 			name: "User exists in database",
@@ -38,7 +39,7 @@ func TestUserRepository_UserExits(t *testing.T) {
 					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
 			},
 			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
-			want: 1,
+			expected: 1,
 		},
 		{
 			name: "Wrong email",
@@ -48,7 +49,7 @@ func TestUserRepository_UserExits(t *testing.T) {
 					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
 			},
 			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
-			want: 0,
+			expected: 0,
 		},
 		{
 			name: "Wrong password",
@@ -59,7 +60,17 @@ func TestUserRepository_UserExits(t *testing.T) {
 					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
 			},
 			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
-			want: 0,
+			expected: 0,
+		},
+		{
+			name: "Func returns error",
+			mock: func(){
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
+					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnError(errors.New("Error occurred during request "))
+			},
+			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
+			expected: 0,
+			expectedErr: true,
 		},
 	}
 
@@ -68,11 +79,11 @@ func TestUserRepository_UserExits(t *testing.T) {
 			tt.mock()
 
 			got, err := r.UserExits(tt.input)
-			if tt.wantErr {
+			if tt.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
+				assert.Equal(t, tt.expected, got)
 			}
 		})
 	}
@@ -91,8 +102,8 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 		name    string
 		mock    func()
 		input   string
-		want    bool
-		wantErr bool
+		expected    bool
+		expectedErr bool
 	}{
 		{
 			name: "Email is unique",
@@ -102,7 +113,7 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
 			},
 			input: "alex1234@gmail.com",
-			want: true,
+			expected: true,
 		},
 		{
 			name: "Email is not unique",
@@ -112,7 +123,17 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
 			},
 			input: "alex1234@gmail.com",
-			want: false,
+			expected: false,
+		},
+		{
+			name: "Func returns error",
+			mock: func(){
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE lower(email)=$1`)).
+					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnError(errors.New("Error occurred during request "))
+			},
+			input: "alex1234@gmail.com",
+			expected: false,
+			expectedErr: true,
 		},
 	}
 
@@ -121,11 +142,11 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 			tt.mock()
 
 			got, err := r.IsEmailUnique(tt.input)
-			if tt.wantErr {
+			if tt.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
+				assert.Equal(t, tt.expected, got)
 			}
 		})
 	}
@@ -144,8 +165,8 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 		name    string
 		mock    func()
 		input   string
-		want    bool
-		wantErr bool
+		expected    bool
+		expectedErr bool
 	}{
 		{
 			name: "Nickname is unique",
@@ -155,7 +176,7 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 					WithArgs(driver.Value("alex1234")).WillReturnRows(rows)
 			},
 			input: "alex1234",
-			want: true,
+			expected: true,
 		},
 		{
 			name: "Nickname is not unique",
@@ -165,7 +186,17 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 					WithArgs(driver.Value("alex1234")).WillReturnRows(rows)
 			},
 			input: "alex1234",
-			want: false,
+			expected: false,
+		},
+		{
+			name: "Func returns error",
+			mock: func(){
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE lower(nickname)=$1`)).
+					WithArgs(driver.Value("alex1234")).WillReturnError(errors.New("Error occurred during request "))
+			},
+			input: "alex1234",
+			expected: false,
+			expectedErr: true,
 		},
 	}
 
@@ -174,11 +205,11 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 			tt.mock()
 
 			got, err := r.IsNicknameUnique(tt.input)
-			if tt.wantErr {
+			if tt.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
+				assert.Equal(t, tt.expected, got)
 			}
 		})
 	}
@@ -197,8 +228,8 @@ func TestUserRepository_CreateUser(t *testing.T) {
 		name    string
 		mock    func()
 		input   models.User
-		want    uint64
-		wantErr bool
+		expected    uint64
+		expectedErr bool
 	}{
 		{
 			name: "Add user to db",
@@ -212,7 +243,21 @@ func TestUserRepository_CreateUser(t *testing.T) {
 						driver.Value("1234")).WillReturnRows(rows)
 			},
 			input: models.User{Email: "alex1234@gmail.com", Password: "alex1234", Nickname: "alex1234"},
-			want: 1,
+			expected: 1,
+		},
+		{
+			name: "Func returns error",
+			mock: func(){
+				mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO users(email, password, nickname, salt) VALUES($1, $2, $3, $4) RETURNING id`)).
+					WithArgs(
+						driver.Value(strings.ToLower("alex1234@gmail.com")),
+						driver.Value(GetHash("alex1234" + "1234")),
+						driver.Value("alex1234"),
+						driver.Value("1234")).WillReturnError(errors.New("Error occurred during transaction "))
+			},
+			input: models.User{Email: "alex1234@gmail.com", Password: "alex1234", Nickname: "alex1234"},
+			expected: 0,
+			expectedErr: true,
 		},
 	}
 
@@ -221,11 +266,11 @@ func TestUserRepository_CreateUser(t *testing.T) {
 			tt.mock()
 
 			got, err := r.CreateUser(tt.input, "1234")
-			if tt.wantErr {
+			if tt.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
+				assert.Equal(t, tt.expected, got)
 			}
 		})
 	}
@@ -273,8 +318,8 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 		name string
 		mock func()
 		input string
-		want int
-		wantErr bool
+		expected int
+		expectedErr bool
 	}{
 		{
 			name: "Session exists",
@@ -282,16 +327,16 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 				mock.ExpectGet("some_cookie_value").SetVal("1")
 			},
 			input: "some_cookie_value",
-			want: 1,
+			expected: 1,
 		},
 		{
-			name: "Session does not exist",
+			name: "Func returns error",
 			mock: func() {
 				mock.ExpectGet("some_cookie_value").RedisNil()
 			},
 			input: "some_cookie_value",
-			want: 0,
-			wantErr: true,
+			expected: 0,
+			expectedErr: true,
 		},
 	}
 
@@ -302,11 +347,11 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 			tt.mock()
 
 			got, err := r.GetSessionUserId(tt.input)
-			if tt.wantErr {
+			if tt.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
+				assert.Equal(t, tt.expected, got)
 			}
 		})
 	}

@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo"
 	_ "github.com/lib/pq"
 	"log"
@@ -22,8 +22,9 @@ type RequestHandlers struct {
 
 func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandlers {
 	userDB := repositoryUser.NewUserRepository(db)
+	redisStore := repositoryUser.NewRedisStore(redisConnection)
 
-	userUseCase := usecaseUser.NewUserUserCase(userDB, redisConnection)
+	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore)
 
 	userH := deliveryUser.NewUserDelivery(userUseCase)
 

@@ -12,10 +12,10 @@ import (
 const cookieLifetime = time.Hour * 24 * 30
 
 type UserDelivery struct {
-	userLogic users.UserUseCase
+	userLogic users.UserUseCaseIFace
 }
 
-func NewUserDelivery(userRealization users.UserUseCase) UserDelivery {
+func NewUserDelivery(userRealization users.UserUseCaseIFace) UserDelivery {
 	return UserDelivery{userLogic: userRealization}
 }
 

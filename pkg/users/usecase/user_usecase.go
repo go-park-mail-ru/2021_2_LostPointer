@@ -3,12 +3,11 @@ package usecase
 import (
 	"2021_2_LostPointer/pkg/models"
 	"2021_2_LostPointer/pkg/users"
-	"github.com/go-redis/redis"
 	"math/rand"
 	"regexp"
-	"strconv"
 	"time"
 )
+
 
 const SessionTokenLength = 40
 const passwordRequiredLength = "8"
@@ -16,35 +15,15 @@ const minNicknameLength = "3"
 const maxNicknameLength = "15"
 
 type UserUseCase struct {
-	userDB			users.UserRepository
-	redisConnection *redis.Client
+	userDB	   users.UserRepositoryIFace
+	redisStore users.RedisStoreIFace
 }
 
-func NewUserUserCase(userDB users.UserRepository, redisConnection *redis.Client) UserUseCase {
+func NewUserUserCase(userDB users.UserRepositoryIFace, redisStore users.RedisStoreIFace) UserUseCase {
 	return UserUseCase{
 		userDB: userDB,
-		redisConnection: redisConnection,
+		redisStore: redisStore,
 	}
-}
-
-func StoreSession(redisConnection *redis.Client, session *models.Session) error {
-	err := redisConnection.Set(session.Session, session.UserID, time.Hour).Err()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func GetSessionUserId(redisConnection *redis.Client, session string) (int, error) {
-	res, err := redisConnection.Get(session).Result()
-	if err != nil {
-		return 0, err
-	}
-	id, err := strconv.Atoi(res)
-	if err != nil {
-		return 0, err
-	}
-	return id, err
 }
 
 func GetRandomString(l int) string {
@@ -139,7 +118,7 @@ func (userR UserUseCase) Register(userData models.User) (string, string, error) 
 
 	userID, err := userR.userDB.CreateUser(userData)
 	sessionToken := GetRandomString(SessionTokenLength)
-	err = StoreSession(userR.redisConnection, &models.Session{UserID: userID, Session: sessionToken})
+	err = userR.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -152,8 +131,9 @@ func (userR UserUseCase) Login(authData models.Auth) (string, error) {
 	if userID == 0 {
 		return "", nil
 	}
+
 	sessionToken := GetRandomString(SessionTokenLength)
-	err = StoreSession(userR.redisConnection, &models.Session{UserID: userID, Session: sessionToken})
+	err = userR.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", err
 	}
@@ -162,7 +142,7 @@ func (userR UserUseCase) Login(authData models.Auth) (string, error) {
 }
 
 func (userR UserUseCase) GetSession(cookieValue string) (bool, error) {
-	userID, err := GetSessionUserId(userR.redisConnection, cookieValue)
+	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
 	if err != nil {
 		return false, err
 	}
@@ -173,5 +153,5 @@ func (userR UserUseCase) GetSession(cookieValue string) (bool, error) {
 }
 
 func (userR UserUseCase) DeleteSession(cookieValue string) {
-	userR.redisConnection.Del(cookieValue)
+	userR.redisStore.DeleteSession(cookieValue)
 }

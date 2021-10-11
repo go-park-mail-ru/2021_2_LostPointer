@@ -1,20 +1,20 @@
 package main
 
 import (
-	handlersMusic "2021_2_LostPointer/internal/music/handlers"
-	repositoryMusic "2021_2_LostPointer/internal/music/repository"
-	usecaseMusic "2021_2_LostPointer/internal/music/usecase"
+	handlersMusic "2021_2_LostPointer/pkg/music/handlers"
+	repositoryMusic "2021_2_LostPointer/pkg/music/repository"
+	usecaseMusic "2021_2_LostPointer/pkg/music/usecase"
 	"database/sql"
 	"fmt"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
 
-	deliveryUser "2021_2_LostPointer/internal/users/delivery"
-	repositoryUser "2021_2_LostPointer/internal/users/repository"
-	usecaseUser "2021_2_LostPointer/internal/users/usecase"
+	deliveryUser "2021_2_LostPointer/pkg/users/delivery"
+	repositoryUser "2021_2_LostPointer/pkg/users/repository"
+	usecaseUser "2021_2_LostPointer/pkg/users/usecase"
 )
 
 const redisDB = 1
@@ -26,7 +26,8 @@ type RequestHandlers struct {
 
 func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandlers {
 	userDB := repositoryUser.NewUserRepository(db)
-	userUseCase := usecaseUser.NewUserUserCase(userDB, redisConnection)
+	redisStore := repositoryUser.NewRedisStore(redisConnection)
+	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore)
 	userHandlers := deliveryUser.NewUserDelivery(userUseCase)
 
 	musicHandlers := handlersMusic.NewMusicHandlers(usecaseMusic.NewMusicUseCase(repositoryMusic.NewMusicRepository(db)))

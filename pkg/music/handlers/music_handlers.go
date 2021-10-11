@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"2021_2_LostPointer/internal/music/usecase"
+	"2021_2_LostPointer/pkg/music/usecase"
 	"github.com/labstack/echo"
 	"net/http"
 )

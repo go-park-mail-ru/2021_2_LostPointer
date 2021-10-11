@@ -2,22 +2,37 @@ package repository
 
 import (
 	"2021_2_LostPointer/pkg/models"
+	"context"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"github.com/go-redis/redis/v8"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
 
+var ctx = context.Background()
 const SaltLength = 8
+const SessionTokenLength = 40
 
 type UserRepository struct {
-	userDB 			*sql.DB
+	userDB 	*sql.DB
+}
+
+type RedisStore struct {
+	redisConnection *redis.Client
 }
 
 func NewUserRepository(db *sql.DB) UserRepository {
 	return UserRepository{userDB: db}
+}
+
+func NewRedisStore(redisConnection *redis.Client) RedisStore {
+	return RedisStore{
+		redisConnection: redisConnection,
+	}
 }
 
 func GetRandomString(l int) string {
@@ -105,4 +120,29 @@ func (Data UserRepository) IsNicknameUnique(nickname string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func (r RedisStore) StoreSession(userID uint64) error {
+	sessionToken := GetRandomString(SessionTokenLength)
+	err := r.redisConnection.Set(ctx, sessionToken, userID, time.Hour).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r RedisStore) GetSessionUserId(session string) (int, error) {
+	res, err := r.redisConnection.Get(ctx, session).Result()
+	if err != nil {
+		return 0, err
+	}
+	id, err := strconv.Atoi(res)
+	if err != nil {
+		return 0, err
+	}
+	return id, err
+}
+
+func (r RedisStore) DeleteSession(cookieValue string) {
+	r.redisConnection.Del(ctx, cookieValue)
 }

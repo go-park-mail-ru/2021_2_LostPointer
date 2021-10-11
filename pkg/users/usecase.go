@@ -2,7 +2,7 @@ package users
 
 import "2021_2_LostPointer/pkg/models"
 
-type UserUseCase interface {
+type UserUseCaseIFace interface {
 	Register(models.User) (string, string, error)
 	Login(models.Auth) (string, error)
 	GetSession(string) (bool, error)

@@ -1,8 +1,8 @@
 package delivery
 
 import (
-	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/users"
+	"2021_2_LostPointer/pkg/models"
+	"2021_2_LostPointer/pkg/users"
 	"github.com/labstack/echo"
 	"log"
 	"net/http"

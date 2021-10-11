@@ -9,9 +9,9 @@ import (
 	"log"
 	"os"
 
-	deliveryUser "2021_2_LostPointer/internal/users/delivery"
-	repositoryUser "2021_2_LostPointer/internal/users/repository"
-	usecaseUser "2021_2_LostPointer/internal/users/usecase"
+	deliveryUser "2021_2_LostPointer/pkg/users/delivery"
+	repositoryUser "2021_2_LostPointer/pkg/users/repository"
+	usecaseUser "2021_2_LostPointer/pkg/users/usecase"
 )
 
 const redisDB = 1

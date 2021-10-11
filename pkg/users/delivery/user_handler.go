@@ -88,7 +88,7 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
-	isAuthorized, err := userD.userLogic.GetSession(cookie.Value)
+	isAuthorized, err := userD.userLogic.IsAuthorized(cookie.Value)
 	if err != nil {
 		log.Println(err.Error())
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
@@ -107,7 +107,7 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 		log.Println(err.Error())
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
-	userD.userLogic.DeleteSession(cookie.Value)
+	userD.userLogic.Logout(cookie.Value)
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
 	ctx.SetCookie(cookie)
 

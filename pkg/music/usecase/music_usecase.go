@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/music/repository"
+	"2021_2_LostPointer/pkg/models"
+	"2021_2_LostPointer/pkg/music/repository"
 	"math/rand"
 )
 

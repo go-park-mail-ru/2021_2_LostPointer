@@ -1,69 +1,30 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/users"
-	"github.com/go-redis/redis"
-	"math/rand"
+	"2021_2_LostPointer/pkg/models"
+	"2021_2_LostPointer/pkg/users"
 	"regexp"
-	"strconv"
-	"time"
 )
 
-const SessionTokenLength = 40
 const passwordRequiredLength = "8"
 const minNicknameLength = "3"
 const maxNicknameLength = "15"
 
 type UserUseCase struct {
-	userDB			users.UserRepository
-	redisConnection *redis.Client
+	userDB	   users.UserRepositoryIFace
+	redisStore users.RedisStoreIFace
 }
 
-func NewUserUserCase(userDB users.UserRepository, redisConnection *redis.Client) UserUseCase {
+func NewUserUserCase(userDB users.UserRepositoryIFace, redisStore users.RedisStoreIFace) UserUseCase {
 	return UserUseCase{
 		userDB: userDB,
-		redisConnection: redisConnection,
+		redisStore: redisStore,
 	}
-}
-
-func StoreSession(redisConnection *redis.Client, session *models.Session) error {
-	err := redisConnection.Set(session.Session, session.UserID, time.Hour).Err()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func GetSessionUserId(redisConnection *redis.Client, session string) (int, error) {
-	res, err := redisConnection.Get(session).Result()
-	if err != nil {
-		return 0, err
-	}
-	id, err := strconv.Atoi(res)
-	if err != nil {
-		return 0, err
-	}
-	return id, err
-}
-
-func GetRandomString(l int) string {
-	validCharacters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	rand.Seed(time.Now().UnixNano())
-	bytes := make([]byte, l)
-	for i := 0; i < l; i++ {
-		bytes[i] = validCharacters[RandInt(0, len(validCharacters) - 1)]
-	}
-	return string(bytes)
-}
-
-func RandInt(min int, max int) int {
-	return min + rand.Intn(max-min)
 }
 
 func ValidatePassword(password string) (bool, string, error) {
 	patterns := map[string]string {
-		`^.{` + passwordRequiredLength + `,}$`: "Password must contain at least" + passwordRequiredLength + "characters",
+		`^.{` + passwordRequiredLength + `,}$`: "Password must contain at least " + passwordRequiredLength + " characters",
 		`[0-9]`: "Password must contain at least one digit",
 		`[A-Z]`: "Password must contain at least one uppercase letter",
 		`[a-z]`: "Password must contain at least one lowercase letter",
@@ -138,8 +99,7 @@ func (userR UserUseCase) Register(userData models.User) (string, string, error) 
 	}
 
 	userID, err := userR.userDB.CreateUser(userData)
-	sessionToken := GetRandomString(SessionTokenLength)
-	err = StoreSession(userR.redisConnection, &models.Session{UserID: userID, Session: sessionToken})
+	sessionToken, err := userR.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -149,11 +109,14 @@ func (userR UserUseCase) Register(userData models.User) (string, string, error) 
 
 func (userR UserUseCase) Login(authData models.Auth) (string, error) {
 	userID, err := userR.userDB.UserExits(authData)
+	if err != nil {
+		return "", err
+	}
 	if userID == 0 {
 		return "", nil
 	}
-	sessionToken := GetRandomString(SessionTokenLength)
-	err = StoreSession(userR.redisConnection, &models.Session{UserID: userID, Session: sessionToken})
+
+	sessionToken, err := userR.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", err
 	}
@@ -161,17 +124,17 @@ func (userR UserUseCase) Login(authData models.Auth) (string, error) {
 	return sessionToken, nil
 }
 
-func (userR UserUseCase) GetSession(cookieValue string) (bool, error) {
-	userID, err := GetSessionUserId(userR.redisConnection, cookieValue)
+func (userR UserUseCase) Logout(cookieValue string) {
+	userR.redisStore.DeleteSession(cookieValue)
+}
+
+func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, error) {
+	id, err := userR.redisStore.GetSessionUserId(cookieValue)
 	if err != nil {
 		return false, err
 	}
-	if userID == 0 {
+	if id == 0 {
 		return false, nil
 	}
 	return true, nil
-}
-
-func (userR UserUseCase) DeleteSession(cookieValue string) {
-	userR.redisConnection.Del(cookieValue)
 }

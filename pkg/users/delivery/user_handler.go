@@ -1,8 +1,8 @@
 package delivery
 
 import (
-	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/users"
+	"2021_2_LostPointer/pkg/models"
+	"2021_2_LostPointer/pkg/users"
 	"github.com/labstack/echo"
 	"log"
 	"net/http"
@@ -12,10 +12,10 @@ import (
 const cookieLifetime = time.Hour * 24 * 30
 
 type UserDelivery struct {
-	userLogic users.UserUseCase
+	userLogic users.UserUseCaseIFace
 }
 
-func NewUserDelivery(userRealization users.UserUseCase) UserDelivery {
+func NewUserDelivery(userRealization users.UserUseCaseIFace) UserDelivery {
 	return UserDelivery{userLogic: userRealization}
 }
 
@@ -88,7 +88,7 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
-	isAuthorized, err := userD.userLogic.GetSession(cookie.Value)
+	isAuthorized, err := userD.userLogic.IsAuthorized(cookie.Value)
 	if err != nil {
 		log.Println(err.Error())
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
@@ -102,12 +102,11 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 
 func (userD UserDelivery) Logout(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
-	log.Println(cookie.Value)
 	if err != nil {
 		log.Println(err.Error())
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
-	userD.userLogic.DeleteSession(cookie.Value)
+	userD.userLogic.Logout(cookie.Value)
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
 	ctx.SetCookie(cookie)
 

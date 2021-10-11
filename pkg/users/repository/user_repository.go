@@ -122,13 +122,18 @@ func (Data UserRepository) IsNicknameUnique(nickname string) (bool, error) {
 	return true, nil
 }
 
-func (r RedisStore) StoreSession(userID uint64) error {
-	sessionToken := GetRandomString(SessionTokenLength)
+func (r RedisStore) StoreSession(userID uint64, customSessionToken ...string) (string, error) {
+	var sessionToken string
+	if len(customSessionToken) != 0 {
+		sessionToken = customSessionToken[0]
+	} else {
+		sessionToken = GetRandomString(SessionTokenLength)
+	}
 	err := r.redisConnection.Set(ctx, sessionToken, userID, time.Hour).Err()
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return sessionToken, nil
 }
 
 func (r RedisStore) GetSessionUserId(session string) (int, error) {

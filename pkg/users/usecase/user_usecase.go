@@ -118,7 +118,7 @@ func (userR UserUseCase) Register(userData models.User) (string, string, error) 
 
 	userID, err := userR.userDB.CreateUser(userData)
 	sessionToken := GetRandomString(SessionTokenLength)
-	err = userR.redisStore.StoreSession(userID)
+	sessionToken, err = userR.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -132,8 +132,7 @@ func (userR UserUseCase) Login(authData models.Auth) (string, error) {
 		return "", nil
 	}
 
-	sessionToken := GetRandomString(SessionTokenLength)
-	err = userR.redisStore.StoreSession(userID)
+	sessionToken, err := userR.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", err
 	}
@@ -141,17 +140,17 @@ func (userR UserUseCase) Login(authData models.Auth) (string, error) {
 	return sessionToken, nil
 }
 
-func (userR UserUseCase) GetSession(cookieValue string) (bool, error) {
-	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
+func (userR UserUseCase) Logout(cookieValue string) {
+	userR.redisStore.DeleteSession(cookieValue)
+}
+
+func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, error) {
+	id, err := userR.redisStore.GetSessionUserId(cookieValue)
 	if err != nil {
 		return false, err
 	}
-	if userID == 0 {
+	if id == 0 {
 		return false, nil
 	}
 	return true, nil
-}
-
-func (userR UserUseCase) DeleteSession(cookieValue string) {
-	userR.redisStore.DeleteSession(cookieValue)
 }

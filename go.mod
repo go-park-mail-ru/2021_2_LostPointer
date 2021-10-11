@@ -12,6 +12,8 @@ require (
 )
 
 require (
+	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
+	github.com/alicebob/miniredis v2.5.0+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
@@ -19,6 +21,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-redis/redismock/v8 v8.0.6 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/gomodule/redigo v1.8.5 // indirect
 	github.com/labstack/echo/v4 v4.6.1 // indirect
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/matryer/moq v0.2.3 // indirect
@@ -30,6 +33,7 @@ require (
 	github.com/stretchr/objx v0.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
+	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	go.opentelemetry.io/otel v0.19.0 // indirect
 	go.opentelemetry.io/otel/metric v0.19.0 // indirect
 	go.opentelemetry.io/otel/trace v0.19.0 // indirect

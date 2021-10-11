@@ -11,7 +11,7 @@ type UserRepositoryIFace interface {
 }
 
 type RedisStoreIFace interface {
-	StoreSession(uint64) error
+	StoreSession(uint64) (string, error)
 	GetSessionUserId(string) (int, error)
 	DeleteSession(string)
 }

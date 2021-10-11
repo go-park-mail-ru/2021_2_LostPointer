@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-redis/redismock/v8"
 	"github.com/stretchr/testify/assert"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestUserRepository_UserExits(t *testing.T) {
@@ -219,6 +221,87 @@ func TestUserRepository_CreateUser(t *testing.T) {
 			tt.mock()
 
 			got, err := r.CreateUser(tt.input, "1234")
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestRedisStore_DeleteSession(t *testing.T) {
+	var err error
+
+	db, mock := redismock.NewClientMock()
+
+	cookieValue := "feeuhfuy3748478djakdj"
+
+	mock.Regexp().ExpectDel(cookieValue).RedisNil()
+
+	r := NewRedisStore(db)
+
+	r.DeleteSession(cookieValue)
+
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Error("Error occurred during test case", err)
+	}
+
+	assert.NoError(t, err)
+}
+
+func TestRedisStore_StoreSession(t *testing.T) {
+	db, mock := redismock.NewClientMock()
+	defer db.Close()
+
+	sessionToken := GetRandomString(40)
+	var userID uint64 = 1
+	mock.ExpectSet(sessionToken, userID, time.Hour).SetVal("")
+
+	r := NewRedisStore(db)
+
+	_, err := r.StoreSession(userID, sessionToken)
+	assert.NoError(t, err)
+}
+
+func TestRedisStore_GetSessionUserId(t *testing.T) {
+	db, mock := redismock.NewClientMock()
+	defer db.Close()
+
+	tests := []struct {
+		name string
+		mock func()
+		input string
+		want int
+		wantErr bool
+	}{
+		{
+			name: "Session exists",
+			mock: func() {
+				mock.ExpectGet("some_cookie_value").SetVal("1")
+			},
+			input: "some_cookie_value",
+			want: 1,
+		},
+		{
+			name: "Session does not exist",
+			mock: func() {
+				mock.ExpectGet("some_cookie_value").RedisNil()
+			},
+			input: "some_cookie_value",
+			want: 0,
+			wantErr: true,
+		},
+	}
+
+	r := NewRedisStore(db)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T){
+			tt.mock()
+
+			got, err := r.GetSessionUserId(tt.input)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

@@ -3,13 +3,9 @@ package usecase
 import (
 	"2021_2_LostPointer/pkg/models"
 	"2021_2_LostPointer/pkg/users"
-	"math/rand"
 	"regexp"
-	"time"
 )
 
-
-const SessionTokenLength = 40
 const passwordRequiredLength = "8"
 const minNicknameLength = "3"
 const maxNicknameLength = "15"
@@ -26,23 +22,9 @@ func NewUserUserCase(userDB users.UserRepositoryIFace, redisStore users.RedisSto
 	}
 }
 
-func GetRandomString(l int) string {
-	validCharacters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	rand.Seed(time.Now().UnixNano())
-	bytes := make([]byte, l)
-	for i := 0; i < l; i++ {
-		bytes[i] = validCharacters[RandInt(0, len(validCharacters) - 1)]
-	}
-	return string(bytes)
-}
-
-func RandInt(min int, max int) int {
-	return min + rand.Intn(max-min)
-}
-
 func ValidatePassword(password string) (bool, string, error) {
 	patterns := map[string]string {
-		`^.{` + passwordRequiredLength + `,}$`: "Password must contain at least" + passwordRequiredLength + "characters",
+		`^.{` + passwordRequiredLength + `,}$`: "Password must contain at least " + passwordRequiredLength + " characters",
 		`[0-9]`: "Password must contain at least one digit",
 		`[A-Z]`: "Password must contain at least one uppercase letter",
 		`[a-z]`: "Password must contain at least one lowercase letter",
@@ -117,8 +99,7 @@ func (userR UserUseCase) Register(userData models.User) (string, string, error) 
 	}
 
 	userID, err := userR.userDB.CreateUser(userData)
-	sessionToken := GetRandomString(SessionTokenLength)
-	sessionToken, err = userR.redisStore.StoreSession(userID)
+	sessionToken, err := userR.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -128,6 +109,9 @@ func (userR UserUseCase) Register(userData models.User) (string, string, error) 
 
 func (userR UserUseCase) Login(authData models.Auth) (string, error) {
 	userID, err := userR.userDB.UserExits(authData)
+	if err != nil {
+		return "", err
+	}
 	if userID == 0 {
 		return "", nil
 	}

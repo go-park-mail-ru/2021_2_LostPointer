@@ -13,9 +13,10 @@ import (
 	"time"
 )
 
-var ctx = context.Background()
 const SaltLength = 8
 const SessionTokenLength = 40
+
+var ctx = context.Background()
 
 type UserRepository struct {
 	userDB 	*sql.DB

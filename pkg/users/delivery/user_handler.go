@@ -102,7 +102,6 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 
 func (userD UserDelivery) Logout(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
-	log.Println(cookie.Value)
 	if err != nil {
 		log.Println(err.Error())
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})

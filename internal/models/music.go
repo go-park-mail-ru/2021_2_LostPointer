@@ -1,8 +1,8 @@
 package models
 
-type SelectionForHomePage struct {
+type MusicCollection struct {
 	Tracks    []Track    `json:"tracks"`
 	Albums    []Album    `json:"albums"`
-	Playlists []Playlist `json:"playlists"`
 	Artists   []Artist   `json:"artists"`
+	Playlists []Playlist `json:"playlists"`
 }

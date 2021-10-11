@@ -1,6 +1,9 @@
 package main
 
 import (
+	handlersMusic "2021_2_LostPointer/internal/music/handlers"
+	repositoryMusic "2021_2_LostPointer/internal/music/repository"
+	usecaseMusic "2021_2_LostPointer/internal/music/usecase"
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis"
@@ -17,18 +20,20 @@ import (
 const redisDB = 1
 
 type RequestHandlers struct {
-	userHandler deliveryUser.UserDelivery
+	userHandlers  deliveryUser.UserDelivery
+	musicHandlers handlersMusic.MusicHandlers
 }
 
 func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandlers {
 	userDB := repositoryUser.NewUserRepository(db)
-
 	userUseCase := usecaseUser.NewUserUserCase(userDB, redisConnection)
+	userHandlers := deliveryUser.NewUserDelivery(userUseCase)
 
-	userH := deliveryUser.NewUserDelivery(userUseCase)
+	musicHandlers := handlersMusic.NewMusicHandlers(usecaseMusic.NewMusicUseCase(repositoryMusic.NewMusicRepository(db)))
 
 	api := &(RequestHandlers{
-		userHandler: userH,
+		userHandlers:  userHandlers,
+		musicHandlers: musicHandlers,
 	})
 
 	return api
@@ -80,7 +85,8 @@ func main() {
 
 	api := NewRequestHandler(db, redisConnection)
 
-	api.userHandler.InitHandlers(server)
+	api.userHandlers.InitHandlers(server)
+	api.musicHandlers.InitHandlers(server)
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

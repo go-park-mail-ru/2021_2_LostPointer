@@ -6,7 +6,7 @@ import "2021_2_LostPointer/pkg/models"
 type MusicRepositoryInterface interface {
 	IsGenreExist(genres []string) (bool, error)
 
-	CreateTracksRequestWithParameters(gettingWith uint8, parameters interface{}, distinctOn uint8) string
+	CreateTracksRequestWithParameters(gettingWith uint8, parameters interface{}, distinctOn uint8) (string, error)
 	CreateAlbumsDefaultRequest(amount int) string
 	CreateArtistsDefaultRequest(amount int) string
 	CreatePlaylistsDefaultRequest(amount int) string

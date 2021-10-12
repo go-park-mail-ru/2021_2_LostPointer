@@ -1,7 +1,7 @@
 package main
 
 import (
-	handlersMusic "2021_2_LostPointer/pkg/music/handlers"
+	handlersMusic "2021_2_LostPointer/pkg/music/delivery"
 	repositoryMusic "2021_2_LostPointer/pkg/music/repository"
 	usecaseMusic "2021_2_LostPointer/pkg/music/usecase"
 	"database/sql"

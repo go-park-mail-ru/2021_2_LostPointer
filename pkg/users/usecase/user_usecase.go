@@ -10,6 +10,14 @@ const passwordRequiredLength = "8"
 const minNicknameLength = "3"
 const maxNicknameLength = "15"
 
+const PasswordValidationInvalidLengthMessage = "Password must contain at least " + passwordRequiredLength + " characters"
+const PasswordValidationNoDigitMessage = "Password must contain at least one digit"
+const PasswordValidationNoUppercaseMessage = "Password must contain at least one uppercase letter"
+const PasswordValidationNoLowerCaseMessage = "Password must contain at least one lowercase letter"
+const PasswordValidationNoSpecialSymbolMessage = "Password must contain as least one special character"
+const NickNameValidationInvalidLengthMessage = "The length of nickname must be from " + minNicknameLength + " to " + maxNicknameLength + " characters"
+const InvalidEmailMessage = "Invalid email"
+
 type UserUseCase struct {
 	userDB	   users.UserRepositoryIFace
 	redisStore users.RedisStoreIFace
@@ -24,11 +32,11 @@ func NewUserUserCase(userDB users.UserRepositoryIFace, redisStore users.RedisSto
 
 func ValidatePassword(password string) (bool, string, error) {
 	patterns := map[string]string {
-		`^.{` + passwordRequiredLength + `,}$`: "Password must contain at least " + passwordRequiredLength + " characters",
-		`[0-9]`: "Password must contain at least one digit",
-		`[A-Z]`: "Password must contain at least one uppercase letter",
-		`[a-z]`: "Password must contain at least one lowercase letter",
-		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: "Password must contain as least one special character",
+		`^.{` + passwordRequiredLength + `,}$`: PasswordValidationInvalidLengthMessage,
+		`[0-9]`: PasswordValidationNoDigitMessage,
+		`[A-Z]`: PasswordValidationNoUppercaseMessage,
+		`[a-z]`: PasswordValidationNoLowerCaseMessage,
+		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: PasswordValidationNoSpecialSymbolMessage,
 
 	}
 
@@ -51,7 +59,7 @@ func ValidateRegisterCredentials(userData models.User) (bool, string, error) {
 		return false, "", err
 	}
 	if !isNicknameValid {
-		return false, "The length of nickname must be from " + minNicknameLength + " to " + maxNicknameLength + " characters", nil
+		return false, NickNameValidationInvalidLengthMessage, nil
 	}
 
 	isEmailValid, err := regexp.MatchString(`[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`, userData.Email)
@@ -59,7 +67,7 @@ func ValidateRegisterCredentials(userData models.User) (bool, string, error) {
 		return false, "", err
 	}
 	if !isEmailValid {
-		return false, "Invalid email", nil
+		return false, InvalidEmailMessage, nil
 	}
 
 	passwordValid, message, err := ValidatePassword(userData.Password)
@@ -108,7 +116,7 @@ func (userR UserUseCase) Register(userData models.User) (string, string, error) 
 }
 
 func (userR UserUseCase) Login(authData models.Auth) (string, error) {
-	userID, err := userR.userDB.UserExits(authData)
+	userID, err := userR.userDB.DoesUserExist(authData)
 	if err != nil {
 		return "", err
 	}

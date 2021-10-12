@@ -76,7 +76,7 @@ func (Data UserRepository) CreateUser(userData models.User, customSalt ...string
 	return id, nil
 }
 
-func (Data UserRepository) UserExits(authData models.Auth) (uint64, error) {
+func (Data UserRepository) DoesUserExist(authData models.Auth) (uint64, error) {
 	var id uint64
 	var password, salt string
 

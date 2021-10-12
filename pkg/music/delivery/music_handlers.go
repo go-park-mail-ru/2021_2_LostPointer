@@ -1,4 +1,4 @@
-package handlers
+package delivery
 
 import (
 	"2021_2_LostPointer/pkg/music/usecase"

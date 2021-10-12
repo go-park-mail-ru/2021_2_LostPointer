@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"2021_2_LostPointer/pkg/models"
+	"2021_2_LostPointer/pkg/music"
 	"2021_2_LostPointer/pkg/music/repository"
 	"math/rand"
 )
@@ -14,10 +15,10 @@ const ArtistsCollectionLimit = 4
 var defaultGenres = []string{"Swing", "Jazz", "Rock", "Easy Listening", "Pop"}
 
 type MusicUseCase struct {
-	MusicRepository repository.MusicRepository
+	MusicRepository music.MusicRepositoryInterface
 }
 
-func NewMusicUseCase(musicRepository repository.MusicRepository) MusicUseCase {
+func NewMusicUseCase(musicRepository music.MusicRepositoryInterface) MusicUseCase {
 	return MusicUseCase{MusicRepository: musicRepository}
 }
 
@@ -42,7 +43,10 @@ func (musicUseCase MusicUseCase) GetMusicCollection() (*models.MusicCollection, 
 }
 
 func (musicUseCase MusicUseCase) GetTracksForCollection(amount int, genres []string) ([]models.Track, error) {
-	requestWithGenres := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithGenres, genres, repository.DistinctOnAlbums)
+	requestWithGenres, err := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithGenres, genres, repository.DistinctOnAlbums)
+	if err != nil {
+		return nil, err
+	}
 	tracksByGenre, err := musicUseCase.MusicRepository.GetTracks(requestWithGenres)
 	if err != nil {
 		return nil, err
@@ -58,11 +62,14 @@ func (musicUseCase MusicUseCase) GetTracksForCollection(amount int, genres []str
 
 	}
 	randomTracksIDArray := make([]int64, 0)
-	for key, _ := range randomTracksIDMap {
+	for key := range randomTracksIDMap {
 		randomTracksIDArray = append(randomTracksIDArray, key)
 	}
 
-	request := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithID, randomTracksIDArray, repository.DistinctOnAlbums)
+	request, err := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithID, randomTracksIDArray, repository.DistinctOnAlbums)
+	if err != nil {
+		return nil, err
+	}
 	randomTracks, err := musicUseCase.MusicRepository.GetTracks(request)
 	if err != nil {
 		return nil, err

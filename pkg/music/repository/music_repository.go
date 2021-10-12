@@ -3,7 +3,9 @@ package repository
 import (
 	"2021_2_LostPointer/pkg/models"
 	"database/sql"
+	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -23,26 +25,14 @@ func NewMusicRepository(db *sql.DB) MusicRepository {
 	return MusicRepository{Database: db}
 }
 
-func (musicRepository MusicRepository) GetTracks(request string) ([]models.Track, error) {
-	rows, err := musicRepository.Database.Query(request)
-	if err != nil {
-		return nil, err
+func (musicRepository MusicRepository) CreateTracksRequestWithParameters(gettingWith uint8, parameters interface{}, distinctOn uint8) (string, error) {
+	switch {
+	case gettingWith == GettingWithGenres && reflect.TypeOf(parameters).String() == "[]string":
+	case gettingWith == GettingWithID && reflect.TypeOf(parameters).String() == "[]int64":
+	default:
+		return "", errors.New("mismatch types of arguments gettingWith and parameters")
 	}
 
-	tracks := make([]models.Track, 0)
-	var track models.Track
-	for rows.Next() {
-		if err := rows.Scan(&track.Id, &track.Title, &track.Artist, &track.Album, &track.Explicit, &track.Genre,
-			&track.Number, &track.Cover, &track.ListenCount, &track.Duration); err != nil {
-			return nil, err
-		}
-		tracks = append(tracks, track)
-	}
-
-	return tracks, nil
-}
-
-func (musicRepository MusicRepository) CreateTracksRequestWithParameters(gettingWith uint8, parameters interface{}, distinctOn uint8) string {
 	var baseRequest = `SELECT `
 	switch distinctOn {
 	case DistinctOnAlbums:
@@ -82,31 +72,26 @@ func (musicRepository MusicRepository) CreateTracksRequestWithParameters(getting
 		baseRequest = baseRequest[:len(baseRequest)-2] + `)`
 	}
 
-	return baseRequest
+	return baseRequest, nil
 }
 
-func (musicRepository MusicRepository) IsGenreExist(genres []string) (bool, error) {
-	availableGenres := make(map[string]bool, 0)
-	rows, err := musicRepository.Database.Query(`SELECT name FROM genres`)
+func (musicRepository MusicRepository) GetTracks(request string) ([]models.Track, error) {
+	rows, err := musicRepository.Database.Query(request)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	var genre string
+	tracks := make([]models.Track, 0)
+	var track models.Track
 	for rows.Next() {
-		if err := rows.Scan(&genre); err != nil {
-			return false, err
+		if err := rows.Scan(&track.Id, &track.Title, &track.Artist, &track.Album, &track.Explicit, &track.Genre,
+			&track.Number, &track.Cover, &track.ListenCount, &track.Duration); err != nil {
+			return nil, err
 		}
-		availableGenres[genre] = true
+		tracks = append(tracks, track)
 	}
 
-	for _, genre := range genres {
-		if availableGenres[genre] == false {
-			return false, nil
-		}
-	}
-
-	return true, nil
+	return tracks, nil
 }
 
 func (musicRepository MusicRepository) CreateAlbumsDefaultRequest(amount int) string {
@@ -186,4 +171,32 @@ func (musicRepository MusicRepository) GetPlaylists(request string) ([]models.Pl
 	}
 
 	return playlists, nil
+}
+
+func (musicRepository MusicRepository) IsGenreExist(genres []string) (bool, error) {
+	if len(genres) == 0 {
+		return false, nil
+	}
+
+	availableGenres := make(map[string]bool, 0)
+	rows, err := musicRepository.Database.Query(fmt.Sprintf(`SELECT name FROM genres`))
+	if err != nil {
+		return false, err
+	}
+
+	var genre string
+	for rows.Next() {
+		if err := rows.Scan(&genre); err != nil {
+			return false, err
+		}
+		availableGenres[genre] = true
+	}
+
+	for _, genre := range genres {
+		if availableGenres[genre] == false {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }

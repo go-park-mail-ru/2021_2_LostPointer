@@ -11,7 +11,7 @@ const AlbumCollectionLimit = 4
 const PlaylistsCollectionLimit = 4
 const ArtistsCollectionLimit = 4
 
-var defaultGenres []string = []string{"Swing", "Jazz", "Rock", "Easy Listening", "Pop"}
+var defaultGenres = []string{"Swing", "Jazz", "Rock", "Easy Listening", "Pop"}
 
 type MusicUseCase struct {
 	MusicRepository repository.MusicRepository

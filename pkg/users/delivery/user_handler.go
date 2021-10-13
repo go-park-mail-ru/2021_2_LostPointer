@@ -130,10 +130,44 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, settings)
 }
 
+func (userD UserDelivery) UploadSettings(ctx echo.Context) error {
+	cookie, err := ctx.Cookie("Session_cookie")
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+
+	email := ctx.FormValue("email")
+	nickname := ctx.FormValue("nickname")
+	file, err := ctx.FormFile("avatar")
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	settings := models.Settings{
+		Email: email,
+		Nickname: nickname,
+		Avatar: file.Filename,
+	}
+
+	err = userD.userLogic.UploadSettings(cookie.Value, file, settings)
+	if err != nil {
+		if err.Error() == "redis: nil" {
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+		}
+		log.Println(err.Error())
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	return ctx.JSON(http.StatusCreated, &models.Response{Message: "TODO"})
+}
+
 func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/signup", userD.Register)
 	server.POST("/api/v1/user/signin", userD.Login)
 	server.POST("/api/v1/user/logout", userD.Logout)
 	server.GET("/api/v1/auth", userD.IsAuthorized)
 	server.GET("/api/v1/user/settings", userD.GetSettings)
+	server.PATCH("/api/v1/user/settings", userD.UploadSettings)
 }

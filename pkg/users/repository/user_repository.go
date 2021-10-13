@@ -2,12 +2,18 @@ package repository
 
 import (
 	"2021_2_LostPointer/pkg/models"
+	"github.com/google/uuid"
 	"context"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"github.com/chai2010/webp"
 	"github.com/go-redis/redis/v8"
+	"github.com/sunshineplan/imgconv"
+	"io"
 	"math/rand"
+	"mime/multipart"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -15,6 +21,9 @@ import (
 
 const SaltLength = 8
 const SessionTokenLength = 40
+
+const AvatarWidthBig = 500
+const AvatarWidthLittle = 150
 
 var ctx = context.Background()
 
@@ -148,6 +157,51 @@ func (Data UserRepository) GetSettings(userID int) (*models.Settings, error) {
 	}
 
 	return &settings, nil
+}
+
+func (Data UserRepository) UploadSettings(userID int, file *multipart.FileHeader, settingsData models.Settings) error {
+	f, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	reader := io.Reader(f)
+	src, err := imgconv.Decode(reader)
+	if err != nil {
+		return err
+	}
+
+	fileName := uuid.NewString()
+
+	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthBig, Height: AvatarWidthBig})
+	out, err := os.Create(fileName + "_500px.webp")
+	if err != nil {
+		return err
+	}
+	writer := io.Writer(out)
+	err = webp.Encode(writer, avatarLarge, &webp.Options{Quality: 85})
+	if err != nil {
+		return err
+	}
+
+	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthLittle, Height: AvatarWidthLittle})
+	out, err = os.Create(fileName + "_150px.webp")
+	if err != nil {
+		return err
+	}
+	writer = io.Writer(out)
+	err = webp.Encode(writer, avatarSmall, &webp.Options{Quality: 85})
+	if err != nil {
+		return err
+	}
+
+	err = Data.userDB.QueryRow(`UPDATE users SET email=$1, nickname=$2, avatar=$3 WHERE id=$4`,
+		settingsData.Email, settingsData.Nickname, fileName, userID).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r RedisStore) StoreSession(userID uint64, customSessionToken ...string) (string, error) {

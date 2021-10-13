@@ -3,6 +3,7 @@ package usecase
 import (
 	"2021_2_LostPointer/pkg/models"
 	"2021_2_LostPointer/pkg/users"
+	"mime/multipart"
 	"regexp"
 )
 
@@ -159,4 +160,18 @@ func (userR UserUseCase) GetSettings(cookieValue string) (*models.Settings, erro
 	}
 
 	return settings, nil
+}
+
+func (userR UserUseCase) UploadSettings(cookieValue string, file *multipart.FileHeader, settingsData models.Settings) error {
+	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
+	if err != nil {
+		return err
+	}
+
+	err = userR.userDB.UploadSettings(userID, file, settingsData)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

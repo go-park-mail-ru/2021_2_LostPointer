@@ -30,7 +30,7 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandle
 	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore)
 	userHandlers := deliveryUser.NewUserDelivery(userUseCase)
 
-	musicHandlers := handlersMusic.NewMusicHandlers(usecaseMusic.NewMusicUseCase(repositoryMusic.NewMusicRepository(db)))
+	musicHandlers := handlersMusic.NewMusicDelivery(usecaseMusic.NewMusicUseCase(repositoryMusic.NewMusicRepository(db)))
 
 	api := &(RequestHandlers{
 		userHandlers:  userHandlers,

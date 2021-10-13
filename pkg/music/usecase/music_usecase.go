@@ -5,6 +5,7 @@ import (
 	"2021_2_LostPointer/pkg/music"
 	"2021_2_LostPointer/pkg/music/repository"
 	"math/rand"
+	"strconv"
 )
 
 const TracksCollectionLimit = 10
@@ -12,13 +13,13 @@ const AlbumCollectionLimit = 4
 const PlaylistsCollectionLimit = 4
 const ArtistsCollectionLimit = 4
 
-var defaultGenres = []string{"Swing", "Jazz", "Rock", "Easy Listening", "Pop"}
+var defaultGenres = []string{"Swing", "Jazz", "Rock", "Easy Listening", "Pop", "Русский шансон", "Spoken Word"}
 
 type MusicUseCase struct {
-	MusicRepository music.MusicRepositoryInterface
+	MusicRepository music.MusicRepositoryIFace
 }
 
-func NewMusicUseCase(musicRepository music.MusicRepositoryInterface) MusicUseCase {
+func NewMusicUseCase(musicRepository music.MusicRepositoryIFace) MusicUseCase {
 	return MusicUseCase{MusicRepository: musicRepository}
 }
 
@@ -43,7 +44,7 @@ func (musicUseCase MusicUseCase) GetMusicCollection() (*models.MusicCollection, 
 }
 
 func (musicUseCase MusicUseCase) GetTracksForCollection(amount int, genres []string) ([]models.Track, error) {
-	requestWithGenres, err := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithGenres, genres, repository.DistinctOnAlbums)
+	requestWithGenres, err := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithGenres, genres, repository.DistinctOnNone)
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +62,12 @@ func (musicUseCase MusicUseCase) GetTracksForCollection(amount int, genres []str
 		}
 
 	}
-	randomTracksIDArray := make([]int64, 0)
+	randomTracksIDArray := make([]string, 0)
 	for key := range randomTracksIDMap {
-		randomTracksIDArray = append(randomTracksIDArray, key)
+		randomTracksIDArray = append(randomTracksIDArray, strconv.FormatInt(key, 10))
 	}
 
-	request, err := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithID, randomTracksIDArray, repository.DistinctOnAlbums)
+	request, err := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithID, randomTracksIDArray, repository.DistinctOnNone)
 	if err != nil {
 		return nil, err
 	}

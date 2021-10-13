@@ -4,7 +4,7 @@ import "2021_2_LostPointer/pkg/models"
 
 //go:generate moq -out ./mock/music_repo_db_mock.go -pkg mock . MusicRepositoryIFace:MockMusicRepositoryIFace
 type MusicRepositoryIFace interface {
-	IsGenreExist(genres []string) (bool, error)
+	DoesGenreExist(genres []string) (bool, error)
 
 	CreateTracksRequestWithParameters(gettingWith uint8, parameters []string, distinctOn uint8) (string, error)
 	CreateAlbumsDefaultRequest(amount int) string

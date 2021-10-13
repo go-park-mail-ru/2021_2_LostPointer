@@ -146,3 +146,17 @@ func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, error) {
 	}
 	return true, nil
 }
+
+func (userR UserUseCase) GetSettings(cookieValue string) (*models.Settings, error) {
+	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
+	if err != nil {
+		return nil, err
+	}
+
+	settings, err := userR.userDB.GetSettings(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return settings, nil
+}

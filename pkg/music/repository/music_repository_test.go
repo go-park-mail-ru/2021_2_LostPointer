@@ -451,7 +451,7 @@ func TestMusicRepository_GetPlaylists(t *testing.T) {
 	}
 }
 
-func TestMusicRepository_IsGenreExist(t *testing.T) {
+func TestMusicRepository_DoesGenreExist(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -496,7 +496,7 @@ func TestMusicRepository_IsGenreExist(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mockFunc()
-			result, err := repository.IsGenreExist(test.genres)
+			result, err := repository.DoesGenreExist(test.genres)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {

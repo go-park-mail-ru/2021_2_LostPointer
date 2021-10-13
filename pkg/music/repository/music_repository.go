@@ -159,7 +159,7 @@ func (musicRepository MusicRepository) GetPlaylists(request string) ([]models.Pl
 	return playlists, nil
 }
 
-func (musicRepository MusicRepository) IsGenreExist(genres []string) (bool, error) {
+func (musicRepository MusicRepository) DoesGenreExist(genres []string) (bool, error) {
 	if len(genres) == 0 {
 		return false, nil
 	}

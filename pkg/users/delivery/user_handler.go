@@ -88,15 +88,16 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
+
 	isAuthorized, err := userD.userLogic.IsAuthorized(cookie.Value)
 	if err != nil {
 		log.Println(err.Error())
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
-
 	if !isAuthorized {
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
+
 	return ctx.JSON(http.StatusOK, &models.Response{Message: "User is authorized"})
 }
 

@@ -8,4 +8,5 @@ type UserUseCaseIFace interface {
 	Login(models.Auth) (string, error)
 	Logout(string)
 	IsAuthorized(string) (bool, error)
+	GetSettings(string) (*models.Settings, error)
 }

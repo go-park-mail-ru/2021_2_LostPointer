@@ -113,14 +113,41 @@ func (Data UserRepository) IsEmailUnique(email string) (bool, error) {
 
 func (Data UserRepository) IsNicknameUnique(nickname string) (bool, error) {
 	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE lower(nickname)=$1`, strings.ToLower(nickname))
-
 	if err != nil {
 		return false, err
 	}
 	if rows.Next() {
 		return false, nil
 	}
+
 	return true, nil
+}
+
+func (Data UserRepository) GetSettings(userID int) (*models.Settings, error) {
+	var settings models.Settings
+
+	rows, err := Data.userDB.Query(`SELECT email, avatar, nickname FROM users WHERE id=$1`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return nil, err
+	}
+
+	var avatarNULL sql.NullString
+
+	if err = rows.Scan(&settings.Email, &avatarNULL, &settings.Nickname); err != nil {
+		return nil, err
+	}
+	if !avatarNULL.Valid {
+		settings.Avatar = "placeholder.webp"
+	} else {
+		settings.Avatar = avatarNULL.String
+	}
+
+	return &settings, nil
 }
 
 func (r RedisStore) StoreSession(userID uint64, customSessionToken ...string) (string, error) {

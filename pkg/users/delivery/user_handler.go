@@ -114,9 +114,26 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, &models.Response{Message: "Logged out"})
 }
 
+func (userD UserDelivery) GetSettings(ctx echo.Context) error {
+	cookie, err := ctx.Cookie("Session_cookie")
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+
+	settings, err := userD.userLogic.GetSettings(cookie.Value)
+	if err != nil {
+		log.Println(err.Error())
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	}
+
+	return ctx.JSON(http.StatusOK, settings)
+}
+
 func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/signup", userD.Register)
 	server.POST("/api/v1/user/signin", userD.Login)
 	server.POST("/api/v1/user/logout", userD.Logout)
 	server.GET("/api/v1/auth", userD.IsAuthorized)
+	server.GET("/api/v1/user/settings", userD.GetSettings)
 }

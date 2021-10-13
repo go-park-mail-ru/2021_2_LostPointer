@@ -8,6 +8,7 @@ type UserRepositoryIFace interface {
 	IsEmailUnique(string) (bool, error)
 	IsNicknameUnique(string) (bool, error)
 	DoesUserExist(models.Auth) (uint64, error)
+	GetSettings(int) (*models.Settings, error)
 }
 
 //go:generate moq -out ../mock/user_repo_redis_mock.go -pkg mock . RedisStoreIFace:MockRedisStoreIFace

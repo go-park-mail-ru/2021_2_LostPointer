@@ -1,6 +1,9 @@
 package users
 
-import "2021_2_LostPointer/pkg/models"
+import (
+	"2021_2_LostPointer/pkg/models"
+	"mime/multipart"
+)
 
 //go:generate moq -out ../mock/user_repo_db_mock.go -pkg mock . UserRepositoryIFace:MockUserRepositoryIFace
 type UserRepositoryIFace interface {
@@ -9,6 +12,7 @@ type UserRepositoryIFace interface {
 	IsNicknameUnique(string) (bool, error)
 	DoesUserExist(models.Auth) (uint64, error)
 	GetSettings(int) (*models.Settings, error)
+	UploadSettings(int, *multipart.FileHeader, models.Settings) error
 }
 
 //go:generate moq -out ../mock/user_repo_redis_mock.go -pkg mock . RedisStoreIFace:MockRedisStoreIFace

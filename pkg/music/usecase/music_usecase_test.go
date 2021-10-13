@@ -24,15 +24,15 @@ func TestMusicUseCase_GetTracksForCollection(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		dbMock        *mock.MockMusicRepositoryInterface
+		dbMock        *mock.MockMusicRepositoryIFace
 		amount        int
 		expected      []models.Track
 		expectedError bool
 	}{
 		{
 			name: "get 4 tacks",
-			dbMock: &mock.MockMusicRepositoryInterface{
-				CreateTracksRequestWithParametersFunc: func(gettingWith uint8, parameters interface{}, distinctOn uint8) (string, error) {
+			dbMock: &mock.MockMusicRepositoryIFace{
+				CreateTracksRequestWithParametersFunc: func(gettingWith uint8, parameters []string, distinctOn uint8) (string, error) {
 					switch gettingWith {
 					case repository.GettingWithGenres:
 						request := `SELECT tracks.id, tracks.title, art.name, alb.title, explicit, g.name, number, file, listen_count, duration FROM tracks
@@ -111,14 +111,14 @@ func TestMusicUseCase_GetAlbumsForCollection(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		dbMock        *mock.MockMusicRepositoryInterface
+		dbMock        *mock.MockMusicRepositoryIFace
 		amount        int
 		expected      []models.Album
 		expectedError bool
 	}{
 		{
 			name: "get albums",
-			dbMock: &mock.MockMusicRepositoryInterface{
+			dbMock: &mock.MockMusicRepositoryIFace{
 				CreateAlbumsDefaultRequestFunc: func(amount int) string {
 					return `SELECT a.id, a.title, a.year, art.name,
 									a.artwork, a.track_count, SUM(t.duration) as tracksDuration FROM albums a
@@ -165,14 +165,14 @@ func TestMusicUseCase_GetArtistsForCollection(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		dbMock        *mock.MockMusicRepositoryInterface
+		dbMock        *mock.MockMusicRepositoryIFace
 		amount        int
 		expected      []models.Artist
 		expectedError bool
 	}{
 		{
 			name: "get artists",
-			dbMock: &mock.MockMusicRepositoryInterface{
+			dbMock: &mock.MockMusicRepositoryIFace{
 				CreateArtistsDefaultRequestFunc: func(amount int) string {
 					return `SELECT artists.id, artists.name, artists.avatar FROM artists
 									WHERE artists.avatar != 'frank_sinatra.jpg' LIMIT 4`
@@ -214,14 +214,14 @@ func TestMusicUseCase_GetPlaylistsForCollection(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		dbMock        *mock.MockMusicRepositoryInterface
+		dbMock        *mock.MockMusicRepositoryIFace
 		amount        int
 		expected      []models.Playlist
 		expectedError bool
 	}{
 		{
 			name: "get playlists",
-			dbMock: &mock.MockMusicRepositoryInterface{
+			dbMock: &mock.MockMusicRepositoryIFace{
 				CreatePlaylistsDefaultRequestFunc: func(amount int) string {
 					return `SELECT playlists.id, playlists.title, playlists.user FROM playlists LIMIT 4`
 				},
@@ -298,14 +298,14 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		dbMock        *mock.MockMusicRepositoryInterface
+		dbMock        *mock.MockMusicRepositoryIFace
 		amount        int
 		expected      models.MusicCollection
 		expectedError bool
 	}{
 		{
 			name: "get playlists",
-			dbMock: &mock.MockMusicRepositoryInterface{
+			dbMock: &mock.MockMusicRepositoryIFace{
 				CreatePlaylistsDefaultRequestFunc: func(amount int) string {
 					return `SELECT playlists.id, playlists.title, playlists.user FROM playlists LIMIT 4`
 				},
@@ -343,7 +343,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 					}
 					return albums, nil
 				},
-				CreateTracksRequestWithParametersFunc: func(gettingWith uint8, parameters interface{}, distinctOn uint8) (string, error) {
+				CreateTracksRequestWithParametersFunc: func(gettingWith uint8, parameters []string, distinctOn uint8) (string, error) {
 					switch gettingWith {
 					case repository.GettingWithGenres:
 						request := `SELECT tracks.id, tracks.title, art.name, alb.title, explicit, g.name, number, file, listen_count, duration FROM tracks

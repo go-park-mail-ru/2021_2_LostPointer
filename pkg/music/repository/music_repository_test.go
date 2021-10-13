@@ -19,7 +19,7 @@ func TestMusicRepository_CreateTracksRequestWithParameters(t *testing.T) {
 	tests := []struct {
 		name          string
 		gettingWith   uint8
-		parameters    interface{}
+		parameters    []string
 		distinctOn    uint8
 		expected      string
 		expectedError bool
@@ -27,7 +27,7 @@ func TestMusicRepository_CreateTracksRequestWithParameters(t *testing.T) {
 		{
 			name:        "GettingWithID; 1, 2, 3, 4, 5; DistinctOnArtists",
 			gettingWith: GettingWithID,
-			parameters:  []int64{1, 2, 3, 4, 5},
+			parameters:  []string{"1", "2", "3", "4", "5"},
 			distinctOn:  DistinctOnArtists,
 			expected: `SELECT DISTINCT ON(art.name) tracks.id, tracks.title, art.name, alb.title, explicit, g.name, number, file, listen_count, duration FROM tracks
 					LEFT JOIN genres g ON tracks.genre = g.id
@@ -38,7 +38,7 @@ func TestMusicRepository_CreateTracksRequestWithParameters(t *testing.T) {
 		{
 			name:        "GettingWithID; 1, 2, 3, 4, 5, 6; DistinctOnNone",
 			gettingWith: GettingWithID,
-			parameters:  []int64{1, 2, 3, 4, 5, 6},
+			parameters:  []string{"1", "2", "3", "4", "5", "6"},
 			distinctOn:  DistinctOnNone,
 			expected: `SELECT tracks.id, tracks.title, art.name, alb.title, explicit, g.name, number, file, listen_count, duration FROM tracks
 					LEFT JOIN genres g ON tracks.genre = g.id
@@ -49,7 +49,7 @@ func TestMusicRepository_CreateTracksRequestWithParameters(t *testing.T) {
 		{
 			name:        "GettingWithID; 1, 2, 3, 4, 5; DistinctOnAlbums",
 			gettingWith: GettingWithID,
-			parameters:  []int64{1, 2, 3, 4, 5, 6, 7},
+			parameters:  []string{"1", "2", "3", "4", "5", "6", "7"},
 			distinctOn:  DistinctOnAlbums,
 			expected: `SELECT DISTINCT ON(alb.title) tracks.id, tracks.title, art.name, alb.title, explicit, g.name, number, file, listen_count, duration FROM tracks
 					LEFT JOIN genres g ON tracks.genre = g.id
@@ -78,22 +78,6 @@ func TestMusicRepository_CreateTracksRequestWithParameters(t *testing.T) {
 					LEFT JOIN albums alb ON tracks.album = alb.id
 					LEFT JOIN artists art ON tracks.artist = art.id WHERE g.name IN ('Pop', 'Jazz', 'Easy Listening')`,
 			expectedError: false,
-		},
-		{
-			name:          "GettingWithGenres; 1, 2, 3, 4, 5; DistinctOnAlbums; MISMATCH TYPES",
-			gettingWith:   GettingWithGenres,
-			parameters:    []int64{1, 2, 3, 4, 5},
-			distinctOn:    DistinctOnAlbums,
-			expected:      ``,
-			expectedError: true,
-		},
-		{
-			name:          "GettingWithID; 'Pop', 'Jazz', 'Easy Listening'; DistinctOnAlbums; MISMATCH TYPES",
-			gettingWith:   GettingWithID,
-			parameters:    []string{"Pop", "Jazz", "Easy Listening"},
-			distinctOn:    DistinctOnAlbums,
-			expected:      ``,
-			expectedError: true,
 		},
 	}
 
@@ -194,7 +178,7 @@ func TestMusicRepository_GetTracks(t *testing.T) {
 					LEFT JOIN artists art ON tracks.artist = art.id WHERE tracks.id IN (1)`)).WillReturnRows(rows)
 			},
 			request: func() string {
-				request, _ := repository.CreateTracksRequestWithParameters(GettingWithID, []int64{1}, DistinctOnNone)
+				request, _ := repository.CreateTracksRequestWithParameters(GettingWithID, []string{"1"}, DistinctOnNone)
 				return request
 			},
 			expected:      []models.Track{track},

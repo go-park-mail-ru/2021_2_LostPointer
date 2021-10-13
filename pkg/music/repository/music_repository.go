@@ -3,10 +3,7 @@ package repository
 import (
 	"2021_2_LostPointer/pkg/models"
 	"database/sql"
-	"errors"
 	"fmt"
-	"reflect"
-	"strings"
 )
 
 const (
@@ -25,14 +22,7 @@ func NewMusicRepository(db *sql.DB) MusicRepository {
 	return MusicRepository{Database: db}
 }
 
-func (musicRepository MusicRepository) CreateTracksRequestWithParameters(gettingWith uint8, parameters interface{}, distinctOn uint8) (string, error) {
-	switch {
-	case gettingWith == GettingWithGenres && reflect.TypeOf(parameters).String() == "[]string":
-	case gettingWith == GettingWithID && reflect.TypeOf(parameters).String() == "[]int64":
-	default:
-		return "", errors.New("mismatch types of arguments gettingWith and parameters")
-	}
-
+func (musicRepository MusicRepository) CreateTracksRequestWithParameters(gettingWith uint8, parameters []string, distinctOn uint8) (string, error) {
 	var baseRequest = `SELECT `
 	switch distinctOn {
 	case DistinctOnAlbums:
@@ -48,24 +38,20 @@ func (musicRepository MusicRepository) CreateTracksRequestWithParameters(getting
 					LEFT JOIN albums alb ON tracks.album = alb.id
 					LEFT JOIN artists art ON tracks.artist = art.id `
 
-	var params []string
 	var attribute string
 	var parameterTemplate string
 	switch gettingWith {
 	case GettingWithGenres:
-		params = parameters.([]string)
 		attribute = `g.name`
 		parameterTemplate = `'%s'`
 	case GettingWithID:
-		paramsInt := parameters.([]int64)
-		params = strings.SplitN(strings.Trim(fmt.Sprint(paramsInt), "[]"), " ", len(paramsInt))
 		attribute = `tracks.id`
 		parameterTemplate = `%s`
 	}
 
-	if len(params) != 0 {
+	if len(parameters) != 0 {
 		baseRequest += `WHERE ` + attribute + ` IN (`
-		for _, param := range params {
+		for _, param := range parameters {
 			baseRequest += fmt.Sprintf(parameterTemplate, param) + `, `
 		}
 

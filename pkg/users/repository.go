@@ -12,8 +12,12 @@ type UserRepositoryIFace interface {
 	IsNicknameUnique(string) (bool, error)
 	DoesUserExist(models.Auth) (uint64, error)
 	GetSettings(int) (*models.SettingsGet, error)
-	UploadSettings(int, *multipart.FileHeader, models.SettingsUpload) error
 	CheckPasswordByUserID(int, string) (bool, error)
+	GetAvatarFilename(int) (string, error)
+	UpdateEmail(int, string) error
+	UpdateNickname(int, string) error
+	UpdatePassword(int, string, ...string) error
+	UpdateAvatar(int, string) error
 }
 
 //go:generate moq -out ../mock/user_repo_redis_mock.go -pkg mock . RedisStoreIFace:MockRedisStoreIFace
@@ -21,4 +25,10 @@ type RedisStoreIFace interface {
 	StoreSession(uint64, ...string) (string, error)
 	GetSessionUserId(string) (int, error)
 	DeleteSession(string)
+}
+
+//go:generate moq -out ../mock/user_repo_filysystem_mock.go -pkg mock . FileSystemIFace:MockFileSystemIFace
+type FileSystemIFace interface {
+	CreateImage(*multipart.FileHeader) (string, error)
+	DeleteImage(string) error
 }

@@ -2,13 +2,13 @@ package repository
 
 import (
 	"2021_2_LostPointer/pkg/models"
-	"github.com/google/uuid"
 	"context"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
 	"github.com/chai2010/webp"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"github.com/sunshineplan/imgconv"
 	"io"
 	"math/rand"
@@ -35,6 +35,8 @@ type RedisStore struct {
 	redisConnection *redis.Client
 }
 
+type FileSystem struct {}
+
 func NewUserRepository(db *sql.DB) UserRepository {
 	return UserRepository{userDB: db}
 }
@@ -43,6 +45,10 @@ func NewRedisStore(redisConnection *redis.Client) RedisStore {
 	return RedisStore{
 		redisConnection: redisConnection,
 	}
+}
+
+func NewFileSystem() FileSystem {
+	return FileSystem{}
 }
 
 func GetRandomString(l int) string {
@@ -183,16 +189,75 @@ func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string)
 	return true, nil
 }
 
-func (Data UserRepository) UploadSettings(userID int, file *multipart.FileHeader, settingsData models.SettingsUpload) error {
-	f, err := file.Open()
+func (Data UserRepository) UpdateEmail(userID int, email string) error {
+	err := Data.userDB.QueryRow(`UPDATE users SET email=$1 WHERE id=$2`, strings.ToLower(email), userID).Err()
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (Data UserRepository) UpdateNickname(userID int, nickname string) error {
+	err := Data.userDB.QueryRow(`UPDATE users SET nickname=$1 WHERE id=$2`, nickname, userID).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (Data UserRepository) UpdatePassword(userID int, password string, customSalt ...string) error {
+	var salt string
+
+	if len(customSalt) != 0 {
+		salt = customSalt[0]
+	} else {
+		salt = GetRandomString(SaltLength)
+	}
+
+	err := Data.userDB.QueryRow(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`, GetHash(password + salt), salt, userID).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (Data UserRepository) UpdateAvatar(userID int, fileName string) error {
+	err := Data.userDB.QueryRow(`UPDATE users SET avatar=$1 WHERE id=$2`, fileName, userID).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (Data UserRepository) GetAvatarFilename(userID int) (string, error) {
+	var filename string
+
+	rows, err := Data.userDB.Query(`SELECT avatar FROM users WHERE id=$1`, userID)
+	if err != nil {
+		return "", err
+	}
+
+	if !rows.Next() {
+		return "", nil
+	}
+
+	if err := rows.Scan(&filename); err != nil {
+		return "", err
+	}
+
+	return filename, nil
+}
+
+func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
+	f, err := file.Open()
+	if err != nil {
+		return "", err
 	}
 	defer f.Close()
 	reader := io.Reader(f)
 	src, err := imgconv.Decode(reader)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	fileName := uuid.NewString()
@@ -200,30 +265,45 @@ func (Data UserRepository) UploadSettings(userID int, file *multipart.FileHeader
 	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthBig, Height: AvatarWidthBig})
 	out, err := os.Create(fileName + "_500px.webp")
 	if err != nil {
-		return err
+		return "", err
 	}
 	writer := io.Writer(out)
 	err = webp.Encode(writer, avatarLarge, &webp.Options{Quality: 85})
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthLittle, Height: AvatarWidthLittle})
 	out, err = os.Create(fileName + "_150px.webp")
 	if err != nil {
-		return err
+		return "", err
 	}
 	writer = io.Writer(out)
 	err = webp.Encode(writer, avatarSmall, &webp.Options{Quality: 85})
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	salt := GetRandomString(SaltLength)
-	err = Data.userDB.QueryRow(`UPDATE users SET email=$1, nickname=$2, avatar=$3, password=$4, salt=$5  WHERE id=$6`,
-		settingsData.Email, settingsData.Nickname, fileName, GetHash(settingsData.NewPassword + salt), salt, userID).Err()
-	if err != nil {
-		return err
+	return fileName, nil
+}
+
+func (File FileSystem) DeleteImage(filename string) error {
+	// 1) Проверяем, что файл существует
+	doesFileExist := true
+	if _, err := os.Stat(filename + "_150px.webp"); os.IsNotExist(err){
+		doesFileExist = false
+	}
+
+	// 2) Удаляем файл со старой аватаркой
+	if filename != "placeholder" && doesFileExist {
+		err := os.Remove(filename + "_150px.webp")
+		if err != nil {
+			return err
+		}
+		err = os.Remove(filename + "_500px.webp")
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

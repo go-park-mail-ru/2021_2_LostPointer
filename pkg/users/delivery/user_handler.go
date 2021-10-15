@@ -56,6 +56,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 	var authData models.Auth
 
 	err := ctx.Bind(&authData)
+	log.Println("DSOPADSA[PDSA[DSAPD[PSD", authData.Password)
 	if err != nil {
 		log.Println(err.Error())
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -152,32 +153,35 @@ func (userD UserDelivery) UploadSettings(ctx echo.Context) error {
 		}
 	}
 
+	var fileName string
+
 	email := ctx.FormValue("email")
 	nickname := ctx.FormValue("nickname")
 	oldPassword := ctx.FormValue("old_password")
 	newPassword := ctx.FormValue("new_password")
 	file, err := ctx.FormFile("avatar")
 	if err != nil {
-		log.Println(err.Error())
-		return ctx.NoContent(http.StatusInternalServerError)
+		fileName = ""
+	} else {
+		fileName = file.Filename
 	}
 
-	settings := models.SettingsUpload{
+	newSettings := &models.SettingsUpload{
 		Email: email,
 		Nickname: nickname,
-		Avatar: file.Filename,
 		OldPassword: oldPassword,
 		NewPassword: newPassword,
+		Avatar: file,
+		AvatarFileName: fileName,
 	}
 
-	customError = userD.userLogic.UploadSettings(cookie.Value, file, oldSettings, settings)
+	customError = userD.userLogic.UpdateSettings(cookie.Value, oldSettings, newSettings)
 	if customError != nil {
-		if customError.ErrorType == 400 {
-			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
-		} else if customError.ErrorType == 401 {
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
-		} else {
+		if customError.ErrorType == 500 {
+			log.Println(customError.OriginalError.Error())
 			return ctx.NoContent(http.StatusInternalServerError)
+		} else {
+			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
 		}
 	}
 

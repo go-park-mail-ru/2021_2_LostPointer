@@ -2,7 +2,6 @@ package users
 
 import (
 	"2021_2_LostPointer/pkg/models"
-	"mime/multipart"
 )
 
 //go:generate moq -out ../mock/user_usecase_mock.go -pkg mock . UserUseCaseIFace:MockUserUseCaseIFace
@@ -12,5 +11,5 @@ type UserUseCaseIFace interface {
 	IsAuthorized(string) (bool, *models.CustomError)
 	Logout(string)
 	GetSettings(string) (*models.SettingsGet, *models.CustomError)
-	UploadSettings(string, *multipart.FileHeader, *models.SettingsGet, models.SettingsUpload) *models.CustomError
+	UpdateSettings(string, *models.SettingsGet, *models.SettingsUpload) *models.CustomError
 }

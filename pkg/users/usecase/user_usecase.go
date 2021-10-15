@@ -4,7 +4,6 @@ import (
 	"2021_2_LostPointer/pkg/models"
 	"2021_2_LostPointer/pkg/users"
 	"log"
-	"mime/multipart"
 	"regexp"
 )
 
@@ -26,12 +25,14 @@ const WrongCredentialsMessage = "Wrong email or password"
 type UserUseCase struct {
 	userDB	   users.UserRepositoryIFace
 	redisStore users.RedisStoreIFace
+	fileSystem users.FileSystemIFace
 }
 
-func NewUserUserCase(userDB users.UserRepositoryIFace, redisStore users.RedisStoreIFace) UserUseCase {
+func NewUserUserCase(userDB users.UserRepositoryIFace, redisStore users.RedisStoreIFace, fileSystem users.FileSystemIFace) UserUseCase {
 	return UserUseCase{
 		userDB: userDB,
 		redisStore: redisStore,
+		fileSystem: fileSystem,
 	}
 }
 
@@ -180,90 +181,125 @@ func (userR UserUseCase) GetSettings(cookieValue string) (*models.SettingsGet, *
 	return settings, nil
 }
 
-func (userR UserUseCase) UploadSettings(cookieValue string, file *multipart.FileHeader, oldSettingsData *models.SettingsGet, settingsData models.SettingsUpload) *models.CustomError {
-	// 1) Проверка, что пользователь авторизован
+func (userR UserUseCase) UpdateSettings(cookieValue string, oldSettings *models.SettingsGet, newSettings *models.SettingsUpload) *models.CustomError {
+	// 0) Получаем ID пользователя по значению cookie
 	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
 	if err != nil {
-		return &models.CustomError{
-			ErrorType: 401,
-			OriginalError: err,
-		}
+		return &models.CustomError{ErrorType: 500, OriginalError: err}
 	}
 
-	// 2) Проверка что введен правильный пароль
-	isCorrect, err := userR.userDB.CheckPasswordByUserID(userID, settingsData.OldPassword)
-	if err != nil {
-		return &models.CustomError{
-			ErrorType: 500,
-			OriginalError: err,
-		}
-	}
-	if !isCorrect {
-		return &models.CustomError{
-			ErrorType: 400,
-			OriginalError: nil,
-			Message: "Wrong password",
-		}
-	}
-
-	// 3) Проверка email и nickname на уникальность
-	if oldSettingsData.Email != settingsData.Email {
-		isEmailUnique, err := userR.userDB.IsEmailUnique(settingsData.Email)
+	// 1) Проверяем, что изменился email
+	if newSettings.Email != oldSettings.Email {
+		// 1.1) Валидация нового email
+		isEmailValid, err := regexp.MatchString(`[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`, newSettings.Email)
 		if err != nil {
-			return &models.CustomError{
-				ErrorType: 500,
-				OriginalError: err,
-			}
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
+		}
+		if !isEmailValid {
+			return &models.CustomError{ErrorType: 400, Message: InvalidEmailMessage}
+		}
+
+		// 1.2) Проверка, что новый email уникален
+		isEmailUnique, err := userR.userDB.IsEmailUnique(newSettings.Email)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
 		}
 		if !isEmailUnique {
-			return &models.CustomError{
-				ErrorType: 400,
-				OriginalError: nil,
-				Message: "Email is already taken",
-			}
+			return &models.CustomError{ErrorType: 400, Message: NotUniqueEmailMessage}
+		}
+
+		// 1.3) Обновляем email в базе
+		err = userR.userDB.UpdateEmail(userID, newSettings.Email)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
 		}
 	}
-	if oldSettingsData.Nickname != settingsData.Nickname {
-		isNicknameUnique, err := userR.userDB.IsNicknameUnique(settingsData.Nickname)
+
+	// 2) Проверяем, что изменился nickname
+	if newSettings.Nickname != oldSettings.Nickname {
+		// 2.1) Валидация нового nickname
+		isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + minNicknameLength + `,` + maxNicknameLength + `}$`, newSettings.Nickname)
 		if err != nil {
-			return &models.CustomError{
-				ErrorType: 500,
-				OriginalError: err,
-			}
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
+		}
+		if !isNicknameValid {
+			return &models.CustomError{ErrorType: 400, Message: NickNameValidationInvalidLengthMessage}
+		}
+
+		// 2.2) Проврека, что новый nickname уникален
+		isNicknameUnique, err := userR.userDB.IsNicknameUnique(newSettings.Nickname)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
 		}
 		if !isNicknameUnique {
-			return &models.CustomError{
-				ErrorType: 400,
-				OriginalError: nil,
-				Message: "Nickname is already taken",
-			}
+			return &models.CustomError{ErrorType: 400, Message: NotUniqueNicknameMessage}
+		}
+
+		// 2.3) Обновляем nickname в базе
+		err = userR.userDB.UpdateNickname(userID, newSettings.Nickname)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
 		}
 	}
 
-	// 4) Валидация новых данных
-	isValidCredentials, msg, err := ValidateRegisterCredentials(
-		models.User{Email: settingsData.Email, Password: settingsData.NewPassword, Nickname: settingsData.Nickname})
-	if err != nil {
-		return &models.CustomError{
-			ErrorType: 500,
-			OriginalError: err,
+	log.Println(len(newSettings.OldPassword), len(newSettings.NewPassword))
+
+	// 3) Проверяем, что изменили пароль
+	if len(newSettings.OldPassword) != 0 && len(newSettings.NewPassword) != 0 {
+		// 3.1) Проверка, что старый пароль введен правильно
+		isOldPasswordCorrect, err := userR.userDB.CheckPasswordByUserID(userID, newSettings.OldPassword)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
 		}
-	}
-	if !isValidCredentials {
-		return &models.CustomError{
-			ErrorType: 400,
-			OriginalError: nil,
-			Message: msg,
+		if !isOldPasswordCorrect {
+			return &models.CustomError{ErrorType: 400, Message: "Wrong password"}
 		}
+
+		// 3.2) Валидация нового пароля
+		isNewPasswordValid, msg, err := ValidatePassword(newSettings.NewPassword)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
+		}
+		if !isNewPasswordValid {
+			return &models.CustomError{ErrorType: 400, Message: msg}
+		}
+
+		// 3.3) Обновляем пароль в базе
+		err = userR.userDB.UpdatePassword(userID, newSettings.NewPassword)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
+		}
+	} else if len(newSettings.OldPassword) == 0 && len(newSettings.NewPassword) != 0 {
+		return &models.CustomError{ErrorType: 400, Message: "Old password field is empty"}
+	} else if len(newSettings.OldPassword) != 0 && len(newSettings.NewPassword) == 0 {
+		return &models.CustomError{ErrorType: 400, Message: "New password field is empty"}
 	}
 
-	err = userR.userDB.UploadSettings(userID, file, settingsData)
-	if err != nil {
-		return &models.CustomError{
-			ErrorType: 500,
-			OriginalError: err,
+	// 4) Проверяем, что изменили аватарку
+	if len(newSettings.AvatarFileName) != 0 {
+		// 4.1) Создаем файл, получаем его название
+		createdAvatarFilename, err := userR.fileSystem.CreateImage(newSettings.Avatar)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
+		}
+
+		// 4.2) Удаляем старый файл
+		oldAvatarFilename, err := userR.userDB.GetAvatarFilename(userID)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
+		}
+		err = userR.fileSystem.DeleteImage(oldAvatarFilename)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
+		}
+
+		// 4.3) Обновляем аватарку в базе
+		err = userR.userDB.UpdateAvatar(userID, createdAvatarFilename)
+		if err != nil {
+			return &models.CustomError{ErrorType: 500, OriginalError: err}
 		}
 	}
 
 	return nil
 }
+

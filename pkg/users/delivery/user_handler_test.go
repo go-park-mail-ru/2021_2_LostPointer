@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -20,13 +21,13 @@ func TestUserDelivery_Logout(t *testing.T) {
 	tests := []struct {
 		name 		string
 		usecaseMock *mock.MockUserUseCaseIFace
-		cookie 		http.Cookie
+		cookie 		*http.Cookie
 		expected    int
 	}{
 		{
 			name: "Successfully logged out",
 			usecaseMock: usecaseMock,
-			cookie: http.Cookie{
+			cookie: &http.Cookie{
 				Name:     "Session_cookie",
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
@@ -36,7 +37,7 @@ func TestUserDelivery_Logout(t *testing.T) {
 		{
 			name: "User was not authorized, no cookies was set",
 			usecaseMock: usecaseMock,
-			cookie: http.Cookie{ },
+			cookie: &http.Cookie{ },
 			expected: http.StatusUnauthorized,
 		},
 	}
@@ -45,7 +46,7 @@ func TestUserDelivery_Logout(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			server := echo.New()
 			req := httptest.NewRequest(echo.POST, "/", nil)
-			req.AddCookie(&tt.cookie)
+			req.AddCookie(tt.cookie)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.SetPath("/api/v1/user/logout")
@@ -62,7 +63,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 	tests := []struct {
 		name 		string
 		usecaseMock *mock.MockUserUseCaseIFace
-		cookie 		http.Cookie
+		cookie 		*http.Cookie
 		expected 	int
 	}{
 		{
@@ -72,7 +73,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 					return true, nil
 				},
 			},
-			cookie: http.Cookie{
+			cookie: &http.Cookie{
 				Name:     "Session_cookie",
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
@@ -86,7 +87,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 					return false, nil
 				},
 			},
-			cookie: http.Cookie{
+			cookie: &http.Cookie{
 				Name:     "Session_cookie",
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
@@ -96,7 +97,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		{
 			name: "User is not authorized, no cookies set",
 			usecaseMock: &mock.MockUserUseCaseIFace{ },
-			cookie: http.Cookie{ },
+			cookie: &http.Cookie{ },
 			expected: http.StatusUnauthorized,
 		},
 		{
@@ -109,7 +110,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 					}
 				},
 			},
-			cookie: http.Cookie{
+			cookie: &http.Cookie{
 				Name:     "Session_cookie",
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
@@ -122,7 +123,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			server := echo.New()
 			req := httptest.NewRequest(echo.GET, "/", nil)
-			req.AddCookie(&tt.cookie)
+			req.AddCookie(tt.cookie)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.SetPath("/api/v1/auth")
@@ -179,13 +180,10 @@ func TestUserDelivery_Login(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.GET, "/", nil)
+			req := httptest.NewRequest(echo.POST, "/api/v1/user/signin",  strings.NewReader(`{"email": "test.inter@ndeiud.com", "password": "jfdIHD#&n873D"}`))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
-			ctx.SetPath("/api/v1/user/signin")
-			ctx.Set("email", "alex1234@gmail.com")
-			ctx.Set("password", "Alexey123456!")
-
 			r := NewUserDelivery(tt.usecaseMock)
 			if assert.NoError(t, r.Login(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
@@ -238,14 +236,10 @@ func TestUserDelivery_Register(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.GET, "/", nil)
+			req := httptest.NewRequest(echo.POST, "/api/v1/user/signup", strings.NewReader(`{"email": "test.inter@ndeiud.com", "password": "jfdIHD#&n873D"}`))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
-			ctx.SetPath("/api/v1/user/signup")
-			ctx.Set("email", "alex1234@gmail.com")
-			ctx.Set("password", "Alexey123456!")
-			ctx.Set("nickname", "Alexey_Kosenko")
-
 			r := NewUserDelivery(tt.usecaseMock)
 			if assert.NoError(t, r.Register(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
@@ -253,20 +247,43 @@ func TestUserDelivery_Register(t *testing.T) {
 		})
 	}
 }
-//
-//func TestUserDelivery_GetSettings(t *testing.T) {
-//	tests := []struct {
-//		name 		string
-//		usecaseMock *mock.MockUserUseCaseIFace
-//		expected 	int
-//	}{
-//		{
-//			name: "Successfully returns settings",
-//			usecaseMock: &mock.MockUserUseCaseIFace{
-//				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
-//					return &models.SettingsGet{}, nil
-//				},
-//			},
-//		},
-//	}
-//}
+
+func TestUserDelivery_GetSettings(t *testing.T) {
+	tests := []struct {
+		name 		string
+		usecaseMock *mock.MockUserUseCaseIFace
+		cookie 		*http.Cookie
+		expected 	int
+	}{
+		{
+			name: "Successfully returns settings",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+					return &models.SettingsGet{}, nil
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expected: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := echo.New()
+			req := httptest.NewRequest(echo.GET, "/", nil)
+			req.AddCookie(tt.cookie)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			ctx.SetPath("/api/v1/user/settings")
+
+			r := NewUserDelivery(tt.usecaseMock)
+			if assert.NoError(t, r.GetSettings(ctx)) {
+				assert.Equal(t, tt.expected, rec.Code)
+			}
+		})
+	}
+}

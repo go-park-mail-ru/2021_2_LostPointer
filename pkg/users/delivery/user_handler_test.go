@@ -68,7 +68,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		{
 			name: "User is authorized",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				IsAuthorizedFunc: func(s string) (bool, error) {
+				IsAuthorizedFunc: func(s string) (bool, *models.CustomError) {
 					return true, nil
 				},
 			},
@@ -82,7 +82,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		{
 			name: "User is not authorized",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				IsAuthorizedFunc: func(s string) (bool, error) {
+				IsAuthorizedFunc: func(s string) (bool, *models.CustomError) {
 					return false, nil
 				},
 			},
@@ -102,8 +102,11 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		{
 			name: "User is not authorized, no session in redis",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				IsAuthorizedFunc: func(s string) (bool, error) {
-					return false, errors.New("no_session_in_redis")
+				IsAuthorizedFunc: func(s string) (bool, *models.CustomError) {
+					return false, &models.CustomError{
+						ErrorType: 500,
+						OriginalError: errors.New("some_error_in_redis"),
+					}
 				},
 			},
 			cookie: http.Cookie{
@@ -111,7 +114,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
 			},
-			expected: http.StatusUnauthorized,
+			expected: http.StatusInternalServerError,
 		},
 	}
 
@@ -141,26 +144,32 @@ func TestUserDelivery_Login(t *testing.T) {
 		{
 			name: "Successfully logged in",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				LoginFunc: func(auth models.Auth) (string, error) {
+				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "some_sesion_token", nil
 				},
 			},
 			expected: http.StatusOK,
 		},
 		{
-			name: "Unsuccessful log in, usecase Login returns empty token",
+			name: "Unsuccessful log in, BadRequest",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				LoginFunc: func(auth models.Auth) (string, error) {
-					return "", nil
+				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
+					return "", &models.CustomError{
+						ErrorType: 400,
+						OriginalError: nil,
+					}
 				},
 			},
 			expected: http.StatusBadRequest,
 		},
 		{
-			name: "Unsuccessful log in, usecase Login returns error",
+			name: "Unsuccessful log in, InternalServerError",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				LoginFunc: func(auth models.Auth) (string, error) {
-					return "", errors.New("some_error_in_login")
+				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
+					return "", &models.CustomError{
+						ErrorType: 500,
+						OriginalError: errors.New("some_error"),
+					}
 				},
 			},
 			expected: http.StatusInternalServerError,
@@ -194,29 +203,35 @@ func TestUserDelivery_Register(t *testing.T) {
 		{
 			name: "Successful register",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				RegisterFunc: func(user models.User) (string, string, error) {
-					return "some_session_token", "", nil
+				RegisterFunc: func(user models.User) (string, *models.CustomError) {
+					return "some_session_token", nil
 				},
 			},
 			expected: http.StatusCreated,
 		},
 		{
-			name: "Unsuccessful register, usecase Register returns error",
+			name: "Unsuccessful register, BadRequest",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				RegisterFunc: func(user models.User) (string, string, error) {
-					return "", "", errors.New("some_error_in_register")
-				},
-			},
-			expected: http.StatusInternalServerError,
-		},
-		{
-			name: "Unsuccessful register, usecase Register returns empty token",
-			usecaseMock: &mock.MockUserUseCaseIFace{
-				RegisterFunc: func(user models.User) (string, string, error) {
-					return "", "", nil
+				RegisterFunc: func(user models.User) (string, *models.CustomError) {
+					return "", &models.CustomError{
+						ErrorType: 400,
+						OriginalError: nil,
+					}
 				},
 			},
 			expected: http.StatusBadRequest,
+		},
+		{
+			name: "Unsuccessful register, InternalServerError",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				RegisterFunc: func(user models.User) (string, *models.CustomError) {
+					return "", &models.CustomError{
+						ErrorType: 500,
+						OriginalError: errors.New("some_error"),
+					}
+				},
+			},
+			expected: http.StatusInternalServerError,
 		},
 	}
 
@@ -238,3 +253,20 @@ func TestUserDelivery_Register(t *testing.T) {
 		})
 	}
 }
+//
+//func TestUserDelivery_GetSettings(t *testing.T) {
+//	tests := []struct {
+//		name 		string
+//		usecaseMock *mock.MockUserUseCaseIFace
+//		expected 	int
+//	}{
+//		{
+//			name: "Successfully returns settings",
+//			usecaseMock: &mock.MockUserUseCaseIFace{
+//				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+//					return &models.SettingsGet{}, nil
+//				},
+//			},
+//		},
+//	}
+//}

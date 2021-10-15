@@ -7,10 +7,10 @@ import (
 
 //go:generate moq -out ../mock/user_usecase_mock.go -pkg mock . UserUseCaseIFace:MockUserUseCaseIFace
 type UserUseCaseIFace interface {
-	Register(models.User) (string, string, error)
-	Login(models.Auth) (string, error)
+	Register(models.User) (string, *models.CustomError)
+	Login(models.Auth) (string, *models.CustomError)
+	IsAuthorized(string) (bool, *models.CustomError)
 	Logout(string)
-	IsAuthorized(string) (bool, error)
-	GetSettings(string) (*models.Settings, error)
-	UploadSettings(string, *multipart.FileHeader, models.Settings) error
+	GetSettings(string) (*models.SettingsGet, *models.CustomError)
+	UploadSettings(string, *multipart.FileHeader, *models.SettingsGet, models.SettingsUpload) *models.CustomError
 }

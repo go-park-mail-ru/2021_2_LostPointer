@@ -52,6 +52,7 @@ func TestUserUseCase_Login(t *testing.T) {
 				Password: "alex1234",
 			},
 			expected: "",
+			expectedErr: true,
 		},
 		{
 			name: "StoreSession error",
@@ -91,15 +92,13 @@ func TestUserUseCase_Login(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			var err error
-
 			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
 
-			got, err := r.Login(testCase.input)
+			got, customError := r.Login(testCase.input)
 			if testCase.expectedErr {
-				assert.Error(t, err)
+				assert.NotNil(t, customError)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, customError)
 				assert.Equal(t, testCase.expected, got)
 			}
 		})
@@ -131,17 +130,6 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 			dbMock: &mock.MockUserRepositoryIFace{ },
 			redisMock: &mock.MockRedisStoreIFace{
 				GetSessionUserIdFunc: func(string) (int, error) {
-					return 0, nil
-				},
-			},
-			input: "some_cookie",
-			expected: false,
-		},
-		{
-			name: "Redis error",
-			dbMock: &mock.MockUserRepositoryIFace{ },
-			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
 					return 0, errors.New("redis_error")
 				},
 			},
@@ -155,12 +143,12 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
 
-			got, err := r.IsAuthorized(testCase.input)
+			got, customError := r.IsAuthorized(testCase.input)
 
 			if testCase.expectedErr {
-				assert.Error(t, err)
+				assert.NotNil(t, customError)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, customError)
 				assert.Equal(t, testCase.expected, got)
 			}
 		})
@@ -338,8 +326,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 func TestUserUseCase_Register(t *testing.T) {
 	type response struct {
 		sessionToken string
-		message 	 string
-		err 		 error
+		err 		 *models.CustomError
 	}
 
 	tests := []struct {
@@ -375,24 +362,51 @@ func TestUserUseCase_Register(t *testing.T) {
 			},
 			expected: response{
 				sessionToken: "some_token",
-				message: "",
 				err: nil,
 			},
 		},
 		{
+			name: "userDB.CreateUser returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsEmailUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				IsNicknameUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				CreateUserFunc: func(models.User, ...string) (uint64, error) {
+					return 0, errors.New("some_error_in_CreateUserFunct")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				StoreSessionFunc: func(uint64, ...string) (string, error) {
+					return "some_token", nil
+				},
+			},
+			input: models.User{
+				Email: "alexeikosenko@gmail.com",
+				Password: "AlexeiKosenkaRulitTankom1234!",
+				Nickname: "alexeiKosenka",
+			},
+			expectedErr: true,
+		},
+		{
 			name: "Invalid credentials",
-			dbMock: &mock.MockUserRepositoryIFace{ },
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsEmailUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				IsNicknameUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+			},
 			redisMock: &mock.MockRedisStoreIFace{ },
 			input: models.User{
 				Email: "alexeikosenkogmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
 			},
-			expected: response{
-				sessionToken: "",
-				message: InvalidEmailMessage,
-				err: nil,
-			},
+			expectedErr: true,
 		},
 		{
 			name: "Email is not unique",
@@ -407,11 +421,7 @@ func TestUserUseCase_Register(t *testing.T) {
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
 			},
-			expected: response{
-				sessionToken: "",
-				message: "Email is already taken",
-				err: nil,
-			},
+			expectedErr: true,
 		},
 		{
 			name: "IsEmailUniqueFunc returns error",
@@ -425,11 +435,6 @@ func TestUserUseCase_Register(t *testing.T) {
 				Email: "alexeikosenko@gmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
-			},
-			expected: response{
-				sessionToken: "",
-				message: "",
-				err: errors.New("some_error_in_IsEmailUniqueFunc"),
 			},
 			expectedErr: true,
 		},
@@ -449,11 +454,7 @@ func TestUserUseCase_Register(t *testing.T) {
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
 			},
-			expected: response{
-				sessionToken: "",
-				message: "Nickname is already taken",
-				err: nil,
-			},
+			expectedErr: true,
 		},
 		{
 			name: "IsNicknameUnique returns error",
@@ -470,11 +471,6 @@ func TestUserUseCase_Register(t *testing.T) {
 				Email: "alexeikosenko@gmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
-			},
-			expected: response{
-				sessionToken: "",
-				message: "",
-				err: errors.New("some_error_in_IsNicknameUniqueFunc"),
 			},
 			expectedErr: true,
 		},
@@ -501,11 +497,6 @@ func TestUserUseCase_Register(t *testing.T) {
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
 			},
-			expected: response{
-				sessionToken: "",
-				message: "",
-				err: errors.New("some_error_in_StoreSessionFunc"),
-			},
 			expectedErr: true,
 		},
 	}
@@ -515,12 +506,12 @@ func TestUserUseCase_Register(t *testing.T) {
 			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
 			got := response{}
 
-			got.sessionToken, got.message, got.err = r.Register(testCase.input)
+			got.sessionToken, got.err = r.Register(testCase.input)
 
 			if testCase.expectedErr {
-				assert.Error(t, got.err)
+				assert.NotNil(t, got.err)
 			} else {
-				assert.NoError(t, got.err)
+				assert.Nil(t, got.err)
 				assert.Equal(t, testCase.expected, got)
 			}
 		})

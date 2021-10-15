@@ -3,17 +3,12 @@ package usecase
 import (
 	"2021_2_LostPointer/pkg/models"
 	"2021_2_LostPointer/pkg/music"
-	"2021_2_LostPointer/pkg/music/repository"
-	"math/rand"
-	"strconv"
 )
 
 const TracksCollectionLimit = 10
 const AlbumCollectionLimit = 4
 const PlaylistsCollectionLimit = 4
 const ArtistsCollectionLimit = 4
-
-var defaultGenres = []string{"Swing", "Jazz", "Rock", "Easy Listening", "Pop", "Русский шансон", "Spoken Word"}
 
 type MusicUseCase struct {
 	MusicRepository music.MusicRepositoryIFace
@@ -27,7 +22,7 @@ func (musicUseCase MusicUseCase) GetMusicCollection() (*models.MusicCollection, 
 	var collection = new(models.MusicCollection)
 	var err error
 
-	if collection.Tracks, err = musicUseCase.GetTracksForCollection(TracksCollectionLimit, defaultGenres); err != nil {
+	if collection.Tracks, err = musicUseCase.GetTracksForCollection(TracksCollectionLimit); err != nil {
 		return nil, err
 	}
 	if collection.Albums, err = musicUseCase.GetAlbumsForCollection(AlbumCollectionLimit); err != nil {
@@ -43,45 +38,17 @@ func (musicUseCase MusicUseCase) GetMusicCollection() (*models.MusicCollection, 
 	return collection, nil
 }
 
-func (musicUseCase MusicUseCase) GetTracksForCollection(amount int, genres []string) ([]models.Track, error) {
-	requestWithGenres, err := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithGenres, genres, repository.DistinctOnNone)
-	if err != nil {
-		return nil, err
-	}
-	tracksByGenre, err := musicUseCase.MusicRepository.GetTracks(requestWithGenres)
+func (musicUseCase MusicUseCase) GetTracksForCollection(amount int) ([]models.Track, error) {
+	tracks, err := musicUseCase.MusicRepository.GetRandomTracks(amount)
 	if err != nil {
 		return nil, err
 	}
 
-	randomTracksIDMap := make(map[int64]bool, 0)
-	for i := 0; i < amount; {
-		newRandomTrackId := tracksByGenre[rand.Intn(len(tracksByGenre)-1)].Id
-		if randomTracksIDMap[newRandomTrackId] == false {
-			randomTracksIDMap[newRandomTrackId] = true
-			i++
-		}
-
-	}
-	randomTracksIDArray := make([]string, 0)
-	for key := range randomTracksIDMap {
-		randomTracksIDArray = append(randomTracksIDArray, strconv.FormatInt(key, 10))
-	}
-
-	request, err := musicUseCase.MusicRepository.CreateTracksRequestWithParameters(repository.GettingWithID, randomTracksIDArray, repository.DistinctOnNone)
-	if err != nil {
-		return nil, err
-	}
-	randomTracks, err := musicUseCase.MusicRepository.GetTracks(request)
-	if err != nil {
-		return nil, err
-	}
-
-	return randomTracks, nil
+	return tracks, nil
 }
 
 func (musicUseCase MusicUseCase) GetAlbumsForCollection(amount int) ([]models.Album, error) {
-	request := musicUseCase.MusicRepository.CreateAlbumsDefaultRequest(amount)
-	albums, err := musicUseCase.MusicRepository.GetAlbums(request)
+	albums, err := musicUseCase.MusicRepository.GetRandomAlbums(amount)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +57,7 @@ func (musicUseCase MusicUseCase) GetAlbumsForCollection(amount int) ([]models.Al
 }
 
 func (musicUseCase MusicUseCase) GetArtistsForCollection(amount int) ([]models.Artist, error) {
-	request := musicUseCase.MusicRepository.CreateArtistsDefaultRequest(amount)
-	artists, err := musicUseCase.MusicRepository.GetArtists(request)
+	artists, err := musicUseCase.MusicRepository.GetRandomArtists(amount)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +66,7 @@ func (musicUseCase MusicUseCase) GetArtistsForCollection(amount int) ([]models.A
 }
 
 func (musicUseCase MusicUseCase) GetPlaylistsForCollection(amount int) ([]models.Playlist, error) {
-	request := musicUseCase.MusicRepository.CreatePlaylistsDefaultRequest(amount)
-	playlists, err := musicUseCase.MusicRepository.GetPlaylists(request)
+	playlists, err := musicUseCase.MusicRepository.GetRandomPlaylists(amount)
 	if err != nil {
 		return nil, err
 	}

@@ -132,8 +132,8 @@ func (Data UserRepository) IsNicknameUnique(nickname string) (bool, error) {
 	return true, nil
 }
 
-func (Data UserRepository) GetSettings(userID int) (*models.Settings, error) {
-	var settings models.Settings
+func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) {
+	var settings models.SettingsGet
 
 	rows, err := Data.userDB.Query(`SELECT email, avatar, nickname FROM users WHERE id=$1`, userID)
 	if err != nil {
@@ -159,7 +159,31 @@ func (Data UserRepository) GetSettings(userID int) (*models.Settings, error) {
 	return &settings, nil
 }
 
-func (Data UserRepository) UploadSettings(userID int, file *multipart.FileHeader, settingsData models.Settings) error {
+func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string) (bool, error) {
+	var password, salt string
+
+	rows, err := Data.userDB.Query(`SELECT password, salt FROM users WHERE id=$1`, userID)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return false, nil
+	}
+
+	if err := rows.Scan(&password, &salt); err != nil {
+		return false, err
+	}
+	// Не совпадает пароль
+	if GetHash(oldPassword + salt) != password {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (Data UserRepository) UploadSettings(userID int, file *multipart.FileHeader, settingsData models.SettingsUpload) error {
 	f, err := file.Open()
 	if err != nil {
 		return err
@@ -195,8 +219,9 @@ func (Data UserRepository) UploadSettings(userID int, file *multipart.FileHeader
 		return err
 	}
 
-	err = Data.userDB.QueryRow(`UPDATE users SET email=$1, nickname=$2, avatar=$3 WHERE id=$4`,
-		settingsData.Email, settingsData.Nickname, fileName, userID).Err()
+	salt := GetRandomString(SaltLength)
+	err = Data.userDB.QueryRow(`UPDATE users SET email=$1, nickname=$2, avatar=$3, password=$4, salt=$5  WHERE id=$6`,
+		settingsData.Email, settingsData.Nickname, fileName, GetHash(settingsData.NewPassword + salt), salt, userID).Err()
 	if err != nil {
 		return err
 	}

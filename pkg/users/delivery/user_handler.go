@@ -28,13 +28,14 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	sessionToken, msg, err := userD.userLogic.Register(userData)
-	if err != nil {
-		log.Println(err.Error())
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-	if len(sessionToken) == 0 {
-		return ctx.JSON(http.StatusBadRequest, &models.Response{Message: msg})
+	sessionToken, customError := userD.userLogic.Register(userData)
+	if customError != nil {
+		if customError.ErrorType == 500 {
+			log.Println(customError.OriginalError.Error())
+			return ctx.NoContent(http.StatusInternalServerError)
+		} else {
+			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
+		}
 	}
 
 	cookie := &http.Cookie{
@@ -60,13 +61,15 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	sessionToken, err := userD.userLogic.Login(authData)
-	if err != nil {
-		log.Println(err.Error())
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-	if len(sessionToken) == 0 {
-		return ctx.JSON(http.StatusBadRequest, &models.Response{Message: "Wrong username or password"})
+	sessionToken, customError := userD.userLogic.Login(authData)
+	if customError != nil {
+		if customError.ErrorType == 500 {
+			log.Println(customError.OriginalError.Error())
+			return ctx.NoContent(http.StatusInternalServerError)
+		} else {
+			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
+		}
+
 	}
 
 	cookie := &http.Cookie{
@@ -89,10 +92,12 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
 
-	isAuthorized, err := userD.userLogic.IsAuthorized(cookie.Value)
-	if err != nil {
-		log.Println(err.Error())
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	isAuthorized, customError := userD.userLogic.IsAuthorized(cookie.Value)
+	if customError != nil {
+		if customError.ErrorType == 500 {
+			log.Println(customError.OriginalError.Error())
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
 	}
 	if !isAuthorized {
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
@@ -121,10 +126,12 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
 
-	settings, err := userD.userLogic.GetSettings(cookie.Value)
-	if err != nil {
-		log.Println(err.Error())
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	settings, customError := userD.userLogic.GetSettings(cookie.Value)
+	if customError != nil {
+		if customError.ErrorType == 500 {
+			log.Println(customError.OriginalError.Error())
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
 	}
 
 	return ctx.JSON(http.StatusOK, settings)
@@ -137,30 +144,44 @@ func (userD UserDelivery) UploadSettings(ctx echo.Context) error {
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
 	}
 
+	oldSettings, customError := userD.userLogic.GetSettings(cookie.Value)
+	if customError != nil {
+		if customError.ErrorType == 500 {
+			log.Println(customError.OriginalError.Error())
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+	}
+
 	email := ctx.FormValue("email")
 	nickname := ctx.FormValue("nickname")
+	oldPassword := ctx.FormValue("old_password")
+	newPassword := ctx.FormValue("new_password")
 	file, err := ctx.FormFile("avatar")
 	if err != nil {
 		log.Println(err.Error())
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	settings := models.Settings{
+	settings := models.SettingsUpload{
 		Email: email,
 		Nickname: nickname,
 		Avatar: file.Filename,
+		OldPassword: oldPassword,
+		NewPassword: newPassword,
 	}
 
-	err = userD.userLogic.UploadSettings(cookie.Value, file, settings)
-	if err != nil {
-		if err.Error() == "redis: nil" {
+	customError = userD.userLogic.UploadSettings(cookie.Value, file, oldSettings, settings)
+	if customError != nil {
+		if customError.ErrorType == 400 {
+			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
+		} else if customError.ErrorType == 401 {
 			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+		} else {
+			return ctx.NoContent(http.StatusInternalServerError)
 		}
-		log.Println(err.Error())
-		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	return ctx.JSON(http.StatusCreated, &models.Response{Message: "TODO"})
+	return ctx.JSON(http.StatusCreated, &models.Response{Message: "Settings uploaded successfully"})
 }
 
 func (userD UserDelivery) InitHandlers(server *echo.Echo) {

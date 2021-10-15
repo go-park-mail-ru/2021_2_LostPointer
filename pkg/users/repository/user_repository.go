@@ -24,6 +24,7 @@ const SessionTokenLength = 40
 
 const AvatarWidthBig = 500
 const AvatarWidthLittle = 150
+const AvatarDefaultPath = "ava.png"
 
 var ctx = context.Background()
 
@@ -157,7 +158,7 @@ func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) 
 		return nil, err
 	}
 	if !avatarNULL.Valid {
-		settings.Avatar = "placeholder.webp"
+		settings.Avatar = AvatarDefaultPath
 	} else {
 		settings.Avatar = avatarNULL.String
 	}

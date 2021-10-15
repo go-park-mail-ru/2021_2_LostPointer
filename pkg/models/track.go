@@ -8,7 +8,9 @@ type Track struct {
 	Explicit    bool   `json:"explicit"`
 	Genre       string `json:"genre"`
 	Number      int64  `json:"number"`
+	File        string `json:"file"`
 	ListenCount int64  `json:"listenCount"`
 	Duration    int64  `json:"duration"`
+	Lossless    bool   `json:"lossless"`
 	Cover       string `json:"cover"`
 }

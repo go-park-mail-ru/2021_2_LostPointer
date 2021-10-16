@@ -5,6 +5,7 @@ import (
 	"2021_2_LostPointer/pkg/models"
 	"errors"
 	"github.com/stretchr/testify/assert"
+	"mime/multipart"
 	"testing"
 )
 
@@ -13,6 +14,7 @@ func TestUserUseCase_Login(t *testing.T) {
 		name 	  	  string
 		dbMock 	  	  *mock.MockUserRepositoryIFace
 		redisMock 	  *mock.MockRedisStoreIFace
+		fsMock		  *mock.MockFileSystemIFace
 		input 	  	  models.Auth
 		expected  	  string
 		expectedErr   bool
@@ -29,6 +31,7 @@ func TestUserUseCase_Login(t *testing.T) {
 					return "some_token", nil
 				},
 			},
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.Auth{
 				Email: "alex1234@gmail.com",
 				Password: "alex1234",
@@ -47,11 +50,13 @@ func TestUserUseCase_Login(t *testing.T) {
 					return "some_token", nil
 				},
 			},
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.Auth{
 				Email: "alex1234@gmail.com",
 				Password: "alex1234",
 			},
 			expected: "",
+			expectedErr: true,
 		},
 		{
 			name: "StoreSession error",
@@ -65,6 +70,7 @@ func TestUserUseCase_Login(t *testing.T) {
 					return "", errors.New("redis_error")
 				},
 			},
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.Auth{
 				Email: "alex1234@gmail.com",
 				Password: "alex1234",
@@ -91,15 +97,13 @@ func TestUserUseCase_Login(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			var err error
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
 
-			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
-
-			got, err := r.Login(testCase.input)
+			got, customError := r.Login(testCase.input)
 			if testCase.expectedErr {
-				assert.Error(t, err)
+				assert.NotNil(t, customError)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, customError)
 				assert.Equal(t, testCase.expected, got)
 			}
 		})
@@ -111,6 +115,7 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 		name 	  	  string
 		dbMock 	  	  *mock.MockUserRepositoryIFace
 		redisMock 	  *mock.MockRedisStoreIFace
+		fsMock 		  *mock.MockFileSystemIFace
 		input 	  	  string
 		expected  	  bool
 		expectedErr   bool
@@ -123,6 +128,7 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 					return 1, nil
 				},
 			},
+			fsMock: &mock.MockFileSystemIFace{},
 			input: "some_cookie",
 			expected: true,
 		},
@@ -131,20 +137,10 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 			dbMock: &mock.MockUserRepositoryIFace{ },
 			redisMock: &mock.MockRedisStoreIFace{
 				GetSessionUserIdFunc: func(string) (int, error) {
-					return 0, nil
-				},
-			},
-			input: "some_cookie",
-			expected: false,
-		},
-		{
-			name: "Redis error",
-			dbMock: &mock.MockUserRepositoryIFace{ },
-			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
 					return 0, errors.New("redis_error")
 				},
 			},
+			fsMock: &mock.MockFileSystemIFace{},
 			input: "some_cookie",
 			expected: false,
 			expectedErr: true,
@@ -153,14 +149,14 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
 
-			got, err := r.IsAuthorized(testCase.input)
+			got, customError := r.IsAuthorized(testCase.input)
 
 			if testCase.expectedErr {
-				assert.Error(t, err)
+				assert.NotNil(t, customError)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, customError)
 				assert.Equal(t, testCase.expected, got)
 			}
 		})
@@ -251,8 +247,9 @@ func TestUserUseCase_Logout(t *testing.T) {
 	redisMock := &mock.MockRedisStoreIFace{
 		DeleteSessionFunc: func(string) {},
 	}
+	fsMock := &mock.MockFileSystemIFace{}
 
-	r := NewUserUserCase(dbMock, redisMock)
+	r := NewUserUserCase(dbMock, redisMock, fsMock)
 	r.Logout("alexei_kosenkov")
 
 	assert.True(t, true)
@@ -338,14 +335,14 @@ func TestValidateRegisterCredentials(t *testing.T) {
 func TestUserUseCase_Register(t *testing.T) {
 	type response struct {
 		sessionToken string
-		message 	 string
-		err 		 error
+		err 		 *models.CustomError
 	}
 
 	tests := []struct {
 		name 	  	  string
 		dbMock 	  	  *mock.MockUserRepositoryIFace
 		redisMock 	  *mock.MockRedisStoreIFace
+		fsMock        *mock.MockFileSystemIFace
 		input 	  	  models.User
 		expected  	  response
 		expectedErr   bool
@@ -368,6 +365,7 @@ func TestUserUseCase_Register(t *testing.T) {
 					return "some_token", nil
 				},
 			},
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.User{
 				Email: "alexeikosenko@gmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
@@ -375,24 +373,53 @@ func TestUserUseCase_Register(t *testing.T) {
 			},
 			expected: response{
 				sessionToken: "some_token",
-				message: "",
 				err: nil,
 			},
 		},
 		{
+			name: "userDB.CreateUser returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsEmailUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				IsNicknameUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				CreateUserFunc: func(models.User, ...string) (uint64, error) {
+					return 0, errors.New("some_error_in_CreateUserFunct")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				StoreSessionFunc: func(uint64, ...string) (string, error) {
+					return "some_token", nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: models.User{
+				Email: "alexeikosenko@gmail.com",
+				Password: "AlexeiKosenkaRulitTankom1234!",
+				Nickname: "alexeiKosenka",
+			},
+			expectedErr: true,
+		},
+		{
 			name: "Invalid credentials",
-			dbMock: &mock.MockUserRepositoryIFace{ },
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsEmailUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				IsNicknameUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+			},
 			redisMock: &mock.MockRedisStoreIFace{ },
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.User{
 				Email: "alexeikosenkogmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
 			},
-			expected: response{
-				sessionToken: "",
-				message: InvalidEmailMessage,
-				err: nil,
-			},
+			expectedErr: true,
 		},
 		{
 			name: "Email is not unique",
@@ -402,16 +429,13 @@ func TestUserUseCase_Register(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{ },
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.User{
 				Email: "alexeikosenko@gmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
 			},
-			expected: response{
-				sessionToken: "",
-				message: "Email is already taken",
-				err: nil,
-			},
+			expectedErr: true,
 		},
 		{
 			name: "IsEmailUniqueFunc returns error",
@@ -421,15 +445,11 @@ func TestUserUseCase_Register(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{ },
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.User{
 				Email: "alexeikosenko@gmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
-			},
-			expected: response{
-				sessionToken: "",
-				message: "",
-				err: errors.New("some_error_in_IsEmailUniqueFunc"),
 			},
 			expectedErr: true,
 		},
@@ -444,16 +464,13 @@ func TestUserUseCase_Register(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{ },
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.User{
 				Email: "alexeikosenko@gmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
 			},
-			expected: response{
-				sessionToken: "",
-				message: "Nickname is already taken",
-				err: nil,
-			},
+			expectedErr: true,
 		},
 		{
 			name: "IsNicknameUnique returns error",
@@ -466,15 +483,11 @@ func TestUserUseCase_Register(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{ },
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.User{
 				Email: "alexeikosenko@gmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
-			},
-			expected: response{
-				sessionToken: "",
-				message: "",
-				err: errors.New("some_error_in_IsNicknameUniqueFunc"),
 			},
 			expectedErr: true,
 		},
@@ -496,15 +509,11 @@ func TestUserUseCase_Register(t *testing.T) {
 					return "", errors.New("some_error_in_StoreSessionFunc")
 				},
 			},
+			fsMock: &mock.MockFileSystemIFace{},
 			input: models.User{
 				Email: "alexeikosenko@gmail.com",
 				Password: "AlexeiKosenkaRulitTankom1234!",
 				Nickname: "alexeiKosenka",
-			},
-			expected: response{
-				sessionToken: "",
-				message: "",
-				err: errors.New("some_error_in_StoreSessionFunc"),
 			},
 			expectedErr: true,
 		},
@@ -512,16 +521,787 @@ func TestUserUseCase_Register(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			r := NewUserUserCase(testCase.dbMock, testCase.redisMock)
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
 			got := response{}
 
-			got.sessionToken, got.message, got.err = r.Register(testCase.input)
+			got.sessionToken, got.err = r.Register(testCase.input)
 
 			if testCase.expectedErr {
-				assert.Error(t, got.err)
+				assert.NotNil(t, got.err)
 			} else {
-				assert.NoError(t, got.err)
+				assert.Nil(t, got.err)
 				assert.Equal(t, testCase.expected, got)
+			}
+		})
+	}
+}
+
+func TestUserUseCase_GetSettings(t *testing.T) {
+	type response struct {
+		settings *models.SettingsGet
+		err 	 *models.CustomError
+	}
+
+	tests := []struct {
+		name 	  	  string
+		dbMock 	  	  *mock.MockUserRepositoryIFace
+		redisMock 	  *mock.MockRedisStoreIFace
+		fsMock        *mock.MockFileSystemIFace
+		input 	  	  string
+		expected  	  response
+		expectedErr   bool
+	}{
+		{
+			name: "Successfully got settings",
+			dbMock: &mock.MockUserRepositoryIFace{
+				GetSettingsFunc: func(int) (*models.SettingsGet, error) {
+					return &models.SettingsGet{
+						Email: "alex1234@gmail.com",
+						Nickname: "alex1234",
+						Avatar: "avatar",
+					}, nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: "some_cookie_value",
+			expected: response{
+				settings: &models.SettingsGet{
+					Email: "alex1234@gmail.com",
+					Nickname: "alex1234",
+					Avatar: "avatar",
+				},
+				err: nil,
+			},
+		},
+		{
+			name: "GetSessionUserId returns an error",
+			dbMock: &mock.MockUserRepositoryIFace{},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 0, errors.New("some_error_in_redis")
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: "some_cookie_value",
+			expected: response{
+				settings: nil,
+				err: &models.CustomError{
+					ErrorType: 401,
+				},
+			},
+			expectedErr: true,
+		},
+		{
+			name: "GetSettings returns an error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				GetSettingsFunc: func(int) (*models.SettingsGet, error) {
+					return nil, errors.New("some_error_in_GetSettings")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: "some_cookie_value",
+			expected: response{
+				settings: nil,
+				err: &models.CustomError{
+					ErrorType: 500,
+					OriginalError: errors.New("some_error_in_GetSettings"),
+				},
+			},
+			expectedErr: true,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
+			got := response{}
+
+			got.settings, got.err = r.GetSettings(testCase.input)
+
+			if testCase.expectedErr {
+				assert.NotNil(t, got.err)
+				assert.Equal(t, testCase.expected.err.ErrorType, got.err.ErrorType)
+			} else {
+				assert.Nil(t, got.err)
+				assert.Equal(t, testCase.expected, got)
+			}
+		})
+	}
+}
+
+func TestUserUseCase_UpdateSettings(t *testing.T) {
+	type inputStruct struct {
+		cookieValue string
+		oldSettings *models.SettingsGet
+		newSettings *models.SettingsUpload
+	}
+
+	tests := []struct {
+		name 	  	  string
+		dbMock 	  	  *mock.MockUserRepositoryIFace
+		redisMock 	  *mock.MockRedisStoreIFace
+		fsMock        *mock.MockFileSystemIFace
+		input 	  	  *inputStruct
+		expected  	  *models.CustomError
+		expectedErr   bool
+	}{
+		// ----------EMAIL----------
+		{
+			name: "Successfully update email",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsEmailUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				UpdateEmailFunc: func(int, string) error {
+					return nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Email: "alex1234@gmail.com",
+				},
+				newSettings: &models.SettingsUpload{
+					Email: "alex1235@gmail.com",
+				},
+			},
+		},
+		{
+			name: "Unsuccessfully update email, email is not valid",
+			dbMock: &mock.MockUserRepositoryIFace{},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Email: "alex1234@gmail.com",
+				},
+				newSettings: &models.SettingsUpload{
+					Email: "alex1235m",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 400,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update email, email is not unique",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsEmailUniqueFunc: func(string) (bool, error) {
+					return false, nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Email: "alex1234@gmail.com",
+				},
+				newSettings: &models.SettingsUpload{
+					Email: "alex1235@gmail.com",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 400,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update email, IsEmailUnique returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsEmailUniqueFunc: func(string) (bool, error) {
+					return false, errors.New("some_error")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Email: "alex1234@gmail.com",
+				},
+				newSettings: &models.SettingsUpload{
+					Email: "alex1235@gmail.com",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update email, UpdateEmail returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsEmailUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				UpdateEmailFunc: func(int, string) error {
+					return errors.New("some_error")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Email: "alex1234@gmail.com",
+				},
+				newSettings: &models.SettingsUpload{
+					Email: "alex1235@gmail.com",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+
+		// ----------NICKNAME----------
+		{
+			name: "Successfully update nickname",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsNicknameUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				UpdateNicknameFunc: func(int, string) error {
+					return nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Nickname: "alex1234",
+				},
+				newSettings: &models.SettingsUpload{
+					Nickname: "alex1235",
+				},
+			},
+		},
+		{
+			name: "Unsuccessfully update nickname, nickname is not valid",
+			dbMock: &mock.MockUserRepositoryIFace{},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Nickname: "alex1234",
+				},
+				newSettings: &models.SettingsUpload{
+					Nickname: "al",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 400,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update nickname, nickname is not unique",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsNicknameUniqueFunc: func(string) (bool, error) {
+					return false, nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Nickname: "alex1234",
+				},
+				newSettings: &models.SettingsUpload{
+					Nickname: "alex1235",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 400,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update nickname, IsNickNameUnique returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsNicknameUniqueFunc: func(string) (bool, error) {
+					return false, errors.New("some_error")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Nickname: "alex1234",
+				},
+				newSettings: &models.SettingsUpload{
+					Nickname: "alex1235",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update nickname, UpdateNickname returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				IsNicknameUniqueFunc: func(string) (bool, error) {
+					return true, nil
+				},
+				UpdateNicknameFunc: func(int, string) error {
+					return errors.New("some_error")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Nickname: "alex1234",
+				},
+				newSettings: &models.SettingsUpload{
+					Nickname: "alex1235",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+
+		// ----------PASSWORD----------
+		{
+			name: "Successfully update password",
+			dbMock: &mock.MockUserRepositoryIFace{
+				CheckPasswordByUserIDFunc: func(int, string) (bool, error) {
+					return true, nil
+				},
+				UpdatePasswordFunc: func(int, string, ...string) error {
+					return nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{},
+				newSettings: &models.SettingsUpload{
+					OldPassword: "alex1234",
+					NewPassword: "Alex1234!",
+				},
+			},
+		},
+		{
+			name: "Unsuccessfully update password, CheckPasswordByUserID returns false",
+			dbMock: &mock.MockUserRepositoryIFace{
+				CheckPasswordByUserIDFunc: func(int, string) (bool, error) {
+					return false, nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{},
+				newSettings: &models.SettingsUpload{
+					OldPassword: "alex1234",
+					NewPassword: "Alex1234!",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 400,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update password, CheckPasswordByUserID returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				CheckPasswordByUserIDFunc: func(int, string) (bool, error) {
+					return false, errors.New("some_error")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{},
+				newSettings: &models.SettingsUpload{
+					OldPassword: "alex1234",
+					NewPassword: "Alex1234!",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update password, new password is invalid",
+			dbMock: &mock.MockUserRepositoryIFace{
+				CheckPasswordByUserIDFunc: func(int, string) (bool, error) {
+					return true, nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{},
+				newSettings: &models.SettingsUpload{
+					OldPassword: "alex1234",
+					NewPassword: "alex1234",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 400,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update password, UpdatePassword returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				CheckPasswordByUserIDFunc: func(int, string) (bool, error) {
+					return true, nil
+				},
+				UpdatePasswordFunc: func(int, string, ...string) error {
+					return errors.New("some_error")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{},
+				newSettings: &models.SettingsUpload{
+					OldPassword: "alex1234",
+					NewPassword: "Alex1234!",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update password, old password field is empty",
+			dbMock: &mock.MockUserRepositoryIFace{ },
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{},
+				newSettings: &models.SettingsUpload{
+					OldPassword: "",
+					NewPassword: "Alex1234!",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 400,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update password, new password field is empty",
+			dbMock: &mock.MockUserRepositoryIFace{ },
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{},
+				newSettings: &models.SettingsUpload{
+					OldPassword: "alex1234",
+					NewPassword: "",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 400,
+			},
+			expectedErr: true,
+		},
+
+		// ----------AVATAR----------
+		{
+			name: "Successfully update avatar",
+			dbMock: &mock.MockUserRepositoryIFace{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "some_filename", nil
+				},
+				UpdateAvatarFunc: func(int, string) error {
+					return nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "some_filename_new", nil
+				},
+				DeleteImageFunc: func(string) error {
+					return nil
+				},
+			},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Avatar: "old_filename",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "new_filename",
+				},
+			},
+		},
+		{
+			name: "Unsuccessfully update avatar, CreateImage returns error",
+			dbMock: &mock.MockUserRepositoryIFace{},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "", errors.New("some_error")
+				},
+			},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Avatar: "old_filename",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "new_filename",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update avatar, GetAvatarFilename returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "", errors.New("some_error")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "some_filename_new", nil
+				},
+			},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Avatar: "old_filename",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "new_filename",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update avatar, DeleteImage returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "some_filename", nil
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "some_filename_new", nil
+				},
+				DeleteImageFunc: func(string) error {
+					return errors.New("some_error")
+				},
+			},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Avatar: "old_filename",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "new_filename",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update avatar, UpdateAvatar returns error",
+			dbMock: &mock.MockUserRepositoryIFace{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "some_filename", nil
+				},
+				UpdateAvatarFunc: func(int, string) error {
+					return errors.New("some_error")
+				},
+			},
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 1, nil
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "some_filename_new", nil
+				},
+				DeleteImageFunc: func(string) error {
+					return nil
+				},
+			},
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Avatar: "old_filename",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "new_filename",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Unsuccessfully update settings, redis returns error",
+			dbMock: &mock.MockUserRepositoryIFace{ },
+			redisMock: &mock.MockRedisStoreIFace{
+				GetSessionUserIdFunc: func(string) (int, error) {
+					return 0, errors.New("some_error")
+				},
+			},
+			fsMock: &mock.MockFileSystemIFace{ },
+			input: &inputStruct{
+				cookieValue: "some_cookie",
+				oldSettings: &models.SettingsGet{
+					Avatar: "old_filename",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "new_filename",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 401,
+			},
+			expectedErr: true,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
+
+			customError := r.UpdateSettings(testCase.input.cookieValue, testCase.input.oldSettings, testCase.input.newSettings)
+
+			if testCase.expectedErr {
+				assert.NotNil(t, customError)
+				assert.Equal(t, testCase.expected.ErrorType, customError.ErrorType)
+			} else {
+				assert.Nil(t, customError)
 			}
 		})
 	}

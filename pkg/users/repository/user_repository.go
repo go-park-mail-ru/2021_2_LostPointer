@@ -24,7 +24,7 @@ const SaltLength = 8
 const SessionTokenLength = 40
 const AvatarWidthBig = 500
 const AvatarWidthLittle = 150
-const AvatarDefaultPath = "placeholder"
+const AvatarDefaultFileName = "default_avatar"
 
 var ctx = context.Background()
 
@@ -158,9 +158,11 @@ func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) 
 		return nil, err
 	}
 	if !avatarNULL.Valid {
-		settings.Avatar = os.Getenv("AVATAR_STORAGE") + AvatarDefaultPath + ".webp"
+		settings.BigAvatar = os.Getenv("AVATAR_PREFIX") + AvatarDefaultFileName + "_500px.webp"
+		settings.SmallAvatar = os.Getenv("AVATAR_PREFIX") + AvatarDefaultFileName + "_150px.webp"
 	} else {
-		settings.Avatar = os.Getenv("AVATAR_STORAGE") + avatarNULL.String + "_500px.webp"
+		settings.BigAvatar = os.Getenv("AVATAR_PREFIX") + avatarNULL.String + "_500px.webp"
+		settings.SmallAvatar = os.Getenv("AVATAR_PREFIX") + avatarNULL.String + "_150px.webp"
 	}
 
 	return &settings, nil

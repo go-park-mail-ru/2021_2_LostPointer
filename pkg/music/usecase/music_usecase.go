@@ -3,6 +3,8 @@ package usecase
 import (
 	"2021_2_LostPointer/pkg/models"
 	"2021_2_LostPointer/pkg/music"
+	"2021_2_LostPointer/pkg/users"
+	"github.com/labstack/echo"
 )
 
 const TracksCollectionLimit = 10
@@ -12,17 +14,22 @@ const ArtistsCollectionLimit = 4
 
 type MusicUseCase struct {
 	MusicRepository music.MusicRepositoryIFace
+	UserUseCase     users.UserUseCaseIFace
 }
 
-func NewMusicUseCase(musicRepository music.MusicRepositoryIFace) MusicUseCase {
-	return MusicUseCase{MusicRepository: musicRepository}
+func NewMusicUseCase(musicRepository music.MusicRepositoryIFace, userUseCase users.UserUseCaseIFace) MusicUseCase {
+	return MusicUseCase{MusicRepository: musicRepository, UserUseCase: userUseCase}
 }
 
-func (musicUseCase MusicUseCase) GetMusicCollection() (*models.MusicCollection, error) {
-	var collection = new(models.MusicCollection)
-	var err error
+func (musicUseCase MusicUseCase) GetMusicCollection(ctx echo.Context) (*models.MusicCollection, error) {
+	var (
+		collection = new(models.MusicCollection)
+		err        error
+	)
 
-	if collection.Tracks, err = musicUseCase.GetTracksForCollection(TracksCollectionLimit); err != nil {
+	isAuthorized := ctx.Get("is_authorized").(bool)
+
+	if collection.Tracks, err = musicUseCase.GetTracksForCollection(TracksCollectionLimit, isAuthorized); err != nil {
 		return nil, err
 	}
 	if collection.Albums, err = musicUseCase.GetAlbumsForCollection(AlbumCollectionLimit); err != nil {
@@ -38,8 +45,8 @@ func (musicUseCase MusicUseCase) GetMusicCollection() (*models.MusicCollection, 
 	return collection, nil
 }
 
-func (musicUseCase MusicUseCase) GetTracksForCollection(amount int) ([]models.Track, error) {
-	tracks, err := musicUseCase.MusicRepository.GetRandomTracks(amount)
+func (musicUseCase MusicUseCase) GetTracksForCollection(amount int, isAuthorized bool) ([]models.Track, error) {
+	tracks, err := musicUseCase.MusicRepository.GetRandomTracks(amount, isAuthorized)
 	if err != nil {
 		return nil, err
 	}

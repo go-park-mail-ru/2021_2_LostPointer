@@ -1,8 +1,11 @@
 package music
 
-import "2021_2_LostPointer/pkg/models"
+import (
+	"2021_2_LostPointer/pkg/models"
+	"github.com/labstack/echo"
+)
 
 //go:generate moq -out ../mock/music_usecase_mock.go -pkg mock . MusicUseCaseIFace:MockMusicUseCaseIFace
 type MusicUseCaseIFace interface {
-	GetMusicCollection() (*models.MusicCollection, error)
+	GetMusicCollection(ctx echo.Context) (*models.MusicCollection, error)
 }

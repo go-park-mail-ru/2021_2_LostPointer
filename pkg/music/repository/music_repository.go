@@ -5,14 +5,6 @@ import (
 	"database/sql"
 )
 
-const (
-	DistinctOnNone = iota
-	DistinctOnAlbums
-	DistinctOnArtists
-	GettingWithGenres
-	GettingWithID
-)
-
 type MusicRepository struct {
 	Database *sql.DB
 }
@@ -21,7 +13,7 @@ func NewMusicRepository(db *sql.DB) MusicRepository {
 	return MusicRepository{Database: db}
 }
 
-func (musicRepository MusicRepository) GetRandomTracks(amount int) ([]models.Track, error) {
+func (musicRepository MusicRepository) GetRandomTracks(amount int, isAuthorized bool) ([]models.Track, error) {
 	rows, err := musicRepository.Database.Query("SELECT tracks.id, tracks.title, art.name, alb.title, explicit, "+
 		"g.name, number, file, listen_count, duration, lossless, alb.artwork as cover FROM tracks "+
 		"LEFT JOIN genres g ON tracks.genre = g.id "+
@@ -30,6 +22,9 @@ func (musicRepository MusicRepository) GetRandomTracks(amount int) ([]models.Tra
 	if err != nil {
 		return nil, err
 	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	tracks := make([]models.Track, 0, 10)
 	var track models.Track
@@ -37,6 +32,9 @@ func (musicRepository MusicRepository) GetRandomTracks(amount int) ([]models.Tra
 		if err := rows.Scan(&track.Id, &track.Title, &track.Artist, &track.Album, &track.Explicit, &track.Genre,
 			&track.Number, &track.File, &track.ListenCount, &track.Duration, &track.Lossless, &track.Cover); err != nil {
 			return nil, err
+		}
+		if !isAuthorized {
+			track.File = ""
 		}
 		tracks = append(tracks, track)
 	}
@@ -56,6 +54,9 @@ func (musicRepository MusicRepository) GetRandomAlbums(amount int) ([]models.Alb
 	if err != nil {
 		return nil, err
 	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	albums := make([]models.Album, 0, 10)
 	var album models.Album
@@ -75,6 +76,9 @@ func (musicRepository MusicRepository) GetRandomArtists(amount int) ([]models.Ar
 	if err != nil {
 		return nil, err
 	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	artists := make([]models.Artist, 0, 10)
 	var artist models.Artist
@@ -93,6 +97,9 @@ func (musicRepository MusicRepository) GetRandomPlaylists(amount int) ([]models.
 	if err != nil {
 		return nil, err
 	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	playlists := make([]models.Playlist, 0, 10)
 	var playlist models.Playlist
@@ -104,55 +111,3 @@ func (musicRepository MusicRepository) GetRandomPlaylists(amount int) ([]models.
 	}
 	return playlists, nil
 }
-
-//func (musicRepository MusicRepository) CreatePlaylistsDefaultRequest(amount int) string {
-//	request := fmt.Sprintf(`SELECT playlists.id, playlists.title, playlists.user FROM playlists LIMIT %d`, amount)
-//
-//	return request
-//}
-//
-//func (musicRepository MusicRepository) GetPlaylists(request string) ([]models.Playlist, error) {
-//	rows, err := musicRepository.Database.Query(request)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	playlists := make([]models.Playlist, 0)
-//	var playlist models.Playlist
-//	for rows.Next() {
-//		if err := rows.Scan(&playlist.Id, &playlist.Name, &playlist.User); err != nil {
-//			return nil, err
-//		}
-//		playlists = append(playlists, playlist)
-//	}
-//
-//	return playlists, nil
-//}
-//
-//func (musicRepository MusicRepository) IsGenreExist(genres []string) (bool, error) {
-//	if len(genres) == 0 {
-//		return false, nil
-//	}
-//
-//	availableGenres := make(map[string]bool, 0)
-//	rows, err := musicRepository.Database.Query(fmt.Sprintf(`SELECT name FROM genres`))
-//	if err != nil {
-//		return false, err
-//	}
-//
-//	var genre string
-//	for rows.Next() {
-//		if err := rows.Scan(&genre); err != nil {
-//			return false, err
-//		}
-//		availableGenres[genre] = true
-//	}
-//
-//	for _, genre := range genres {
-//		if availableGenres[genre] == false {
-//			return false, nil
-//		}
-//	}
-//
-//	return true, nil
-//}

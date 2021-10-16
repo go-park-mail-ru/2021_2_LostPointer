@@ -56,7 +56,6 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 	var authData models.Auth
 
 	err := ctx.Bind(&authData)
-	log.Println("DSOPADSA[PDSA[DSAPD[PSD", authData.Password)
 	if err != nil {
 		log.Println(err.Error())
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -95,9 +94,8 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 
 	isAuthorized, customError := userD.userLogic.IsAuthorized(cookie.Value)
 	if customError != nil {
-		if customError.ErrorType == 500 {
-			log.Println(customError.OriginalError.Error())
-			return ctx.NoContent(http.StatusInternalServerError)
+		if customError.ErrorType == 401 {
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: customError.Message})
 		}
 	}
 	if !isAuthorized {
@@ -129,8 +127,9 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 
 	settings, customError := userD.userLogic.GetSettings(cookie.Value)
 	if customError != nil {
-		if customError.ErrorType == 500 {
-			log.Println(customError.OriginalError.Error())
+		if customError.ErrorType == 401 {
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: customError.Message})
+		} else if customError.ErrorType == 500 {
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
 	}
@@ -138,7 +137,7 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, settings)
 }
 
-func (userD UserDelivery) UploadSettings(ctx echo.Context) error {
+func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
 	if err != nil {
 		log.Println(err.Error())
@@ -147,8 +146,9 @@ func (userD UserDelivery) UploadSettings(ctx echo.Context) error {
 
 	oldSettings, customError := userD.userLogic.GetSettings(cookie.Value)
 	if customError != nil {
-		if customError.ErrorType == 500 {
-			log.Println(customError.OriginalError.Error())
+		if customError.ErrorType == 401 {
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: customError.Message})
+		} else if customError.ErrorType == 500 {
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
 	}
@@ -185,7 +185,7 @@ func (userD UserDelivery) UploadSettings(ctx echo.Context) error {
 		}
 	}
 
-	return ctx.JSON(http.StatusCreated, &models.Response{Message: "Settings uploaded successfully"})
+	return ctx.JSON(http.StatusOK, &models.Response{Message: "Settings uploaded successfully"})
 }
 
 func (userD UserDelivery) InitHandlers(server *echo.Echo) {
@@ -194,5 +194,5 @@ func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/logout", userD.Logout)
 	server.GET("/api/v1/auth", userD.IsAuthorized)
 	server.GET("/api/v1/user/settings", userD.GetSettings)
-	server.PATCH("/api/v1/user/settings", userD.UploadSettings)
+	server.PATCH("/api/v1/user/settings", userD.UpdateSettings)
 }

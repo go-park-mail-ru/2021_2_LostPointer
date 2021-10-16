@@ -105,8 +105,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				IsAuthorizedFunc: func(s string) (bool, *models.CustomError) {
 					return false, &models.CustomError{
-						ErrorType: 500,
-						OriginalError: errors.New("some_error_in_redis"),
+						ErrorType: 401,
 					}
 				},
 			},
@@ -115,7 +114,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
 			},
-			expected: http.StatusInternalServerError,
+			expected: http.StatusUnauthorized,
 		},
 	}
 
@@ -157,7 +156,6 @@ func TestUserDelivery_Login(t *testing.T) {
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 400,
-						OriginalError: nil,
 					}
 				},
 			},
@@ -269,6 +267,45 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 			},
 			expected: http.StatusOK,
 		},
+		{
+			name: "Unsuccessfully returns settings, no session_cookie set",
+			usecaseMock: &mock.MockUserUseCaseIFace{},
+			cookie: &http.Cookie{},
+			expected: http.StatusUnauthorized,
+		},
+		{
+			name: "Unsuccessfully returns settings, user is unauthorized",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+					return nil, &models.CustomError{
+						ErrorType: 401,
+					}
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expected: http.StatusUnauthorized,
+		},
+		{
+			name: "Unsuccessfully returns settings, internal server error",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+					return nil, &models.CustomError{
+						ErrorType: 500,
+						OriginalError: errors.New("some_error"),
+					}
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expected: http.StatusInternalServerError,
+		},
 	}
 
 	for _, tt := range tests {
@@ -282,6 +319,116 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 
 			r := NewUserDelivery(tt.usecaseMock)
 			if assert.NoError(t, r.GetSettings(ctx)) {
+				assert.Equal(t, tt.expected, rec.Code)
+			}
+		})
+	}
+}
+
+func TestUserDelivery_UpdateSettings(t *testing.T) {
+	tests := []struct {
+		name 		string
+		usecaseMock *mock.MockUserUseCaseIFace
+		cookie 		*http.Cookie
+		expected 	int
+	}{
+		{
+			name: "Successfully updated settings",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+					return &models.SettingsGet{}, nil
+				},
+				UpdateSettingsFunc: func(string, *models.SettingsGet, *models.SettingsUpload) *models.CustomError {
+					return nil
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expected: http.StatusOK,
+		},
+		{
+			name: "Unsuccessfully updated settings, no cookies set",
+			usecaseMock: &mock.MockUserUseCaseIFace{},
+			cookie: &http.Cookie{},
+			expected: http.StatusUnauthorized,
+		},
+		{
+			name: "Unsuccessfully updated settings, user not authorized",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+					return nil, &models.CustomError{ErrorType: 401}
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expected: http.StatusUnauthorized,
+		},
+		{
+			name: "Unsuccessfully updated settings, internal server error in GetSettings",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+					return nil, &models.CustomError{ErrorType: 500}
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expected: http.StatusInternalServerError,
+		},
+		{
+			name: "Unsuccessfully updated settings, bad request in UpdateSettings",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+					return &models.SettingsGet{}, nil
+				},
+				UpdateSettingsFunc: func(string, *models.SettingsGet, *models.SettingsUpload) *models.CustomError {
+					return &models.CustomError{ErrorType: 400}
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expected: http.StatusBadRequest,
+		},
+		{
+			name: "Unsuccessfully updated settings, internal server error in UpdateSettings",
+			usecaseMock: &mock.MockUserUseCaseIFace{
+				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
+					return &models.SettingsGet{}, nil
+				},
+				UpdateSettingsFunc: func(string, *models.SettingsGet, *models.SettingsUpload) *models.CustomError {
+					return &models.CustomError{ErrorType: 500, OriginalError: errors.New("some_error")}
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expected: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := echo.New()
+			req := httptest.NewRequest(echo.PATCH, "/api/v1/user/settings",  strings.NewReader(`{"email": "test.inter@ndeiud.com"}`))
+			req.AddCookie(tt.cookie)
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			r := NewUserDelivery(tt.usecaseMock)
+			if assert.NoError(t, r.UpdateSettings(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
 			}
 		})

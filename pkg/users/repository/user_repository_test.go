@@ -369,7 +369,7 @@ func TestUserRepository_GetSettings(t *testing.T) {
 			input: 1,
 			expected: &models.SettingsGet{
 				Email: "alex1234@gmail.com",
-				Avatar: "default.webp",
+				Avatar: "default.webp_500px.webp",
 				Nickname: "alex1234",
 			},
 		},

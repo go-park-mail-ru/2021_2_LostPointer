@@ -155,9 +155,8 @@ func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, *models.CustomE
 	// 1) Получаем id пользователя по сессии
 	_, err := userR.redisStore.GetSessionUserId(cookieValue)
 	if err != nil {
-		return false, &models.CustomError{ErrorType: 500, OriginalError: err}
+		return false, &models.CustomError{ErrorType: 401, Message: "User not authorized"}
 	}
-
 	return true, nil
 }
 
@@ -169,7 +168,7 @@ func (userR UserUseCase) GetSettings(cookieValue string) (*models.SettingsGet, *
 	// 1) Получаем ID пользователя из redis по значению куки
 	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
 	if err != nil {
-		return nil, &models.CustomError{ErrorType: 500, OriginalError: err}
+		return nil, &models.CustomError{ErrorType: 401, Message: "User not authorized"}
 	}
 
 	// 2) Получаем настройки пользователя из базы по его ID
@@ -185,11 +184,11 @@ func (userR UserUseCase) UpdateSettings(cookieValue string, oldSettings *models.
 	// 0) Получаем ID пользователя по значению cookie
 	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
 	if err != nil {
-		return &models.CustomError{ErrorType: 500, OriginalError: err}
+		return &models.CustomError{ErrorType: 401, Message: "User not authorized"}
 	}
 
 	// 1) Проверяем, что изменился email
-	if newSettings.Email != oldSettings.Email {
+	if newSettings.Email != oldSettings.Email && len(newSettings.Email) != 0 {
 		// 1.1) Валидация нового email
 		isEmailValid, err := regexp.MatchString(`[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`, newSettings.Email)
 		if err != nil {
@@ -216,7 +215,7 @@ func (userR UserUseCase) UpdateSettings(cookieValue string, oldSettings *models.
 	}
 
 	// 2) Проверяем, что изменился nickname
-	if newSettings.Nickname != oldSettings.Nickname {
+	if newSettings.Nickname != oldSettings.Nickname && len(newSettings.Nickname) != 0 {
 		// 2.1) Валидация нового nickname
 		isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + minNicknameLength + `,` + maxNicknameLength + `}$`, newSettings.Nickname)
 		if err != nil {

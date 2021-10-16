@@ -591,8 +591,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 			expected: response{
 				settings: nil,
 				err: &models.CustomError{
-					ErrorType: 500,
-					OriginalError: errors.New("some_error_in_redis"),
+					ErrorType: 401,
 				},
 			},
 			expectedErr: true,
@@ -631,6 +630,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 
 			if testCase.expectedErr {
 				assert.NotNil(t, got.err)
+				assert.Equal(t, testCase.expected.err.ErrorType, got.err.ErrorType)
 			} else {
 				assert.Nil(t, got.err)
 				assert.Equal(t, testCase.expected, got)
@@ -1285,7 +1285,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType: 401,
 			},
 			expectedErr: true,
 		},

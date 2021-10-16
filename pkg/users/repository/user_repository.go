@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sunshineplan/imgconv"
 	"io"
+	"log"
 	"math/rand"
 	"mime/multipart"
 	"os"
@@ -21,9 +22,9 @@ import (
 
 const SaltLength = 8
 const SessionTokenLength = 40
-
 const AvatarWidthBig = 500
 const AvatarWidthLittle = 150
+const AvatarDefaultPath = "placeholder"
 
 var ctx = context.Background()
 
@@ -157,9 +158,9 @@ func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) 
 		return nil, err
 	}
 	if !avatarNULL.Valid {
-		settings.Avatar = "placeholder.webp"
+		settings.Avatar = os.Getenv("AVATAR_STORAGE") + AvatarDefaultPath + ".webp"
 	} else {
-		settings.Avatar = avatarNULL.String
+		settings.Avatar = os.Getenv("AVATAR_STORAGE") + avatarNULL.String + "_500px.webp"
 	}
 
 	return &settings, nil
@@ -222,6 +223,7 @@ func (Data UserRepository) UpdatePassword(userID int, password string, customSal
 }
 
 func (Data UserRepository) UpdateAvatar(userID int, fileName string) error {
+	log.Println(fileName)
 	err := Data.userDB.QueryRow(`UPDATE users SET avatar=$1 WHERE id=$2`, fileName, userID).Err()
 	if err != nil {
 		return err
@@ -241,8 +243,14 @@ func (Data UserRepository) GetAvatarFilename(userID int) (string, error) {
 		return "", nil
 	}
 
-	if err := rows.Scan(&filename); err != nil {
+	var avatarNULL sql.NullString
+	if err := rows.Scan(&avatarNULL); err != nil {
 		return "", err
+	}
+	if !avatarNULL.Valid {
+		filename = "placeholder"
+	} else {
+		filename = avatarNULL.String
 	}
 
 	return filename, nil
@@ -263,7 +271,7 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 	fileName := uuid.NewString()
 
 	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthBig, Height: AvatarWidthBig})
-	out, err := os.Create(fileName + "_500px.webp")
+	out, err := os.Create(os.Getenv("AVATAR_STORAGE") + fileName + "_500px.webp")
 	if err != nil {
 		return "", err
 	}
@@ -274,7 +282,7 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 	}
 
 	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthLittle, Height: AvatarWidthLittle})
-	out, err = os.Create(fileName + "_150px.webp")
+	out, err = os.Create(os.Getenv("AVATAR_STORAGE") + fileName + "_150px.webp")
 	if err != nil {
 		return "", err
 	}

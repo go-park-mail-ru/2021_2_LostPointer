@@ -15,7 +15,7 @@ func NewMusicDelivery(musicUseCase music.MusicUseCaseIFace) MusicHandlers {
 }
 
 func (musicHandlers MusicHandlers) Home(ctx echo.Context) error {
-	collection, err := musicHandlers.MusicUseCase.GetMusicCollection()
+	collection, err := musicHandlers.MusicUseCase.GetMusicCollection(ctx)
 	if err != nil {
 		return err
 	}

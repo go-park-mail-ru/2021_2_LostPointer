@@ -67,8 +67,15 @@ func InitializeDatabase() *sql.DB {
 }
 
 func InitializeRedis() *redis.Client {
+	var AddrConfig string
+	if len(os.Getenv("REDIS_PORT")) == 0 {
+		AddrConfig = os.Getenv("REDIS_HOST")
+	} else {
+		AddrConfig = fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
+	}
+
 	redisConnection := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
+		Addr:     AddrConfig,
 		Password: os.Getenv("REDIS_PASS"),
 		DB:       redisDB,
 	})

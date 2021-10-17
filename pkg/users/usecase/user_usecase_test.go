@@ -386,7 +386,7 @@ func TestUserUseCase_Register(t *testing.T) {
 					return true, nil
 				},
 				CreateUserFunc: func(models.User, ...string) (uint64, error) {
-					return 0, errors.New("some_error_in_CreateUserFunct")
+					return 0, errors.New("some_error_in_CreateUserFunc")
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{

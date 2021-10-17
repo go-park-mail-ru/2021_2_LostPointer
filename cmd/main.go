@@ -1,6 +1,7 @@
 package main
 
 import (
+	"2021_2_LostPointer/pkg/middleware"
 	handlersMusic "2021_2_LostPointer/pkg/music/delivery"
 	repositoryMusic "2021_2_LostPointer/pkg/music/repository"
 	usecaseMusic "2021_2_LostPointer/pkg/music/usecase"
@@ -20,8 +21,9 @@ import (
 const redisDB = 1
 
 type RequestHandlers struct {
-	userHandlers  deliveryUser.UserDelivery
-	musicHandlers handlersMusic.MusicHandlers
+	userHandlers       deliveryUser.UserDelivery
+	musicHandlers      handlersMusic.MusicHandlers
+	middlewareHandlers middleware.Middleware
 }
 
 func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandlers {
@@ -31,11 +33,16 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandle
 	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore, fileSystem)
 	userHandlers := deliveryUser.NewUserDelivery(userUseCase)
 
-	musicHandlers := handlersMusic.NewMusicDelivery(usecaseMusic.NewMusicUseCase(repositoryMusic.NewMusicRepository(db)))
+	musicRepo := repositoryMusic.NewMusicRepository(db)
+	musicUseCase := usecaseMusic.NewMusicUseCase(musicRepo, userUseCase)
+	musicHandlers := handlersMusic.NewMusicDelivery(musicUseCase)
+
+	middlewareHandlers := middleware.NewMiddlewareHandler(userUseCase)
 
 	api := &(RequestHandlers{
-		userHandlers:  userHandlers,
-		musicHandlers: musicHandlers,
+		userHandlers:       userHandlers,
+		musicHandlers:      musicHandlers,
+		middlewareHandlers: middlewareHandlers,
 	})
 
 	return api
@@ -89,6 +96,7 @@ func main() {
 
 	api.userHandlers.InitHandlers(server)
 	api.musicHandlers.InitHandlers(server)
+	api.middlewareHandlers.InitMiddlewareHandlers(server)
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

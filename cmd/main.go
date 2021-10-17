@@ -50,7 +50,7 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandle
 
 func InitializeDatabase() *sql.DB {
 	connectionString := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		"user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
 		os.Getenv("DBUSER"),
 		os.Getenv("DBPASS"),
 		os.Getenv("DBHOST"),

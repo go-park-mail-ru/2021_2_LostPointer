@@ -362,14 +362,15 @@ func TestUserRepository_GetSettings(t *testing.T) {
 			name: "Successfully returns settings",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"email", "avatar", "nickname"}).
-					AddRow("alex1234@gmail.com", "default.webp", "alex1234")
+					AddRow("alex1234@gmail.com", "default", "alex1234")
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT email, avatar, nickname FROM users WHERE id=$1`)).
 					WithArgs(driver.Value(1)).WillReturnRows(rows)
 			},
 			input: 1,
 			expected: &models.SettingsGet{
 				Email: "alex1234@gmail.com",
-				Avatar: "default.webp_500px.webp",
+				SmallAvatar: "default_150px.webp",
+				BigAvatar: "default_500px.webp",
 				Nickname: "alex1234",
 			},
 		},
@@ -394,7 +395,8 @@ func TestUserRepository_GetSettings(t *testing.T) {
 			input: 1,
 			expected: &models.SettingsGet{
 				Email: "alex1234@gmail.com",
-				Avatar: "placeholder.webp",
+				SmallAvatar: "default_avatar_150px.webp",
+				BigAvatar: "default_avatar_500px.webp",
 				Nickname: "alex1234",
 			},
 		},

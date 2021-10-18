@@ -14,10 +14,10 @@ func NewMiddlewareHandler(userUseCase users.UserUseCaseIFace) Middleware {
 }
 
 func (middleware Middleware) InitMiddlewareHandlers(server *echo.Echo) {
-	server.Use(middleware.CheckAuthentication)
+	server.Use(middleware.CheckAuthorization)
 }
 
-func (middleware Middleware) CheckAuthentication(next echo.HandlerFunc) echo.HandlerFunc {
+func (middleware Middleware) CheckAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		var isAuthorized bool
 

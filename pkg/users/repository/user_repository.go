@@ -24,7 +24,7 @@ const SaltLength = 8
 const SessionTokenLength = 40
 const AvatarWidthBig = 500
 const AvatarWidthLittle = 150
-const AvatarDefaultPath = "placeholder"
+const AvatarDefaultFileName = "default_avatar"
 
 var ctx = context.Background()
 
@@ -82,8 +82,8 @@ func (Data UserRepository) CreateUser(userData models.User, customSalt ...string
 		salt = GetRandomString(SaltLength)
 	}
 	err := Data.userDB.QueryRow(
-		`INSERT INTO users(email, password, nickname, salt) VALUES($1, $2, $3, $4) RETURNING id`,
-		strings.ToLower(userData.Email), GetHash(userData.Password + salt), userData.Nickname, salt,
+		`INSERT INTO users(email, password, nickname, salt, avatar) VALUES($1, $2, $3, $4, $5) RETURNING id`,
+		strings.ToLower(userData.Email), GetHash(userData.Password + salt), userData.Nickname, salt, AvatarDefaultFileName,
 		).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -100,7 +100,9 @@ func (Data UserRepository) DoesUserExist(authData models.Auth) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 	// Пользователя с таким email нет в базе
 	if !rows.Next() {
 		return 0, nil
@@ -146,22 +148,20 @@ func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	if !rows.Next() {
 		return nil, err
 	}
 
-	var avatarNULL sql.NullString
-
-	if err = rows.Scan(&settings.Email, &avatarNULL, &settings.Nickname); err != nil {
+	var avatarFilename string
+	if err = rows.Scan(&settings.Email, &avatarFilename, &settings.Nickname); err != nil {
 		return nil, err
 	}
-	if !avatarNULL.Valid {
-		settings.Avatar = os.Getenv("AVATAR_STORAGE") + AvatarDefaultPath + ".webp"
-	} else {
-		settings.Avatar = os.Getenv("AVATAR_STORAGE") + avatarNULL.String + "_500px.webp"
-	}
+	settings.BigAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + "_500px.webp"
+	settings.SmallAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + "_150px.webp"
 
 	return &settings, nil
 }
@@ -173,7 +173,9 @@ func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string)
 	if err != nil {
 		return false, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	if !rows.Next() {
 		return false, nil
@@ -261,7 +263,9 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func(f multipart.File) {
+		_ = f.Close()
+	}(f)
 	reader := io.Reader(f)
 	src, err := imgconv.Decode(reader)
 	if err != nil {
@@ -271,7 +275,7 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 	fileName := uuid.NewString()
 
 	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthBig, Height: AvatarWidthBig})
-	out, err := os.Create(os.Getenv("AVATAR_STORAGE") + fileName + "_500px.webp")
+	out, err := os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + "_500px.webp")
 	if err != nil {
 		return "", err
 	}
@@ -282,7 +286,7 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 	}
 
 	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthLittle, Height: AvatarWidthLittle})
-	out, err = os.Create(os.Getenv("AVATAR_STORAGE") + fileName + "_150px.webp")
+	out, err = os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + "_150px.webp")
 	if err != nil {
 		return "", err
 	}

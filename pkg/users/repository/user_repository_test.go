@@ -2,9 +2,11 @@ package repository
 
 import (
 	"2021_2_LostPointer/pkg/models"
+	"database/sql"
 	"database/sql/driver"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-redis/redis/v8"
 	"github.com/go-redis/redismock/v8"
 	"github.com/stretchr/testify/assert"
 	"regexp"
@@ -18,7 +20,9 @@ func TestUserRepository_DoesUserExist(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -30,7 +34,7 @@ func TestUserRepository_DoesUserExist(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "User exists in database",
+			name: "User was found in db",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"id", "password", "salt"}).
 					AddRow("1", GetHash("alex1234" + "1234"), "1234")
@@ -41,7 +45,7 @@ func TestUserRepository_DoesUserExist(t *testing.T) {
 			expected: 1,
 		},
 		{
-			name: "Wrong email",
+			name: "User was not found in db, wrong email",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"id", "password", "salt"})
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
@@ -51,7 +55,7 @@ func TestUserRepository_DoesUserExist(t *testing.T) {
 			expected: 0,
 		},
 		{
-			name: "Wrong password",
+			name: "The password in the database did not match the received password",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"id", "password", "salt"}).
 					AddRow("1", GetHash("alex123" + "1234"), "1234")
@@ -62,7 +66,7 @@ func TestUserRepository_DoesUserExist(t *testing.T) {
 			expected: 0,
 		},
 		{
-			name: "Func returns error",
+			name: "Error occurred during SELECT request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
 					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnError(errors.New("Error occurred during request "))
@@ -93,7 +97,9 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -105,7 +111,7 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Email is unique",
+			name: "Received email is unique",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"id"})
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE lower(email)=$1`)).
@@ -115,7 +121,7 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "Email is not unique",
+			name: "Received email is not unique",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE lower(email)=$1`)).
@@ -125,7 +131,7 @@ func TestUserRepository_IsEmailUnique(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "Func returns error",
+			name: "Error occurred during SELECT request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE lower(email)=$1`)).
 					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnError(errors.New("Error occurred during request "))
@@ -156,7 +162,9 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -168,7 +176,7 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Nickname is unique",
+			name: "Received nickname is unique",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"id"})
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE lower(nickname)=$1`)).
@@ -178,7 +186,7 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "Nickname is not unique",
+			name: "Received nickname is not unique",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE lower(nickname)=$1`)).
@@ -188,7 +196,7 @@ func TestUserRepository_IsNicknameUnique(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "Func returns error",
+			name: "Error occurred during SELECT request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE lower(nickname)=$1`)).
 					WithArgs(driver.Value("alex1234")).WillReturnError(errors.New("Error occurred during request "))
@@ -219,7 +227,9 @@ func TestUserRepository_CreateUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -231,28 +241,31 @@ func TestUserRepository_CreateUser(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Add user to db",
+			name: "User was successfully created in db",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"id"}).AddRow("1")
-				mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO users(email, password, nickname, salt) VALUES($1, $2, $3, $4) RETURNING id`)).
+				mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO users(email, password, nickname, salt, avatar) VALUES($1, $2, $3, $4, $5) RETURNING id`)).
 					WithArgs(
 						driver.Value(strings.ToLower("alex1234@gmail.com")),
 						driver.Value(GetHash("alex1234" + "1234")),
 						driver.Value("alex1234"),
-						driver.Value("1234")).WillReturnRows(rows)
+						driver.Value("1234"),
+						driver.Value(AvatarDefaultFileName),
+					).WillReturnRows(rows)
 			},
 			input: models.User{Email: "alex1234@gmail.com", Password: "alex1234", Nickname: "alex1234"},
 			expected: 1,
 		},
 		{
-			name: "Func returns error",
+			name: "Error occurred during INSERT request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO users(email, password, nickname, salt) VALUES($1, $2, $3, $4) RETURNING id`)).
 					WithArgs(
 						driver.Value(strings.ToLower("alex1234@gmail.com")),
 						driver.Value(GetHash("alex1234" + "1234")),
 						driver.Value("alex1234"),
-						driver.Value("1234")).WillReturnError(errors.New("Error occurred during transaction "))
+						driver.Value("1234"),
+					).WillReturnError(errors.New("Error occurred during transaction "))
 			},
 			input: models.User{Email: "alex1234@gmail.com", Password: "alex1234", Nickname: "alex1234"},
 			expected: 0,
@@ -280,7 +293,9 @@ func TestUserRepository_CheckPasswordByUserID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -297,7 +312,7 @@ func TestUserRepository_CheckPasswordByUserID(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Password is correct",
+			name: "Received password was found in db",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"password", "salt"}).AddRow(GetHash("alex1234" + "1234"), "1234")
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT password, salt FROM users WHERE id=$1`)).
@@ -307,7 +322,7 @@ func TestUserRepository_CheckPasswordByUserID(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "Password is incorrect",
+			name: "Received password was not found in db",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"password", "salt"})
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT password, salt FROM users WHERE id=$1`)).
@@ -317,7 +332,7 @@ func TestUserRepository_CheckPasswordByUserID(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "Error during SELECT request",
+			name: "Error occurred during SELECT request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT password, salt FROM users WHERE id=$1`)).
 					WithArgs(driver.Value(1)).WillReturnError(errors.New("some_error_during_request"))
@@ -347,7 +362,9 @@ func TestUserRepository_GetSettings(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -359,22 +376,23 @@ func TestUserRepository_GetSettings(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successfully returns settings",
+			name: "Settings were successfully returned from db",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"email", "avatar", "nickname"}).
-					AddRow("alex1234@gmail.com", "default.webp", "alex1234")
+					AddRow("alex1234@gmail.com", "default", "alex1234")
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT email, avatar, nickname FROM users WHERE id=$1`)).
 					WithArgs(driver.Value(1)).WillReturnRows(rows)
 			},
 			input: 1,
 			expected: &models.SettingsGet{
 				Email: "alex1234@gmail.com",
-				Avatar: "default.webp_500px.webp",
+				SmallAvatar: "default_150px.webp",
+				BigAvatar: "default_500px.webp",
 				Nickname: "alex1234",
 			},
 		},
 		{
-			name: "No data for received userID",
+			name: "No settings were found in db",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"email", "avatar", "nickname"})
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT email, avatar, nickname FROM users WHERE id=$1`)).
@@ -382,21 +400,6 @@ func TestUserRepository_GetSettings(t *testing.T) {
 			},
 			input: 1,
 			expected: nil,
-		},
-		{
-			name: "Default avatar",
-			mock: func(){
-				rows := sqlmock.NewRows([]string{"email", "avatar", "nickname"}).
-					AddRow("alex1234@gmail.com", nil, "alex1234")
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT email, avatar, nickname FROM users WHERE id=$1`)).
-					WithArgs(driver.Value(1)).WillReturnRows(rows)
-			},
-			input: 1,
-			expected: &models.SettingsGet{
-				Email: "alex1234@gmail.com",
-				Avatar: "placeholder.webp",
-				Nickname: "alex1234",
-			},
 		},
 	}
 
@@ -420,7 +423,9 @@ func TestUserRepository_UpdateEmail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -436,23 +441,25 @@ func TestUserRepository_UpdateEmail(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successful email updating",
+			name: "Email was updated successfully",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{})
 				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET email=$1 WHERE id=$2`)).
 					WithArgs(
 						driver.Value(strings.ToLower("alex1234@gmail.com")),
-						driver.Value(1)).WillReturnRows(rows)
+						driver.Value(1),
+					).WillReturnRows(rows)
 			},
 			input: &inputStruct{userID: 1, email: "alex1234@gmail.com"},
 		},
 		{
-			name: "Error during UPDATE request",
+			name: "Error occurred during UPDATE request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET email=$1 WHERE id=$2`)).
 					WithArgs(
 						driver.Value(strings.ToLower("alex1234@gmail.com")),
-						driver.Value(1)).WillReturnError(errors.New("some_error_during_request"))
+						driver.Value(1),
+					).WillReturnError(errors.New("some_error_during_request"))
 			},
 			input: &inputStruct{userID: 1, email: "alex1234@gmail.com"},
 			expectedErr: true,
@@ -478,7 +485,9 @@ func TestUserRepository_UpdateNickname(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -494,23 +503,25 @@ func TestUserRepository_UpdateNickname(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successful email updating",
+			name: "Nickname was updated successfully",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{})
 				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET nickname=$1 WHERE id=$2`)).
 					WithArgs(
 						driver.Value("alex1234"),
-						driver.Value(1)).WillReturnRows(rows)
+						driver.Value(1),
+					).WillReturnRows(rows)
 			},
 			input: &inputStruct{userID: 1, nickname: "alex1234"},
 		},
 		{
-			name: "Error during UPDATE request",
+			name: "Error occurred during UPDATE request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET nickname=$1 WHERE id=$2`)).
 					WithArgs(
 						driver.Value("alex1234"),
-						driver.Value(1)).WillReturnError(errors.New("some_error_during_request"))
+						driver.Value(1),
+					).WillReturnError(errors.New("some_error_during_request"))
 			},
 			input: &inputStruct{userID: 1, nickname: "alex1234"},
 			expectedErr: true,
@@ -536,7 +547,9 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -553,25 +566,27 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successful email updating",
+			name: "Email was updated successfully",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{})
 				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`)).
 					WithArgs(
 						driver.Value(GetHash("alex1234" + "1234")),
 						driver.Value("1234"),
-						driver.Value(1)).WillReturnRows(rows)
+						driver.Value(1),
+					).WillReturnRows(rows)
 			},
 			input: &inputStruct{userID: 1, password: "alex1234", salt: "1234"},
 		},
 		{
-			name: "Error during UPDATE request",
+			name: "Error occurred during UPDATE request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`)).
 					WithArgs(
 					driver.Value(GetHash("alex1234" + "1234")),
 					driver.Value("1234"),
-					driver.Value(1)).WillReturnError(errors.New("some_error_during_request"))
+					driver.Value(1),
+				).WillReturnError(errors.New("some_error_during_request"))
 			},
 			input: &inputStruct{userID: 1, password: "alex1234", salt: "1234"},
 			expectedErr: true,
@@ -597,7 +612,9 @@ func TestUserRepository_UpdateAvatar(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -613,23 +630,25 @@ func TestUserRepository_UpdateAvatar(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successful email updating",
+			name: "Avatar was successfully updated",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{})
 				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET avatar=$1 WHERE id=$2`)).
 					WithArgs(
 						driver.Value("avatar"),
-						driver.Value(1)).WillReturnRows(rows)
+						driver.Value(1),
+					).WillReturnRows(rows)
 			},
 			input: &inputStruct{userID: 1, filename: "avatar"},
 		},
 		{
-			name: "Error during UPDATE request",
+			name: "Error occurred during UPDATE request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET nickname=$1 WHERE id=$2`)).
 					WithArgs(
 						driver.Value("avatar"),
-						driver.Value(1)).WillReturnError(errors.New("some_error_during_request"))
+						driver.Value(1),
+					).WillReturnError(errors.New("some_error_during_request"))
 			},
 			input: &inputStruct{userID: 1, filename: "avatar"},
 			expectedErr: true,
@@ -655,7 +674,9 @@ func TestUserRepository_GetAvatarFilename(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	r := NewUserRepository(db)
 
@@ -667,7 +688,7 @@ func TestUserRepository_GetAvatarFilename(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successfully got filename",
+			name: "Avatar filename was successfully returned from db",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"avatar"}).
 					AddRow("avatar")
@@ -678,7 +699,7 @@ func TestUserRepository_GetAvatarFilename(t *testing.T) {
 			expected: "avatar",
 		},
 		{
-			name: "No filename for received userID",
+			name: "User with received id was not found in db",
 			mock: func(){
 				rows := sqlmock.NewRows([]string{"avatar"})
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT avatar FROM users WHERE id=$1`)).
@@ -688,7 +709,7 @@ func TestUserRepository_GetAvatarFilename(t *testing.T) {
 			expected: "",
 		},
 		{
-			name: "Error during SELECT request",
+			name: "Error occurred during SELECT request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT avatar FROM users WHERE id=$1`)).
 					WithArgs(driver.Value(1)).WillReturnError(errors.New("some_error_during_request"))
@@ -717,15 +738,10 @@ func TestRedisStore_DeleteSession(t *testing.T) {
 	var err error
 
 	db, mock := redismock.NewClientMock()
-
 	cookieValue := "feeuhfuy3748478djakdj"
-
 	mock.Regexp().ExpectDel(cookieValue).RedisNil()
-
 	r := NewRedisStore(db)
-
 	r.DeleteSession(cookieValue)
-
 	if err = mock.ExpectationsWereMet(); err != nil {
 		t.Error("Error occurred during test case", err)
 	}
@@ -735,7 +751,9 @@ func TestRedisStore_DeleteSession(t *testing.T) {
 
 func TestRedisStore_StoreSession(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func(db *redis.Client) {
+		_ = db.Close()
+	}(db)
 
 	sessionToken := GetRandomString(40)
 	var userID uint64 = 1
@@ -748,7 +766,7 @@ func TestRedisStore_StoreSession(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successfully store session",
+			name: "Successfully stored session in redis",
 			mock: func() {
 				mock.ExpectSet(sessionToken, userID, time.Hour).SetVal("")
 			},
@@ -756,9 +774,9 @@ func TestRedisStore_StoreSession(t *testing.T) {
 			expected: sessionToken,
 		},
 		{
-			name: "Error during redis.Set",
+			name: "Error occurred in Set method",
 			mock: func() {
-				mock.ExpectSet(sessionToken, userID, time.Hour).SetErr(errors.New("some_error_in_redis"))
+				mock.ExpectSet(sessionToken, userID, time.Hour).SetErr(errors.New("error"))
 			},
 			input: 1,
 			expectedErr: true,
@@ -784,7 +802,9 @@ func TestRedisStore_StoreSession(t *testing.T) {
 
 func TestRedisStore_GetSessionUserId(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func(db *redis.Client) {
+		_ = db.Close()
+	}(db)
 
 	tests := []struct {
 		name 		string
@@ -794,23 +814,23 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Session exists",
+			name: "Successfully returned session",
 			mock: func() {
-				mock.ExpectGet("some_cookie_value").SetVal("1")
+				mock.ExpectGet("cookie").SetVal("1")
 			},
-			input: "some_cookie_value",
+			input: "cookie",
 			expected: 1,
 		},
 		{
 			name: "Redis returns incorrect value",
 			mock: func() {
-				mock.ExpectGet("some_cookie_value").SetVal("alex")
+				mock.ExpectGet("cookie").SetVal("alex")
 			},
-			input: "some_cookie_value",
+			input: "cookie",
 			expectedErr: true,
 		},
 		{
-			name: "Func returns error",
+			name: "Error occurred in Get method",
 			mock: func() {
 				mock.ExpectGet("some_cookie_value").RedisNil()
 			},

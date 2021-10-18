@@ -118,7 +118,6 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 		fsMock 		  *mock.MockFileSystemIFace
 		input 	  	  string
 		expected  	  bool
-		expectedErr   bool
 	}{
 		{
 			name: "User is authorized",
@@ -143,7 +142,6 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 			fsMock: &mock.MockFileSystemIFace{},
 			input: "some_cookie",
 			expected: false,
-			expectedErr: true,
 		},
 	}
 
@@ -151,14 +149,8 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
 
-			got, customError := r.IsAuthorized(testCase.input)
-
-			if testCase.expectedErr {
-				assert.NotNil(t, customError)
-			} else {
-				assert.Nil(t, customError)
-				assert.Equal(t, testCase.expected, got)
-			}
+			got, _ := r.IsAuthorized(testCase.input)
+			assert.Equal(t, testCase.expected, got)
 		})
 	}
 }
@@ -547,7 +539,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 		dbMock 	  	  *mock.MockUserRepositoryIFace
 		redisMock 	  *mock.MockRedisStoreIFace
 		fsMock        *mock.MockFileSystemIFace
-		input 	  	  string
+		input 	  	  int
 		expected  	  response
 		expectedErr   bool
 	}{
@@ -562,13 +554,9 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 					}, nil
 				},
 			},
-			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
-					return 1, nil
-				},
-			},
+			redisMock: &mock.MockRedisStoreIFace{},
 			fsMock: &mock.MockFileSystemIFace{},
-			input: "some_cookie_value",
+			input: 1,
 			expected: response{
 				settings: &models.SettingsGet{
 					Email: "alex1234@gmail.com",
@@ -577,24 +565,6 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 				},
 				err: nil,
 			},
-		},
-		{
-			name: "GetSessionUserId returns an error",
-			dbMock: &mock.MockUserRepositoryIFace{},
-			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
-					return 0, errors.New("some_error_in_redis")
-				},
-			},
-			fsMock: &mock.MockFileSystemIFace{},
-			input: "some_cookie_value",
-			expected: response{
-				settings: nil,
-				err: &models.CustomError{
-					ErrorType: 401,
-				},
-			},
-			expectedErr: true,
 		},
 		{
 			name: "GetSettings returns an error",
@@ -609,7 +579,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 				},
 			},
 			fsMock: &mock.MockFileSystemIFace{},
-			input: "some_cookie_value",
+			input: 1,
 			expected: response{
 				settings: nil,
 				err: &models.CustomError{
@@ -641,7 +611,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 
 func TestUserUseCase_UpdateSettings(t *testing.T) {
 	type inputStruct struct {
-		cookieValue string
+		userId int
 		oldSettings *models.SettingsGet
 		newSettings *models.SettingsUpload
 	}
@@ -673,7 +643,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Email: "alex1234@gmail.com",
 				},
@@ -692,7 +662,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Email: "alex1234@gmail.com",
 				},
@@ -719,7 +689,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Email: "alex1234@gmail.com",
 				},
@@ -746,7 +716,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Email: "alex1234@gmail.com",
 				},
@@ -776,7 +746,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Email: "alex1234@gmail.com",
 				},
@@ -808,7 +778,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Nickname: "alex1234",
 				},
@@ -827,7 +797,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Nickname: "alex1234",
 				},
@@ -854,7 +824,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Nickname: "alex1234",
 				},
@@ -881,7 +851,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Nickname: "alex1234",
 				},
@@ -911,7 +881,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					Nickname: "alex1234",
 				},
@@ -943,7 +913,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "alex1234",
@@ -965,7 +935,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "alex1234",
@@ -991,7 +961,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "alex1234",
@@ -1017,7 +987,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "alex1234",
@@ -1046,7 +1016,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "alex1234",
@@ -1068,7 +1038,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "",
@@ -1090,7 +1060,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "alex1234",
@@ -1128,7 +1098,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_filename",
 				},
@@ -1151,7 +1121,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_filename",
 				},
@@ -1182,7 +1152,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_filename",
 				},
@@ -1216,7 +1186,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_filename",
 				},
@@ -1253,7 +1223,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				cookieValue: "some_cookie",
+				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_filename",
 				},
@@ -1266,36 +1236,13 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expectedErr: true,
 		},
-		{
-			name: "Unsuccessfully update settings, redis returns error",
-			dbMock: &mock.MockUserRepositoryIFace{ },
-			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
-					return 0, errors.New("some_error")
-				},
-			},
-			fsMock: &mock.MockFileSystemIFace{ },
-			input: &inputStruct{
-				cookieValue: "some_cookie",
-				oldSettings: &models.SettingsGet{
-					SmallAvatar: "old_filename",
-				},
-				newSettings: &models.SettingsUpload{
-					AvatarFileName: "new_filename",
-				},
-			},
-			expected: &models.CustomError{
-				ErrorType: 401,
-			},
-			expectedErr: true,
-		},
 	}
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
 
-			customError := r.UpdateSettings(testCase.input.cookieValue, testCase.input.oldSettings, testCase.input.newSettings)
+			customError := r.UpdateSettings(testCase.input.userId, testCase.input.oldSettings, testCase.input.newSettings)
 
 			if testCase.expectedErr {
 				assert.NotNil(t, customError)

@@ -151,27 +151,21 @@ func (userR UserUseCase) Login(authData models.Auth) (string, *models.CustomErro
 	return sessionToken, nil
 }
 
-func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, *models.CustomError) {
+func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, int) {
 	// 1) Получаем id пользователя по сессии
-	_, err := userR.redisStore.GetSessionUserId(cookieValue)
+	id, err := userR.redisStore.GetSessionUserId(cookieValue)
 	if err != nil {
-		return false, &models.CustomError{ErrorType: 401, Message: "User not authorized"}
+		return false, 0
 	}
-	return true, nil
+	return true, id
 }
 
 func (userR UserUseCase) Logout(cookieValue string) {
 	userR.redisStore.DeleteSession(cookieValue)
 }
 
-func (userR UserUseCase) GetSettings(cookieValue string) (*models.SettingsGet, *models.CustomError) {
-	// 1) Получаем ID пользователя из redis по значению куки
-	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
-	if err != nil {
-		return nil, &models.CustomError{ErrorType: 401, Message: "User not authorized"}
-	}
-
-	// 2) Получаем настройки пользователя из базы по его ID
+func (userR UserUseCase) GetSettings(userID int) (*models.SettingsGet, *models.CustomError) {
+	// 1) Получаем настройки пользователя из базы по его ID
 	settings, err := userR.userDB.GetSettings(userID)
 	if err != nil {
 		return nil,  &models.CustomError{ErrorType: 500, OriginalError: err}
@@ -180,13 +174,7 @@ func (userR UserUseCase) GetSettings(cookieValue string) (*models.SettingsGet, *
 	return settings, nil
 }
 
-func (userR UserUseCase) UpdateSettings(cookieValue string, oldSettings *models.SettingsGet, newSettings *models.SettingsUpload) *models.CustomError {
-	// 0) Получаем ID пользователя по значению cookie
-	userID, err := userR.redisStore.GetSessionUserId(cookieValue)
-	if err != nil {
-		return &models.CustomError{ErrorType: 401, Message: "User not authorized"}
-	}
-
+func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.SettingsGet, newSettings *models.SettingsUpload) *models.CustomError {
 	// 1) Проверяем, что изменился email
 	if newSettings.Email != oldSettings.Email && len(newSettings.Email) != 0 {
 		// 1.1) Валидация нового email

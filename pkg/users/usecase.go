@@ -8,8 +8,8 @@ import (
 type UserUseCaseIFace interface {
 	Register(models.User) (string, *models.CustomError)
 	Login(models.Auth) (string, *models.CustomError)
-	IsAuthorized(string) (bool, *models.CustomError)
+	IsAuthorized(string) (bool, int)
 	Logout(string)
-	GetSettings(string) (*models.SettingsGet, *models.CustomError)
-	UpdateSettings(string, *models.SettingsGet, *models.SettingsUpload) *models.CustomError
+	GetSettings(int) (*models.SettingsGet, *models.CustomError)
+	UpdateSettings(int, *models.SettingsGet, *models.SettingsUpload) *models.CustomError
 }

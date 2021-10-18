@@ -151,13 +151,13 @@ func (userR UserUseCase) Login(authData models.Auth) (string, *models.CustomErro
 	return sessionToken, nil
 }
 
-func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, int) {
+func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, int, *models.CustomError) {
 	// 1) Получаем id пользователя по сессии
-	id, err := userR.redisStore.GetSessionUserId(cookieValue)
-	if err != nil {
-		return false, 0
+	id, customError := userR.redisStore.GetSessionUserId(cookieValue)
+	if customError != nil {
+		return false, id, customError
 	}
-	return true, id
+	return true, id, nil
 }
 
 func (userR UserUseCase) Logout(cookieValue string) {

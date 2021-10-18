@@ -111,37 +111,53 @@ func TestUserUseCase_Login(t *testing.T) {
 }
 
 func TestUserUseCase_IsAuthorized(t *testing.T) {
+	type response struct {
+		isAuthorized bool
+		userID   	 int
+		err 		 *models.CustomError
+	}
+
 	tests := []struct {
 		name 	  	  string
 		dbMock 	  	  *mock.MockUserRepositoryIFace
 		redisMock 	  *mock.MockRedisStoreIFace
 		fsMock 		  *mock.MockFileSystemIFace
 		input 	  	  string
-		expected  	  bool
+		expected  	  response
+		expectedErr   bool
 	}{
 		{
 			name: "User is authorized",
 			dbMock: &mock.MockUserRepositoryIFace{ },
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: "some_cookie",
-			expected: true,
+			expected: response{
+				isAuthorized: true,
+				userID: 1,
+				err: nil,
+			},
 		},
 		{
 			name: "User is not authorized",
 			dbMock: &mock.MockUserRepositoryIFace{ },
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
-					return 0, errors.New("redis_error")
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
+					return 0, &models.CustomError{ErrorType: 401}
 				},
 			},
 			fsMock: &mock.MockFileSystemIFace{},
 			input: "some_cookie",
-			expected: false,
+			expected: response{
+				isAuthorized: false,
+				userID: 0,
+				err: &models.CustomError{ErrorType: 401},
+			},
+			expectedErr: true,
 		},
 	}
 
@@ -149,8 +165,15 @@ func TestUserUseCase_IsAuthorized(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
 
-			got, _ := r.IsAuthorized(testCase.input)
-			assert.Equal(t, testCase.expected, got)
+			var got response
+			got.isAuthorized, got.userID, got.err = r.IsAuthorized(testCase.input)
+			if testCase.expectedErr {
+				assert.NotNil(t, got.err)
+				assert.Equal(t, testCase.expected, got)
+			} else {
+				assert.Nil(t, got.err)
+				assert.Equal(t, testCase.expected.isAuthorized, got.isAuthorized)
+			}
 		})
 	}
 }
@@ -574,7 +597,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -637,7 +660,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -656,7 +679,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			name: "Unsuccessfully update email, email is not valid",
 			dbMock: &mock.MockUserRepositoryIFace{},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -683,7 +706,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -710,7 +733,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -740,7 +763,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -772,7 +795,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -791,7 +814,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			name: "Unsuccessfully update nickname, nickname is not valid",
 			dbMock: &mock.MockUserRepositoryIFace{},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -818,7 +841,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -845,7 +868,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -875,7 +898,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -907,7 +930,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -929,7 +952,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -955,7 +978,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -981,7 +1004,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -1010,7 +1033,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -1032,7 +1055,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			name: "Unsuccessfully update password, old password field is empty",
 			dbMock: &mock.MockUserRepositoryIFace{ },
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -1054,7 +1077,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			name: "Unsuccessfully update password, new password field is empty",
 			dbMock: &mock.MockUserRepositoryIFace{ },
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -1085,7 +1108,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -1111,7 +1134,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			name: "Unsuccessfully update SmallAvatar, CreateImage returns error",
 			dbMock: &mock.MockUserRepositoryIFace{},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -1142,7 +1165,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -1173,7 +1196,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},
@@ -1210,7 +1233,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
-				GetSessionUserIdFunc: func(string) (int, error) {
+				GetSessionUserIdFunc: func(string) (int, *models.CustomError) {
 					return 1, nil
 				},
 			},

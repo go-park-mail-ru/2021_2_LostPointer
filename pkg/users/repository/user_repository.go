@@ -121,6 +121,7 @@ func (Data UserRepository) DoesUserExist(authData models.Auth) (uint64, error) {
 func (Data UserRepository) IsEmailUnique(email string) (bool, error) {
 	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE lower(email)=$1`, strings.ToLower(email))
 	if err != nil {
+		log.Println(err)
 		return false, err
 	}
 	if rows.Next() {
@@ -335,16 +336,20 @@ func (r RedisStore) StoreSession(userID uint64, customSessionToken ...string) (s
 	return sessionToken, nil
 }
 
-func (r RedisStore) GetSessionUserId(session string) (int, error) {
+func (r RedisStore) GetSessionUserId(session string) (int, *models.CustomError) {
 	res, err := r.redisConnection.Get(ctx, session).Result()
 	if err != nil {
-		return 0, err
+		if err.Error() == "redis: nil" {
+			return 0, &models.CustomError{ErrorType: 401}  // status 401
+		} else {
+			return -1, &models.CustomError{ErrorType: 500, OriginalError: err} // status 500
+		}
 	}
 	id, err := strconv.Atoi(res)
 	if err != nil {
-		return 0, err
+		return -1, &models.CustomError{ErrorType: 500, OriginalError: err} // status 500
 	}
-	return id, err
+	return id, nil
 }
 
 func (r RedisStore) DeleteSession(cookieValue string) {

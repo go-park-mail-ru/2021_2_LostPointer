@@ -822,19 +822,21 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 			expected: 1,
 		},
 		{
-			name: "Redis returns incorrect value",
+			name: "Error occurred in redis Get method",
 			mock: func() {
-				mock.ExpectGet("cookie").SetVal("alex")
+				mock.ExpectGet("some_cookie_value").SetErr(errors.New("error"))
 			},
-			input: "cookie",
+			input: "some_cookie_value",
+			expected: -1,
 			expectedErr: true,
 		},
 		{
-			name: "Error occurred in Get method",
+			name: "Error occurred in redis Get method",
 			mock: func() {
 				mock.ExpectGet("some_cookie_value").RedisNil()
 			},
 			input: "some_cookie_value",
+			expected: 0,
 			expectedErr: true,
 		},
 	}
@@ -847,9 +849,10 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 
 			got, err := r.GetSessionUserId(testCase.input)
 			if testCase.expectedErr {
-				assert.Error(t, err)
+				assert.NotNil(t, err)
+				assert.Equal(t, testCase.expected, got)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 				assert.Equal(t, testCase.expected, got)
 			}
 		})

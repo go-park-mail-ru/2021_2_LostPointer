@@ -6,6 +6,8 @@ import (
 	"errors"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,6 +19,11 @@ func TestUserDelivery_Logout(t *testing.T) {
 	usecaseMock := &mock.MockUserUseCaseIFace{
 		LogoutFunc: func(string) {},
 	}
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 
 	tests := []struct {
 		name 		string
@@ -50,8 +57,9 @@ func TestUserDelivery_Logout(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.SetPath("/api/v1/user/logout")
+			ctx.Set("REQUEST_ID", "1")
 
-			r := NewUserDelivery(tt.usecaseMock)
+			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.Logout(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
 			}
@@ -60,6 +68,12 @@ func TestUserDelivery_Logout(t *testing.T) {
 }
 
 func TestUserDelivery_IsAuthorized(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
 	tests := []struct {
 		name 		string
 		usecaseMock *mock.MockUserUseCaseIFace
@@ -69,8 +83,8 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		{
 			name: "Handler returned status 200",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				IsAuthorizedFunc: func(s string) (bool, int) {
-					return true, 1
+				IsAuthorizedFunc: func(s string) (bool, int, *models.CustomError) {
+					return true, 1, nil
 				},
 			},
 			cookie: &http.Cookie{
@@ -83,8 +97,8 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		{
 			name: "Handler returned status 401, usecase.IsAuthorized returned false",
 			usecaseMock: &mock.MockUserUseCaseIFace{
-				IsAuthorizedFunc: func(s string) (bool, int) {
-					return false, 0
+				IsAuthorizedFunc: func(s string) (bool, int,  *models.CustomError) {
+					return false, 0, &models.CustomError{ErrorType: 401}
 				},
 			},
 			cookie: &http.Cookie{
@@ -110,8 +124,9 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.SetPath("/api/v1/auth")
+			ctx.Set("REQUEST_ID", "1")
 
-			r := NewUserDelivery(tt.usecaseMock)
+			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.IsAuthorized(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
 			}
@@ -120,6 +135,12 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 }
 
 func TestUserDelivery_Login(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
 	tests := []struct {
 		name string
 		usecaseMock *mock.MockUserUseCaseIFace
@@ -167,7 +188,9 @@ func TestUserDelivery_Login(t *testing.T) {
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
-			r := NewUserDelivery(tt.usecaseMock)
+			ctx.Set("REQUEST_ID", "1")
+
+			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.Login(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
 			}
@@ -176,6 +199,12 @@ func TestUserDelivery_Login(t *testing.T) {
 }
 
 func TestUserDelivery_Register(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
 	tests := []struct {
 		name 		string
 		usecaseMock *mock.MockUserUseCaseIFace
@@ -222,7 +251,9 @@ func TestUserDelivery_Register(t *testing.T) {
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
-			r := NewUserDelivery(tt.usecaseMock)
+			ctx.Set("REQUEST_ID", "1")
+
+			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.Register(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
 			}
@@ -231,6 +262,12 @@ func TestUserDelivery_Register(t *testing.T) {
 }
 
 func TestUserDelivery_GetSettings(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
 	tests := []struct {
 		name 		string
 		usecaseMock *mock.MockUserUseCaseIFace
@@ -275,9 +312,11 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.SetPath("/api/v1/user/settings")
-			ctx.Set("user_id", tt.input)
+			ctx.Set("USER_ID", tt.input)
+			ctx.Set("REQUEST_ID", "1")
+			ctx.Set("AUTHORIZATION_ERROR", "1")
 
-			r := NewUserDelivery(tt.usecaseMock)
+			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.GetSettings(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
 			}
@@ -286,6 +325,12 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 }
 
 func TestUserDelivery_UpdateSettings(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
 	tests := []struct {
 		name 		string
 		usecaseMock *mock.MockUserUseCaseIFace
@@ -315,7 +360,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			name: "Handler returned status 500, usecase.GetSettings returned CustomError with ErrorType = 500",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(int) (*models.SettingsGet, *models.CustomError) {
-					return nil, &models.CustomError{ErrorType: 500}
+					return nil, &models.CustomError{ErrorType: 500, OriginalError: errors.New("error")}
 				},
 			},
 			input: 1,
@@ -356,8 +401,11 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
-			ctx.Set("user_id", tt.input)
-			r := NewUserDelivery(tt.usecaseMock)
+			ctx.Set("USER_ID", tt.input)
+			ctx.Set("REQUEST_ID", "1")
+			ctx.Set("AUTHORIZATION_ERROR", "1")
+
+			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.UpdateSettings(ctx)) {
 				assert.Equal(t, tt.expected, rec.Code)
 			}

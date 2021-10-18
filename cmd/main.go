@@ -1,7 +1,7 @@
 package main
 
 import (
-	"2021_2_LostPointer/pkg/middleware"
+	middleware "2021_2_LostPointer/pkg/middleware"
 	handlersMusic "2021_2_LostPointer/pkg/music/delivery"
 	repositoryMusic "2021_2_LostPointer/pkg/music/repository"
 	usecaseMusic "2021_2_LostPointer/pkg/music/usecase"
@@ -10,6 +10,8 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"log"
 	"os"
 
@@ -26,18 +28,18 @@ type RequestHandlers struct {
 	middlewareHandlers middleware.Middleware
 }
 
-func NewRequestHandler(db *sql.DB, redisConnection *redis.Client) *RequestHandlers {
+func NewRequestHandler(db *sql.DB, redisConnection *redis.Client, logger *zap.SugaredLogger) *RequestHandlers {
 	userDB := repositoryUser.NewUserRepository(db)
 	redisStore := repositoryUser.NewRedisStore(redisConnection)
 	fileSystem := repositoryUser.NewFileSystem()
 	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore, fileSystem)
-	userHandlers := deliveryUser.NewUserDelivery(userUseCase)
+	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
 
 	musicRepo := repositoryMusic.NewMusicRepository(db)
 	musicUseCase := usecaseMusic.NewMusicUseCase(musicRepo)
 	musicHandlers := handlersMusic.NewMusicDelivery(musicUseCase)
 
-	middlewareHandlers := middleware.NewMiddlewareHandler(userUseCase)
+	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase)
 
 	api := &(RequestHandlers{
 		userHandlers:       userHandlers,
@@ -85,6 +87,11 @@ func InitializeRedis() *redis.Client {
 
 func main() {
 	server := echo.New()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 
 	db := InitializeDatabase()
 	defer func() {
@@ -99,7 +106,7 @@ func main() {
 		}
 	}()
 
-	api := NewRequestHandler(db, redisConnection)
+	api := NewRequestHandler(db, redisConnection, logger)
 
 	api.userHandlers.InitHandlers(server)
 	api.musicHandlers.InitHandlers(server)

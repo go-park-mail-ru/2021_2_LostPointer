@@ -4,37 +4,59 @@ import (
 	"2021_2_LostPointer/pkg/models"
 	"2021_2_LostPointer/pkg/users"
 	"github.com/labstack/echo"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
 
 const cookieLifetime = time.Hour * 24 * 30
+
 const UserIsNotAuthorizedMessage = "User is not authorized"
+const UserIsAuthorizedMessage = "User is authorized"
+const LoggedOutMessage = "Logged out"
+const SettingsUploadedMessage = "Settings uploaded successfully"
+const UserCreated = "User was created successfully"
 
 type UserDelivery struct {
 	userLogic users.UserUseCaseIFace
+	logger *zap.SugaredLogger
 }
 
-func NewUserDelivery(userRealization users.UserUseCaseIFace) UserDelivery {
-	return UserDelivery{userLogic: userRealization}
+func NewUserDelivery(logger *zap.SugaredLogger, userRealization users.UserUseCaseIFace) UserDelivery {
+	return UserDelivery{userLogic: userRealization, logger: logger}
 }
 
 func (userD UserDelivery) Register(ctx echo.Context) error {
 	var userData models.User
+	requestID := ctx.Get("REQUEST_ID").(string)
 
 	err := ctx.Bind(&userData)
 	if err != nil {
-		log.Println(err.Error())
-		return ctx.NoContent(http.StatusInternalServerError)
+		userD.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+		)
+		return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: err.Error()})
 	}
 
 	sessionToken, customError := userD.userLogic.Register(userData)
 	if customError != nil {
 		if customError.ErrorType == 500 {
-			log.Println(customError.OriginalError.Error())
-			return ctx.NoContent(http.StatusInternalServerError)
+			userD.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.OriginalError.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: customError.OriginalError.Error()})
 		} else if customError.ErrorType == 400 {
+			userD.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.Message),
+				zap.Int("ANSWER STATUS", http.StatusBadRequest),
+			)
+
 			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
 		}
 	}
@@ -50,27 +72,48 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 	}
 	ctx.SetCookie(cookie)
 
-	return ctx.JSON(http.StatusCreated, &models.Response{Message: "User successfully created"})
+	userD.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusCreated),
+	)
+
+	return ctx.JSON(http.StatusCreated, &models.Response{Message: UserCreated})
 }
 
 func (userD UserDelivery) Login(ctx echo.Context) error {
 	var authData models.Auth
+	requestID := ctx.Get("REQUEST_ID").(string)
 
 	err := ctx.Bind(&authData)
 	if err != nil {
-		log.Println(err.Error())
-		return ctx.NoContent(http.StatusInternalServerError)
+		userD.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+		)
+
+		return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: err.Error()})
 	}
 
 	sessionToken, customError := userD.userLogic.Login(authData)
 	if customError != nil {
 		if customError.ErrorType == 500 {
-			log.Println(customError.OriginalError.Error())
-			return ctx.NoContent(http.StatusInternalServerError)
+			userD.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.OriginalError.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: customError.OriginalError.Error()})
 		} else if customError.ErrorType == 400 {
+			userD.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.Message),
+				zap.Int("ANSWER STATUS", http.StatusBadRequest),
+			)
+
 			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
 		}
-
 	}
 
 	cookie := &http.Cookie{
@@ -84,62 +127,159 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 	}
 	ctx.SetCookie(cookie)
 
-	return ctx.JSON(http.StatusOK, &models.Response{Message: UserIsNotAuthorizedMessage})
+	userD.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, &models.Response{Message: "User is authorized"})
 }
 
 func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
+	requestID := ctx.Get("REQUEST_ID").(string)
 	if err != nil {
+		userD.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+		)
+
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
 	}
 
-	isAuthorized, _ := userD.userLogic.IsAuthorized(cookie.Value)
-	if !isAuthorized {
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
+	_, _, customError := userD.userLogic.IsAuthorized(cookie.Value)
+	if customError != nil {
+		if customError.ErrorType == 500 {
+			userD.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.OriginalError.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: customError.OriginalError.Error()})
+		}
+		if customError.ErrorType == 401 {
+			userD.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.Message),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: customError.Message})
+		}
 	}
 
-	return ctx.JSON(http.StatusOK, &models.Response{Message: UserIsNotAuthorizedMessage})
+	userD.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, &models.Response{Message: UserIsAuthorizedMessage})
 }
 
 func (userD UserDelivery) Logout(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
+	requestID := ctx.Get("REQUEST_ID").(string)
 	if err != nil {
-		log.Println(err.Error())
+		userD.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+		)
+
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
 	}
+
 	userD.userLogic.Logout(cookie.Value)
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
 	ctx.SetCookie(cookie)
 
-	return ctx.JSON(http.StatusOK, &models.Response{Message: "Logged out"})
+	userD.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, &models.Response{Message: LoggedOutMessage})
 }
 
 func (userD UserDelivery) GetSettings(ctx echo.Context) error {
-	userID := ctx.Get("user_id").(int)
+	requestID := ctx.Get("REQUEST_ID").(string)
+	userID := ctx.Get("USER_ID").(int)
+	authErrorMessage := ctx.Get("AUTHORIZATION_ERROR").(string)
 	if userID == 0 {
+		userD.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+		)
+
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
+	}
+	if userID == -1 {
+		userD.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", authErrorMessage),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+		)
+
+		return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: authErrorMessage})
 	}
 
 	settings, customError := userD.userLogic.GetSettings(userID)
 	if customError != nil {
 		if customError.ErrorType == 500 {
-			return ctx.NoContent(http.StatusInternalServerError)
+			userD.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.OriginalError.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: customError.OriginalError.Error()})
 		}
 	}
+
+	userD.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
 
 	return ctx.JSON(http.StatusOK, settings)
 }
 
 func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
-	userID := ctx.Get("user_id").(int)
+	userID := ctx.Get("USER_ID").(int)
+	requestID := ctx.Get("REQUEST_ID").(string)
+	authErrorMessage := ctx.Get("AUTHORIZATION_ERROR").(string)
 	if userID == 0 {
+		userD.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+		)
+
 		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
+	}
+	if userID == -1 {
+		userD.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", authErrorMessage),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+		)
+
+		return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: authErrorMessage})
 	}
 
 	oldSettings, customError := userD.userLogic.GetSettings(userID)
 	if customError != nil {
 		if customError.ErrorType == 500 {
-			return ctx.NoContent(http.StatusInternalServerError)
+			userD.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.OriginalError.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: customError.OriginalError.Error()})
 		}
 	}
 
@@ -168,14 +308,30 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 	customError = userD.userLogic.UpdateSettings(userID, oldSettings, newSettings)
 	if customError != nil {
 		if customError.ErrorType == 500 {
-			log.Println(customError.OriginalError.Error())
-			return ctx.NoContent(http.StatusInternalServerError)
+			userD.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.OriginalError.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{Message: customError.OriginalError.Error()})
 		} else if customError.ErrorType == 400 {
+			userD.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.Message),
+				zap.Int("ANSWER STATUS", http.StatusBadRequest),
+			)
+
 			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
 		}
 	}
 
-	return ctx.JSON(http.StatusOK, &models.Response{Message: "Settings uploaded successfully"})
+	userD.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, &models.Response{Message: SettingsUploadedMessage})
 }
 
 func (userD UserDelivery) InitHandlers(server *echo.Echo) {

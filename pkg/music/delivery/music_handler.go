@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"2021_2_LostPointer/pkg/models"
 	"2021_2_LostPointer/pkg/music"
 	"github.com/labstack/echo"
 	"net/http"
@@ -17,7 +18,7 @@ func NewMusicDelivery(musicUseCase music.MusicUseCaseIFace) MusicHandlers {
 func (musicHandlers MusicHandlers) Home(ctx echo.Context) error {
 	collection, err := musicHandlers.MusicUseCase.GetMusicCollection(ctx)
 	if err != nil {
-		return err
+		return ctx.JSON(http.StatusInternalServerError, models.Response{Message: "No music today"})
 	}
 
 	return ctx.JSON(http.StatusOK, collection)

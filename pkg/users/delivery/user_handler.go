@@ -66,7 +66,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 		if customError.ErrorType == 500 {
 			log.Println(customError.OriginalError.Error())
 			return ctx.NoContent(http.StatusInternalServerError)
-		} else {
+		} else if customError.ErrorType == 400 {
 			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
 		}
 

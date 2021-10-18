@@ -386,7 +386,7 @@ func TestUserUseCase_Register(t *testing.T) {
 					return true, nil
 				},
 				CreateUserFunc: func(models.User, ...string) (uint64, error) {
-					return 0, errors.New("some_error_in_CreateUserFunct")
+					return 0, errors.New("some_error_in_CreateUserFunc")
 				},
 			},
 			redisMock: &mock.MockRedisStoreIFace{
@@ -558,7 +558,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 					return &models.SettingsGet{
 						Email: "alex1234@gmail.com",
 						Nickname: "alex1234",
-						Avatar: "avatar",
+						SmallAvatar: "SmallAvatar",
 					}, nil
 				},
 			},
@@ -573,7 +573,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 				settings: &models.SettingsGet{
 					Email: "alex1234@gmail.com",
 					Nickname: "alex1234",
-					Avatar: "avatar",
+					SmallAvatar: "SmallAvatar",
 				},
 				err: nil,
 			},
@@ -1103,9 +1103,9 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			expectedErr: true,
 		},
 
-		// ----------AVATAR----------
+		// ----------SmallAvatar----------
 		{
-			name: "Successfully update avatar",
+			name: "Successfully update SmallAvatar",
 			dbMock: &mock.MockUserRepositoryIFace{
 				GetAvatarFilenameFunc: func(int) (string, error) {
 					return "some_filename", nil
@@ -1130,7 +1130,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			input: &inputStruct{
 				cookieValue: "some_cookie",
 				oldSettings: &models.SettingsGet{
-					Avatar: "old_filename",
+					SmallAvatar: "old_filename",
 				},
 				newSettings: &models.SettingsUpload{
 					AvatarFileName: "new_filename",
@@ -1138,7 +1138,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 		},
 		{
-			name: "Unsuccessfully update avatar, CreateImage returns error",
+			name: "Unsuccessfully update SmallAvatar, CreateImage returns error",
 			dbMock: &mock.MockUserRepositoryIFace{},
 			redisMock: &mock.MockRedisStoreIFace{
 				GetSessionUserIdFunc: func(string) (int, error) {
@@ -1153,7 +1153,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			input: &inputStruct{
 				cookieValue: "some_cookie",
 				oldSettings: &models.SettingsGet{
-					Avatar: "old_filename",
+					SmallAvatar: "old_filename",
 				},
 				newSettings: &models.SettingsUpload{
 					AvatarFileName: "new_filename",
@@ -1165,7 +1165,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name: "Unsuccessfully update avatar, GetAvatarFilename returns error",
+			name: "Unsuccessfully update SmallAvatar, GetSmallAvatarFilename returns error",
 			dbMock: &mock.MockUserRepositoryIFace{
 				GetAvatarFilenameFunc: func(int) (string, error) {
 					return "", errors.New("some_error")
@@ -1184,7 +1184,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			input: &inputStruct{
 				cookieValue: "some_cookie",
 				oldSettings: &models.SettingsGet{
-					Avatar: "old_filename",
+					SmallAvatar: "old_filename",
 				},
 				newSettings: &models.SettingsUpload{
 					AvatarFileName: "new_filename",
@@ -1196,7 +1196,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name: "Unsuccessfully update avatar, DeleteImage returns error",
+			name: "Unsuccessfully update SmallAvatar, DeleteImage returns error",
 			dbMock: &mock.MockUserRepositoryIFace{
 				GetAvatarFilenameFunc: func(int) (string, error) {
 					return "some_filename", nil
@@ -1218,7 +1218,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			input: &inputStruct{
 				cookieValue: "some_cookie",
 				oldSettings: &models.SettingsGet{
-					Avatar: "old_filename",
+					SmallAvatar: "old_filename",
 				},
 				newSettings: &models.SettingsUpload{
 					AvatarFileName: "new_filename",
@@ -1230,7 +1230,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name: "Unsuccessfully update avatar, UpdateAvatar returns error",
+			name: "Unsuccessfully update SmallAvatar, UpdateSmallAvatar returns error",
 			dbMock: &mock.MockUserRepositoryIFace{
 				GetAvatarFilenameFunc: func(int) (string, error) {
 					return "some_filename", nil
@@ -1255,7 +1255,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			input: &inputStruct{
 				cookieValue: "some_cookie",
 				oldSettings: &models.SettingsGet{
-					Avatar: "old_filename",
+					SmallAvatar: "old_filename",
 				},
 				newSettings: &models.SettingsUpload{
 					AvatarFileName: "new_filename",
@@ -1278,7 +1278,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			input: &inputStruct{
 				cookieValue: "some_cookie",
 				oldSettings: &models.SettingsGet{
-					Avatar: "old_filename",
+					SmallAvatar: "old_filename",
 				},
 				newSettings: &models.SettingsUpload{
 					AvatarFileName: "new_filename",

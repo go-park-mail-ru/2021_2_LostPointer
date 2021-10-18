@@ -25,7 +25,7 @@ func TestUserDelivery_Logout(t *testing.T) {
 		expected    int
 	}{
 		{
-			name: "Successfully logged out",
+			name: "Handler returned status 200",
 			usecaseMock: usecaseMock,
 			cookie: &http.Cookie{
 				Name:     "Session_cookie",
@@ -35,7 +35,7 @@ func TestUserDelivery_Logout(t *testing.T) {
 			expected: http.StatusOK,
 		},
 		{
-			name: "User was not authorized, no cookies was set",
+			name: "Handler returned status 401, no cookies was set",
 			usecaseMock: usecaseMock,
 			cookie: &http.Cookie{ },
 			expected: http.StatusUnauthorized,
@@ -67,7 +67,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		expected 	int
 	}{
 		{
-			name: "User is authorized",
+			name: "Handler returned status 200",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				IsAuthorizedFunc: func(s string) (bool, *models.CustomError) {
 					return true, nil
@@ -81,7 +81,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 			expected: http.StatusOK,
 		},
 		{
-			name: "User is not authorized",
+			name: "Handler returned status 401, usecase.IsAuthorized returned false",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				IsAuthorizedFunc: func(s string) (bool, *models.CustomError) {
 					return false, nil
@@ -95,13 +95,13 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 			expected: http.StatusUnauthorized,
 		},
 		{
-			name: "User is not authorized, no cookies set",
+			name: "Handler returned status 401, no cookies was set",
 			usecaseMock: &mock.MockUserUseCaseIFace{ },
 			cookie: &http.Cookie{ },
 			expected: http.StatusUnauthorized,
 		},
 		{
-			name: "User is not authorized, no session in redis",
+			name: "Handler returned status 401, usecase.IsAuthorized returned CustomError with ErrorType = 401",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				IsAuthorizedFunc: func(s string) (bool, *models.CustomError) {
 					return false, &models.CustomError{
@@ -142,7 +142,7 @@ func TestUserDelivery_Login(t *testing.T) {
 		expected int
 	}{
 		{
-			name: "Successfully logged in",
+			name: "Handler returned status 200",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "some_sesion_token", nil
@@ -151,7 +151,7 @@ func TestUserDelivery_Login(t *testing.T) {
 			expected: http.StatusOK,
 		},
 		{
-			name: "Unsuccessful log in, BadRequest",
+			name: "Handler returned status 400, usecase.Login returned CustomError with ErrorType = 400",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "", &models.CustomError{
@@ -162,7 +162,7 @@ func TestUserDelivery_Login(t *testing.T) {
 			expected: http.StatusBadRequest,
 		},
 		{
-			name: "Unsuccessful log in, InternalServerError",
+			name: "Handler returned status 500, usecase.Login returned CustomError with ErrorType = 500",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "", &models.CustomError{
@@ -178,7 +178,8 @@ func TestUserDelivery_Login(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/user/signin",  strings.NewReader(`{"email": "test.inter@ndeiud.com", "password": "jfdIHD#&n873D"}`))
+			req := httptest.NewRequest(echo.POST, "/api/v1/user/signin",
+				strings.NewReader(`{"email": "test.inter@ndeiud.com", "password": "jfdIHD#&n873D"}`))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -197,33 +198,32 @@ func TestUserDelivery_Register(t *testing.T) {
 		expected 	int
 	}{
 		{
-			name: "Successful register",
+			name: "Handler returned status 201",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				RegisterFunc: func(user models.User) (string, *models.CustomError) {
-					return "some_session_token", nil
+					return "token", nil
 				},
 			},
 			expected: http.StatusCreated,
 		},
 		{
-			name: "Unsuccessful register, BadRequest",
+			name: "Handler returned status 401, usecase.Login returned CustomError with ErrorType = 400",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				RegisterFunc: func(user models.User) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 400,
-						OriginalError: nil,
 					}
 				},
 			},
 			expected: http.StatusBadRequest,
 		},
 		{
-			name: "Unsuccessful register, InternalServerError",
+			name: "Handler returned status 500, usecase.Login returned CustomError with ErrorType = 500",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				RegisterFunc: func(user models.User) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 500,
-						OriginalError: errors.New("some_error"),
+						OriginalError: errors.New("error"),
 					}
 				},
 			},
@@ -254,7 +254,7 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 		expected 	int
 	}{
 		{
-			name: "Successfully returns settings",
+			name: "Handler returned status 200",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
 					return &models.SettingsGet{}, nil
@@ -268,13 +268,13 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 			expected: http.StatusOK,
 		},
 		{
-			name: "Unsuccessfully returns settings, no session_cookie set",
+			name: "Handler returned status 401, no cookies was set",
 			usecaseMock: &mock.MockUserUseCaseIFace{},
 			cookie: &http.Cookie{},
 			expected: http.StatusUnauthorized,
 		},
 		{
-			name: "Unsuccessfully returns settings, user is unauthorized",
+			name: "Handler returned status 401, usecase.GetSettings returned CustomError with ErrorType = 401",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
 					return nil, &models.CustomError{
@@ -290,12 +290,12 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 			expected: http.StatusUnauthorized,
 		},
 		{
-			name: "Unsuccessfully returns settings, internal server error",
+			name: "Handler returned status 500, usecase.GetSettings returned CustomError with ErrorType = 500",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
 					return nil, &models.CustomError{
 						ErrorType: 500,
-						OriginalError: errors.New("some_error"),
+						OriginalError: errors.New("error"),
 					}
 				},
 			},
@@ -333,7 +333,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 		expected 	int
 	}{
 		{
-			name: "Successfully updated settings",
+			name: "Handler returned status 200",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
 					return &models.SettingsGet{}, nil
@@ -350,13 +350,13 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			expected: http.StatusOK,
 		},
 		{
-			name: "Unsuccessfully updated settings, no cookies set",
+			name: "Handler returned status 401, no cookies was set",
 			usecaseMock: &mock.MockUserUseCaseIFace{},
 			cookie: &http.Cookie{},
 			expected: http.StatusUnauthorized,
 		},
 		{
-			name: "Unsuccessfully updated settings, user not authorized",
+			name: "Handler returned status 401, usecase.GetSettings returned CustomError with ErrorType = 401",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
 					return nil, &models.CustomError{ErrorType: 401}
@@ -370,7 +370,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			expected: http.StatusUnauthorized,
 		},
 		{
-			name: "Unsuccessfully updated settings, internal server error in GetSettings",
+			name: "Handler returned status 500, usecase.GetSettings returned CustomError with ErrorType = 500",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
 					return nil, &models.CustomError{ErrorType: 500}
@@ -384,7 +384,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			expected: http.StatusInternalServerError,
 		},
 		{
-			name: "Unsuccessfully updated settings, bad request in UpdateSettings",
+			name: "Handler returned status 400, usecase.UpdateSettings returned CustomError with ErrorType = 400",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
 					return &models.SettingsGet{}, nil
@@ -401,7 +401,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			expected: http.StatusBadRequest,
 		},
 		{
-			name: "Unsuccessfully updated settings, internal server error in UpdateSettings",
+			name: "Handler returned status 500, usecase.UpdateSettings returned CustomError with ErrorType = 500",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(string) (*models.SettingsGet, *models.CustomError) {
 					return &models.SettingsGet{}, nil

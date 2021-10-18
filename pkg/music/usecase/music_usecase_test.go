@@ -1,8 +1,8 @@
 package usecase
 //
 //import (
+//	"2021_2_LostPointer/pkg/mock"
 //	"2021_2_LostPointer/pkg/models"
-//	"2021_2_LostPointer/pkg/music/mock"
 //	"2021_2_LostPointer/pkg/music/repository"
 //	"github.com/stretchr/testify/assert"
 //	"testing"

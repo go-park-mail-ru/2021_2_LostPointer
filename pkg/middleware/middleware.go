@@ -20,14 +20,16 @@ func (middleware Middleware) InitMiddlewareHandlers(server *echo.Echo) {
 func (middleware Middleware) CheckAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		var isAuthorized bool
+		var userID int
 
 		cookie, err := ctx.Cookie("Session_cookie")
 
 		if err == nil && cookie.String() != "" {
-			isAuthorized, _ = middleware.UserUseCase.IsAuthorized(cookie.Value)
+			isAuthorized, userID = middleware.UserUseCase.IsAuthorized(cookie.Value)
 		}
 
 		ctx.Set("is_authorized", isAuthorized)
+		ctx.Set("user_id", userID)
 
 		return next(ctx)
 	}

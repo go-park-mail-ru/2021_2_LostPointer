@@ -10,6 +10,7 @@ import (
 )
 
 const cookieLifetime = time.Hour * 24 * 30
+const UserIsNotAuthorizedMessage = "User is not authorized"
 
 type UserDelivery struct {
 	userLogic users.UserUseCaseIFace
@@ -33,7 +34,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 		if customError.ErrorType == 500 {
 			log.Println(customError.OriginalError.Error())
 			return ctx.NoContent(http.StatusInternalServerError)
-		} else {
+		} else if customError.ErrorType == 400 {
 			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
 		}
 	}
@@ -83,33 +84,28 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 	}
 	ctx.SetCookie(cookie)
 
-	return ctx.JSON(http.StatusOK, &models.Response{Message: "User is authorized"})
+	return ctx.JSON(http.StatusOK, &models.Response{Message: UserIsNotAuthorizedMessage})
 }
 
 func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
 	if err != nil {
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
 	}
 
-	isAuthorized, customError := userD.userLogic.IsAuthorized(cookie.Value)
-	if customError != nil {
-		if customError.ErrorType == 401 {
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: customError.Message})
-		}
-	}
+	isAuthorized, _ := userD.userLogic.IsAuthorized(cookie.Value)
 	if !isAuthorized {
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
 	}
 
-	return ctx.JSON(http.StatusOK, &models.Response{Message: "User is authorized"})
+	return ctx.JSON(http.StatusOK, &models.Response{Message: UserIsNotAuthorizedMessage})
 }
 
 func (userD UserDelivery) Logout(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
 	if err != nil {
 		log.Println(err.Error())
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
 	}
 	userD.userLogic.Logout(cookie.Value)
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
@@ -119,17 +115,14 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 }
 
 func (userD UserDelivery) GetSettings(ctx echo.Context) error {
-	cookie, err := ctx.Cookie("Session_cookie")
-	if err != nil {
-		log.Println(err.Error())
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	userID := ctx.Get("user_id").(int)
+	if userID == 0 {
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
 	}
 
-	settings, customError := userD.userLogic.GetSettings(cookie.Value)
+	settings, customError := userD.userLogic.GetSettings(userID)
 	if customError != nil {
-		if customError.ErrorType == 401 {
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: customError.Message})
-		} else if customError.ErrorType == 500 {
+		if customError.ErrorType == 500 {
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
 	}
@@ -138,17 +131,14 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 }
 
 func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
-	cookie, err := ctx.Cookie("Session_cookie")
-	if err != nil {
-		log.Println(err.Error())
-		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: "User not authorized"})
+	userID := ctx.Get("user_id").(int)
+	if userID == 0 {
+		return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: UserIsNotAuthorizedMessage})
 	}
 
-	oldSettings, customError := userD.userLogic.GetSettings(cookie.Value)
+	oldSettings, customError := userD.userLogic.GetSettings(userID)
 	if customError != nil {
-		if customError.ErrorType == 401 {
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{Message: customError.Message})
-		} else if customError.ErrorType == 500 {
+		if customError.ErrorType == 500 {
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
 	}
@@ -175,12 +165,12 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 		AvatarFileName: fileName,
 	}
 
-	customError = userD.userLogic.UpdateSettings(cookie.Value, oldSettings, newSettings)
+	customError = userD.userLogic.UpdateSettings(userID, oldSettings, newSettings)
 	if customError != nil {
 		if customError.ErrorType == 500 {
 			log.Println(customError.OriginalError.Error())
 			return ctx.NoContent(http.StatusInternalServerError)
-		} else {
+		} else if customError.ErrorType == 400 {
 			return ctx.JSON(http.StatusBadRequest, &models.Response{Message: customError.Message})
 		}
 	}

@@ -753,7 +753,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			ctx := server.NewContext(request, recorder)
 			ctx.SetPath("api/v1/home")
-			ctx.Set("is_authorized", test.isAuthorized)
+			ctx.Set("IS_AUTHORIZED", test.isAuthorized)
 			result, err := useCase.GetMusicCollection(ctx)
 			if test.expectedError {
 				assert.Error(t, err)

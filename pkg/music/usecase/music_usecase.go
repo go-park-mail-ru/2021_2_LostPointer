@@ -25,7 +25,7 @@ func (musicUseCase MusicUseCase) GetMusicCollection(ctx echo.Context) (*models.M
 		err        error
 	)
 
-	isAuthorized := ctx.Get("is_authorized").(bool)
+	isAuthorized := ctx.Get("IS_AUTHORIZED").(bool)
 
 	if collection.Tracks, err = musicUseCase.GetTracksForCollection(TracksCollectionLimit, isAuthorized); err != nil {
 		return nil, err

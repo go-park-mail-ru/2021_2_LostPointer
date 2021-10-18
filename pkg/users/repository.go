@@ -23,7 +23,7 @@ type UserRepositoryIFace interface {
 //go:generate moq -out ../mock/user_repo_redis_mock.go -pkg mock . RedisStoreIFace:MockRedisStoreIFace
 type RedisStoreIFace interface {
 	StoreSession(uint64, ...string) (string, error)
-	GetSessionUserId(string) (int, error)
+	GetSessionUserId(string) (int, *models.CustomError)
 	DeleteSession(string)
 }
 

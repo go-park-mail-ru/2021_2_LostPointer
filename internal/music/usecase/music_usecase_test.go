@@ -2,8 +2,8 @@ package usecase
 
 
 import (
-	"2021_2_LostPointer/pkg/mock"
-	"2021_2_LostPointer/pkg/models"
+	"2021_2_LostPointer/internal/mock"
+	"2021_2_LostPointer/internal/models"
 	"errors"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +34,7 @@ func TestMusicUseCase_GetTracksForCollection(t *testing.T) {
 		name          string
 		amount        int
 		isAuthorized  bool
-		dbMock        *mock.MockMusicRepositoryIFace
+		dbMock        *mock.MockMusicRepository
 		expected      []models.Track
 		expectedError bool
 	}{
@@ -42,7 +42,7 @@ func TestMusicUseCase_GetTracksForCollection(t *testing.T) {
 			name:         "get 4 tracks",
 			amount:       4,
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					var tracks []models.Track
 					for i := 0; i < amount; i++ {
@@ -64,7 +64,7 @@ func TestMusicUseCase_GetTracksForCollection(t *testing.T) {
 			name:         "get 10 tracks",
 			amount:       10,
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					var tracks []models.Track
 					for i := 0; i < amount; i++ {
@@ -86,7 +86,7 @@ func TestMusicUseCase_GetTracksForCollection(t *testing.T) {
 			name:         "get 10 tracks unauthorized",
 			amount:       10,
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					var tracks []models.Track
 					for i := 0; i < amount; i++ {
@@ -108,7 +108,7 @@ func TestMusicUseCase_GetTracksForCollection(t *testing.T) {
 			name:         "get tracks error",
 			amount:       1,
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					return nil, errors.New("error")
 				},
@@ -151,14 +151,14 @@ func TestMusicUseCase_GetAlbumsForCollection(t *testing.T) {
 	tests := []struct {
 		name          string
 		amount        int
-		dbMock        *mock.MockMusicRepositoryIFace
+		dbMock        *mock.MockMusicRepository
 		expected      []models.Album
 		expectedError bool
 	}{
 		{
 			name:   "get 4 albums",
 			amount: 4,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomAlbumsFunc: func(amount int) ([]models.Album, error) {
 					var albums []models.Album
 					for i := 0; i < amount; i++ {
@@ -179,7 +179,7 @@ func TestMusicUseCase_GetAlbumsForCollection(t *testing.T) {
 		{
 			name:   "get 10 albums",
 			amount: 10,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomAlbumsFunc: func(amount int) ([]models.Album, error) {
 					var albums []models.Album
 					for i := 0; i < amount; i++ {
@@ -200,7 +200,7 @@ func TestMusicUseCase_GetAlbumsForCollection(t *testing.T) {
 		{
 			name:   "get albums error",
 			amount: 10,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomAlbumsFunc: func(amount int) ([]models.Album, error) {
 					return nil, errors.New("error")
 				},
@@ -239,14 +239,14 @@ func TestMusicUseCase_GetArtistsForCollection(t *testing.T) {
 	tests := []struct {
 		name          string
 		amount        int
-		dbMock        *mock.MockMusicRepositoryIFace
+		dbMock        *mock.MockMusicRepository
 		expected      []models.Artist
 		expectedError bool
 	}{
 		{
 			name:   "get 4 artists",
 			amount: 4,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomArtistsFunc: func(amount int) ([]models.Artist, error) {
 					var artists []models.Artist
 					for i := 0; i < amount; i++ {
@@ -267,7 +267,7 @@ func TestMusicUseCase_GetArtistsForCollection(t *testing.T) {
 		{
 			name:   "get 10 artists",
 			amount: 10,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomArtistsFunc: func(amount int) ([]models.Artist, error) {
 					var artists []models.Artist
 					for i := 0; i < amount; i++ {
@@ -288,7 +288,7 @@ func TestMusicUseCase_GetArtistsForCollection(t *testing.T) {
 		{
 			name:   "get artists error",
 			amount: 10,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomArtistsFunc: func(amount int) ([]models.Artist, error) {
 					return nil, errors.New("error")
 				},
@@ -327,14 +327,14 @@ func TestMusicUseCase_GetPlaylistsForCollection(t *testing.T) {
 	tests := []struct {
 		name          string
 		amount        int
-		dbMock        *mock.MockMusicRepositoryIFace
+		dbMock        *mock.MockMusicRepository
 		expected      []models.Playlist
 		expectedError bool
 	}{
 		{
 			name:   "get 4 playlists",
 			amount: 4,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomPlaylistsFunc: func(amount int) ([]models.Playlist, error) {
 					var playlists []models.Playlist
 					for i := 0; i < amount; i++ {
@@ -355,7 +355,7 @@ func TestMusicUseCase_GetPlaylistsForCollection(t *testing.T) {
 		{
 			name:   "get 10 playlists",
 			amount: 10,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomPlaylistsFunc: func(amount int) ([]models.Playlist, error) {
 					var playlists []models.Playlist
 					for i := 0; i < amount; i++ {
@@ -376,7 +376,7 @@ func TestMusicUseCase_GetPlaylistsForCollection(t *testing.T) {
 		{
 			name:   "get 10 error",
 			amount: 10,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomPlaylistsFunc: func(amount int) ([]models.Playlist, error) {
 					return nil, errors.New("error")
 				},
@@ -455,14 +455,14 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 	tests := []struct {
 		name          string
 		isAuthorized  bool
-		dbMock        *mock.MockMusicRepositoryIFace
+		dbMock        *mock.MockMusicRepository
 		expected      models.MusicCollection
 		expectedError bool
 	}{
 		{
 			name: "get full collection",
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					var tracks []models.Track
 					for i := 0; i < amount; i++ {
@@ -522,7 +522,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 		{
 			name: "get tracks error",
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					return nil, errors.New("error")
 				},
@@ -578,7 +578,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 		{
 			name: "get albums error",
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					var tracks []models.Track
 					for i := 0; i < amount; i++ {
@@ -634,7 +634,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 		{
 			name: "get artists error",
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					var tracks []models.Track
 					for i := 0; i < amount; i++ {
@@ -690,7 +690,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 		{
 			name: "get playlists error",
 			isAuthorized: true,
-			dbMock: &mock.MockMusicRepositoryIFace{
+			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 					var tracks []models.Track
 					for i := 0; i < amount; i++ {

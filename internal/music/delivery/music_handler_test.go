@@ -1,9 +1,9 @@
 package delivery
 
 import (
-	"2021_2_LostPointer/pkg/mock"
-	"2021_2_LostPointer/pkg/models"
-	"2021_2_LostPointer/pkg/music/usecase"
+	"2021_2_LostPointer/internal/mock"
+	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/music/usecase"
 	"encoding/json"
 	"errors"
 	"github.com/labstack/echo"
@@ -83,13 +83,13 @@ func TestMusicDelivery_Home(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		useCaseMock   *mock.MockMusicUseCaseIFace
+		useCaseMock   *mock.MockMusicUseCase
 		expected      models.MusicCollection
 		expectedError bool
 	}{
 		{
 			name:          "default test",
-			useCaseMock:   &mock.MockMusicUseCaseIFace{
+			useCaseMock:   &mock.MockMusicUseCase{
 				GetMusicCollectionFunc: func(ctx echo.Context) (*models.MusicCollection, error) {
 					return &collection, nil
 				},
@@ -99,7 +99,7 @@ func TestMusicDelivery_Home(t *testing.T) {
 		},
 		{
 			name:          "InternalServeError test",
-			useCaseMock:   &mock.MockMusicUseCaseIFace{
+			useCaseMock:   &mock.MockMusicUseCase{
 				GetMusicCollectionFunc: func(ctx echo.Context) (*models.MusicCollection, error) {
 					return nil, errors.New("error")
 				},

@@ -1,10 +1,10 @@
 package main
 
 import (
-	middleware "2021_2_LostPointer/pkg/middleware"
-	handlersMusic "2021_2_LostPointer/pkg/music/delivery"
-	repositoryMusic "2021_2_LostPointer/pkg/music/repository"
-	usecaseMusic "2021_2_LostPointer/pkg/music/usecase"
+	middleware "2021_2_LostPointer/internal/middleware"
+	handlersMusic "2021_2_LostPointer/internal/music/delivery"
+	repositoryMusic "2021_2_LostPointer/internal/music/repository"
+	usecaseMusic "2021_2_LostPointer/internal/music/usecase"
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis/v8"
@@ -15,9 +15,9 @@ import (
 	"log"
 	"os"
 
-	deliveryUser "2021_2_LostPointer/pkg/users/delivery"
-	repositoryUser "2021_2_LostPointer/pkg/users/repository"
-	usecaseUser "2021_2_LostPointer/pkg/users/usecase"
+	deliveryUser "2021_2_LostPointer/internal/users/delivery"
+	repositoryUser "2021_2_LostPointer/internal/users/repository"
+	usecaseUser "2021_2_LostPointer/internal/users/usecase"
 )
 
 const redisDB = 1

@@ -1,8 +1,8 @@
 package delivery
 
 import (
-	"2021_2_LostPointer/pkg/models"
-	"2021_2_LostPointer/pkg/users"
+	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/users"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 	"net/http"
@@ -19,11 +19,11 @@ const UserCreatedMessage = "User was created successfully"
 const UserAuthorizedMessage = "User is authorized"
 
 type UserDelivery struct {
-	userLogic users.UserUseCaseIFace
+	userLogic users.UserUseCase
 	logger *zap.SugaredLogger
 }
 
-func NewUserDelivery(logger *zap.SugaredLogger, userRealization users.UserUseCaseIFace) UserDelivery {
+func NewUserDelivery(logger *zap.SugaredLogger, userRealization users.UserUseCase) UserDelivery {
 	return UserDelivery{userLogic: userRealization, logger: logger}
 }
 

@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/pkg/models"
-	"2021_2_LostPointer/pkg/music"
+	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/music"
 	"github.com/labstack/echo"
 )
 
@@ -12,10 +12,10 @@ const PlaylistsCollectionLimit = 4
 const ArtistsCollectionLimit = 4
 
 type MusicUseCase struct {
-	MusicRepository music.MusicRepositoryIFace
+	MusicRepository music.MusicRepository
 }
 
-func NewMusicUseCase(musicRepository music.MusicRepositoryIFace) MusicUseCase {
+func NewMusicUseCase(musicRepository music.MusicRepository) MusicUseCase {
 	return MusicUseCase{MusicRepository: musicRepository}
 }
 

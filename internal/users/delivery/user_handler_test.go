@@ -1,8 +1,8 @@
 package delivery
 
 import (
-	"2021_2_LostPointer/pkg/mock"
-	"2021_2_LostPointer/pkg/models"
+	"2021_2_LostPointer/internal/mock"
+	"2021_2_LostPointer/internal/models"
 	"errors"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ import (
 )
 
 func TestUserDelivery_Logout(t *testing.T) {
-	usecaseMock := &mock.MockUserUseCaseIFace{
+	usecaseMock := &mock.MockUserUseCase{
 		LogoutFunc: func(string) {},
 	}
 	config := zap.NewDevelopmentConfig()
@@ -27,7 +27,7 @@ func TestUserDelivery_Logout(t *testing.T) {
 
 	tests := []struct {
 		name 			  string
-		usecaseMock 	  *mock.MockUserUseCaseIFace
+		usecaseMock 	  *mock.MockUserUseCase
 		cookie 			  *http.Cookie
 		expectedStatus    int
 		expectedJSON	  string
@@ -81,14 +81,14 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 
 	tests := []struct {
 		name 			string
-		usecaseMock 	*mock.MockUserUseCaseIFace
+		usecaseMock 	*mock.MockUserUseCase
 		cookie 			*http.Cookie
 		expectedStatus 	int
 		expectedJSON	string
 	}{
 		{
 			name: "Handler returned status 200",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				IsAuthorizedFunc: func(s string) (bool, int, *models.CustomError) {
 					return true, 1, nil
 				},
@@ -103,7 +103,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 401, usecase.IsAuthorized returned false",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				IsAuthorizedFunc: func(s string) (bool, int,  *models.CustomError) {
 					return false, 0, &models.CustomError{ErrorType: 401}
 				},
@@ -118,7 +118,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 401, no cookies was set",
-			usecaseMock: &mock.MockUserUseCaseIFace{ },
+			usecaseMock: &mock.MockUserUseCase{ },
 			cookie: &http.Cookie{ },
 			expectedStatus: http.StatusOK,
 			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
@@ -153,13 +153,13 @@ func TestUserDelivery_Login(t *testing.T) {
 
 	tests := []struct {
 		name 		   string
-		usecaseMock    *mock.MockUserUseCaseIFace
+		usecaseMock    *mock.MockUserUseCase
 		expectedStatus int
 		expectedJSON   string
 	}{
 		{
 			name: "Handler returned status 200",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "some_sesion_token", nil
 				},
@@ -169,7 +169,7 @@ func TestUserDelivery_Login(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 400, usecase.Login returned CustomError with ErrorType = 400",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 400,
@@ -182,7 +182,7 @@ func TestUserDelivery_Login(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 500, usecase.Login returned CustomError with ErrorType = 500",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 500,
@@ -223,13 +223,13 @@ func TestUserDelivery_Register(t *testing.T) {
 
 	tests := []struct {
 		name 			string
-		usecaseMock 	*mock.MockUserUseCaseIFace
+		usecaseMock 	*mock.MockUserUseCase
 		expectedStatus 	int
 		expectedJSON	string
 	}{
 		{
 			name: "Handler returned status 201",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				RegisterFunc: func(user models.User) (string, *models.CustomError) {
 					return "token", nil
 				},
@@ -239,7 +239,7 @@ func TestUserDelivery_Register(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 401, usecase.Login returned CustomError with ErrorType = 400",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				RegisterFunc: func(user models.User) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 400,
@@ -252,7 +252,7 @@ func TestUserDelivery_Register(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 500, usecase.Login returned CustomError with ErrorType = 500",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				RegisterFunc: func(user models.User) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 500,
@@ -292,14 +292,14 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 
 	tests := []struct {
 		name 			string
-		usecaseMock 	*mock.MockUserUseCaseIFace
+		usecaseMock 	*mock.MockUserUseCase
 		input 			int
 		expectedStatus 	int
 		expectedJSON	string
 	}{
 		{
 			name: "Handler returned status 200",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				GetSettingsFunc: func(int) (*models.SettingsGet, *models.CustomError) {
 					return &models.SettingsGet{Email: "alex1234@gmail.com"}, nil
 				},
@@ -310,14 +310,14 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 401, user was not authorized",
-			usecaseMock: &mock.MockUserUseCaseIFace{},
+			usecaseMock: &mock.MockUserUseCase{},
 			input: 0,
 			expectedStatus: http.StatusOK,
 			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
 		},
 		{
 			name: "Handler returned status 500, usecase.GetSettings returned CustomError with ErrorType = 500",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				GetSettingsFunc: func(int) (*models.SettingsGet, *models.CustomError) {
 					return nil, &models.CustomError{
 						ErrorType: 500,
@@ -360,14 +360,14 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 
 	tests := []struct {
 		name 			string
-		usecaseMock 	*mock.MockUserUseCaseIFace
+		usecaseMock 	*mock.MockUserUseCase
 		input			int
 		expectedStatus 	int
 		expectedJSON	string
 	}{
 		{
 			name: "Handler returned status 200",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				GetSettingsFunc: func(int) (*models.SettingsGet, *models.CustomError) {
 					return &models.SettingsGet{}, nil
 				},
@@ -381,14 +381,14 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 401, user was not authorized",
-			usecaseMock: &mock.MockUserUseCaseIFace{},
+			usecaseMock: &mock.MockUserUseCase{},
 			input: 0,
 			expectedStatus: http.StatusOK,
 			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
 		},
 		{
 			name: "Handler returned status 500, usecase.GetSettings returned CustomError with ErrorType = 500",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				GetSettingsFunc: func(int) (*models.SettingsGet, *models.CustomError) {
 					return nil, &models.CustomError{ErrorType: 500, OriginalError: errors.New("error")}
 				},
@@ -399,7 +399,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 400, usecase.UpdateSettings returned CustomError with ErrorType = 400",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				GetSettingsFunc: func(int) (*models.SettingsGet, *models.CustomError) {
 					return &models.SettingsGet{}, nil
 				},
@@ -416,7 +416,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 		},
 		{
 			name: "Handler returned status 500, usecase.UpdateSettings returned CustomError with ErrorType = 500",
-			usecaseMock: &mock.MockUserUseCaseIFace{
+			usecaseMock: &mock.MockUserUseCase{
 				GetSettingsFunc: func(int) (*models.SettingsGet, *models.CustomError) {
 					return &models.SettingsGet{}, nil
 				},

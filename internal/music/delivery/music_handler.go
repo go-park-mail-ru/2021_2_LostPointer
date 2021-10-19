@@ -1,17 +1,17 @@
 package delivery
 
 import (
-	"2021_2_LostPointer/pkg/models"
-	"2021_2_LostPointer/pkg/music"
+	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/music"
 	"github.com/labstack/echo"
 	"net/http"
 )
 
 type MusicHandlers struct {
-	MusicUseCase music.MusicUseCaseIFace
+	MusicUseCase music.MusicUseCase
 }
 
-func NewMusicDelivery(musicUseCase music.MusicUseCaseIFace) MusicHandlers {
+func NewMusicDelivery(musicUseCase music.MusicUseCase) MusicHandlers {
 	return MusicHandlers{MusicUseCase: musicUseCase}
 }
 

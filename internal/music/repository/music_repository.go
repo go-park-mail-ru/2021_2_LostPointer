@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"2021_2_LostPointer/pkg/models"
+	"2021_2_LostPointer/internal/models"
 	"database/sql"
 )
 

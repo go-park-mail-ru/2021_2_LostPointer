@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"2021_2_LostPointer/pkg/models"
-	"2021_2_LostPointer/pkg/users"
+	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/users"
 	"github.com/labstack/echo"
 	"github.com/satori/go.uuid"
 	"go.uber.org/zap"
@@ -11,10 +11,10 @@ import (
 
 type Middleware struct {
 	logger *zap.SugaredLogger
-	UserUseCase users.UserUseCaseIFace
+	UserUseCase users.UserUseCase
 }
 
-func NewMiddlewareHandler(logger *zap.SugaredLogger, userUseCase users.UserUseCaseIFace) Middleware {
+func NewMiddlewareHandler(logger *zap.SugaredLogger, userUseCase users.UserUseCase) Middleware {
 	return Middleware{
 		UserUseCase: userUseCase,
 		logger: logger,

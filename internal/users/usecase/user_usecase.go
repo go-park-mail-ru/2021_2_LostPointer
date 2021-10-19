@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/pkg/models"
-	"2021_2_LostPointer/pkg/users"
+	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/users"
 	"log"
 	"regexp"
 )
@@ -23,12 +23,12 @@ const NotUniqueNicknameMessage = "Nickname is not unique"
 const WrongCredentialsMessage = "Wrong email or password"
 
 type UserUseCase struct {
-	userDB	   users.UserRepositoryIFace
-	redisStore users.RedisStoreIFace
-	fileSystem users.FileSystemIFace
+	userDB	   users.UserRepository
+	redisStore users.RedisStore
+	fileSystem users.FileSystem
 }
 
-func NewUserUserCase(userDB users.UserRepositoryIFace, redisStore users.RedisStoreIFace, fileSystem users.FileSystemIFace) UserUseCase {
+func NewUserUserCase(userDB users.UserRepository, redisStore users.RedisStore, fileSystem users.FileSystem) UserUseCase {
 	return UserUseCase{
 		userDB: userDB,
 		redisStore: redisStore,

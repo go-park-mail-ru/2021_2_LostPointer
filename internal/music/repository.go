@@ -1,9 +1,9 @@
 package music
 
-import "2021_2_LostPointer/pkg/models"
+import "2021_2_LostPointer/internal/models"
 
-//go:generate moq -out ../mock/music_repo_db_mock.go -pkg mock . MusicRepositoryIFace:MockMusicRepositoryIFace
-type MusicRepositoryIFace interface {
+//go:generate moq -out ../mock/music_repo_db_mock.go -internal mock . MusicRepository:MockMusicRepository
+type MusicRepository interface {
 	GetRandomTracks(amount int, isAuthorized bool) ([]models.Track, error)
 	GetRandomAlbums(amount int) ([]models.Album, error)
 	GetRandomArtists(amount int) ([]models.Artist, error)

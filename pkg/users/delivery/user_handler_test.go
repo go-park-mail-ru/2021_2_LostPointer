@@ -26,10 +26,11 @@ func TestUserDelivery_Logout(t *testing.T) {
 	defer prLogger.Sync()
 
 	tests := []struct {
-		name 		string
-		usecaseMock *mock.MockUserUseCaseIFace
-		cookie 		*http.Cookie
-		expected    int
+		name 			  string
+		usecaseMock 	  *mock.MockUserUseCaseIFace
+		cookie 			  *http.Cookie
+		expectedStatus    int
+		expectedJSON	  string
 	}{
 		{
 			name: "Handler returned status 200",
@@ -39,13 +40,16 @@ func TestUserDelivery_Logout(t *testing.T) {
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
 			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":200,\"message\":\"Logged out\"}\n",
 		},
 		{
 			name: "Handler returned status 401, no cookies was set",
 			usecaseMock: usecaseMock,
 			cookie: &http.Cookie{ },
-			expected: http.StatusUnauthorized,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+
 		},
 	}
 
@@ -61,7 +65,8 @@ func TestUserDelivery_Logout(t *testing.T) {
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.Logout(ctx)) {
-				assert.Equal(t, tt.expected, rec.Code)
+				assert.Equal(t, tt.expectedStatus, rec.Code)
+				assert.Equal(t, tt.expectedJSON, rec.Body.String())
 			}
 		})
 	}
@@ -75,10 +80,11 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 	defer prLogger.Sync()
 
 	tests := []struct {
-		name 		string
-		usecaseMock *mock.MockUserUseCaseIFace
-		cookie 		*http.Cookie
-		expected 	int
+		name 			string
+		usecaseMock 	*mock.MockUserUseCaseIFace
+		cookie 			*http.Cookie
+		expectedStatus 	int
+		expectedJSON	string
 	}{
 		{
 			name: "Handler returned status 200",
@@ -92,7 +98,8 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
 			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":200,\"message\":\"User is authorized\"}\n",
 		},
 		{
 			name: "Handler returned status 401, usecase.IsAuthorized returned false",
@@ -106,13 +113,15 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 				Value:    "Cookie_value",
 				Expires:  time.Now().Add(cookieLifetime),
 			},
-			expected: http.StatusUnauthorized,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
 		},
 		{
 			name: "Handler returned status 401, no cookies was set",
 			usecaseMock: &mock.MockUserUseCaseIFace{ },
 			cookie: &http.Cookie{ },
-			expected: http.StatusUnauthorized,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
 		},
 	}
 
@@ -128,7 +137,8 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.IsAuthorized(ctx)) {
-				assert.Equal(t, tt.expected, rec.Code)
+				assert.Equal(t, tt.expectedStatus, rec.Code)
+				assert.Equal(t, tt.expectedJSON, rec.Body.String())
 			}
 		})
 	}
@@ -142,9 +152,10 @@ func TestUserDelivery_Login(t *testing.T) {
 	defer prLogger.Sync()
 
 	tests := []struct {
-		name string
-		usecaseMock *mock.MockUserUseCaseIFace
-		expected int
+		name 		   string
+		usecaseMock    *mock.MockUserUseCaseIFace
+		expectedStatus int
+		expectedJSON   string
 	}{
 		{
 			name: "Handler returned status 200",
@@ -153,7 +164,8 @@ func TestUserDelivery_Login(t *testing.T) {
 					return "some_sesion_token", nil
 				},
 			},
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":200,\"message\":\"User is authorized\"}\n",
 		},
 		{
 			name: "Handler returned status 400, usecase.Login returned CustomError with ErrorType = 400",
@@ -161,10 +173,12 @@ func TestUserDelivery_Login(t *testing.T) {
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 400,
+						Message: "BadRequest",
 					}
 				},
 			},
-			expected: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":400,\"message\":\"BadRequest\"}\n",
 		},
 		{
 			name: "Handler returned status 500, usecase.Login returned CustomError with ErrorType = 500",
@@ -172,11 +186,12 @@ func TestUserDelivery_Login(t *testing.T) {
 				LoginFunc: func(auth models.Auth) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 500,
-						OriginalError: errors.New("some_error"),
+						OriginalError: errors.New("error"),
 					}
 				},
 			},
-			expected: http.StatusInternalServerError,
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
 		},
 	}
 
@@ -192,7 +207,8 @@ func TestUserDelivery_Login(t *testing.T) {
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.Login(ctx)) {
-				assert.Equal(t, tt.expected, rec.Code)
+				assert.Equal(t, tt.expectedStatus, rec.Code)
+				assert.Equal(t, tt.expectedJSON, rec.Body.String())
 			}
 		})
 	}
@@ -206,9 +222,10 @@ func TestUserDelivery_Register(t *testing.T) {
 	defer prLogger.Sync()
 
 	tests := []struct {
-		name 		string
-		usecaseMock *mock.MockUserUseCaseIFace
-		expected 	int
+		name 			string
+		usecaseMock 	*mock.MockUserUseCaseIFace
+		expectedStatus 	int
+		expectedJSON	string
 	}{
 		{
 			name: "Handler returned status 201",
@@ -217,7 +234,8 @@ func TestUserDelivery_Register(t *testing.T) {
 					return "token", nil
 				},
 			},
-			expected: http.StatusCreated,
+			expectedStatus: http.StatusCreated,
+			expectedJSON: "{\"status\":201,\"message\":\"User was created successfully\"}\n",
 		},
 		{
 			name: "Handler returned status 401, usecase.Login returned CustomError with ErrorType = 400",
@@ -225,10 +243,12 @@ func TestUserDelivery_Register(t *testing.T) {
 				RegisterFunc: func(user models.User) (string, *models.CustomError) {
 					return "", &models.CustomError{
 						ErrorType: 400,
+						Message: "BadRequest",
 					}
 				},
 			},
-			expected: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":400,\"message\":\"BadRequest\"}\n",
 		},
 		{
 			name: "Handler returned status 500, usecase.Login returned CustomError with ErrorType = 500",
@@ -240,7 +260,8 @@ func TestUserDelivery_Register(t *testing.T) {
 					}
 				},
 			},
-			expected: http.StatusInternalServerError,
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
 		},
 	}
 
@@ -255,7 +276,8 @@ func TestUserDelivery_Register(t *testing.T) {
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.Register(ctx)) {
-				assert.Equal(t, tt.expected, rec.Code)
+				assert.Equal(t, tt.expectedStatus, rec.Code)
+				assert.Equal(t, tt.expectedJSON, rec.Body.String())
 			}
 		})
 	}
@@ -269,26 +291,29 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 	defer prLogger.Sync()
 
 	tests := []struct {
-		name 		string
-		usecaseMock *mock.MockUserUseCaseIFace
-		input 		int
-		expected 	int
+		name 			string
+		usecaseMock 	*mock.MockUserUseCaseIFace
+		input 			int
+		expectedStatus 	int
+		expectedJSON	string
 	}{
 		{
 			name: "Handler returned status 200",
 			usecaseMock: &mock.MockUserUseCaseIFace{
 				GetSettingsFunc: func(int) (*models.SettingsGet, *models.CustomError) {
-					return &models.SettingsGet{}, nil
+					return &models.SettingsGet{Email: "alex1234@gmail.com"}, nil
 				},
 			},
 			input: 1,
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"email\":\"alex1234@gmail.com\"}\n",
 		},
 		{
 			name: "Handler returned status 401, user was not authorized",
 			usecaseMock: &mock.MockUserUseCaseIFace{},
 			input: 0,
-			expected: http.StatusUnauthorized,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
 		},
 		{
 			name: "Handler returned status 500, usecase.GetSettings returned CustomError with ErrorType = 500",
@@ -301,7 +326,8 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 				},
 			},
 			input: 1,
-			expected: http.StatusInternalServerError,
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
 		},
 	}
 
@@ -318,7 +344,8 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.GetSettings(ctx)) {
-				assert.Equal(t, tt.expected, rec.Code)
+				assert.Equal(t, tt.expectedStatus, rec.Code)
+				assert.Equal(t, tt.expectedJSON, rec.Body.String())
 			}
 		})
 	}
@@ -332,10 +359,11 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 	defer prLogger.Sync()
 
 	tests := []struct {
-		name 		string
-		usecaseMock *mock.MockUserUseCaseIFace
-		input		int
-		expected 	int
+		name 			string
+		usecaseMock 	*mock.MockUserUseCaseIFace
+		input			int
+		expectedStatus 	int
+		expectedJSON	string
 	}{
 		{
 			name: "Handler returned status 200",
@@ -348,13 +376,15 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: 1,
-			expected: http.StatusOK,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":200,\"message\":\"Settings were uploaded successfully\"}\n",
 		},
 		{
 			name: "Handler returned status 401, user was not authorized",
 			usecaseMock: &mock.MockUserUseCaseIFace{},
 			input: 0,
-			expected: http.StatusUnauthorized,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
 		},
 		{
 			name: "Handler returned status 500, usecase.GetSettings returned CustomError with ErrorType = 500",
@@ -364,7 +394,8 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: 1,
-			expected: http.StatusInternalServerError,
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
 		},
 		{
 			name: "Handler returned status 400, usecase.UpdateSettings returned CustomError with ErrorType = 400",
@@ -373,11 +404,15 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 					return &models.SettingsGet{}, nil
 				},
 				UpdateSettingsFunc: func(int, *models.SettingsGet, *models.SettingsUpload) *models.CustomError {
-					return &models.CustomError{ErrorType: 400}
+					return &models.CustomError{
+						ErrorType: 400,
+						Message: "BadRequest",
+					}
 				},
 			},
 			input: 1,
-			expected: http.StatusBadRequest,
+			expectedStatus: http.StatusOK,
+			expectedJSON: "{\"status\":400,\"message\":\"BadRequest\"}\n",
 		},
 		{
 			name: "Handler returned status 500, usecase.UpdateSettings returned CustomError with ErrorType = 500",
@@ -386,11 +421,12 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 					return &models.SettingsGet{}, nil
 				},
 				UpdateSettingsFunc: func(int, *models.SettingsGet, *models.SettingsUpload) *models.CustomError {
-					return &models.CustomError{ErrorType: 500, OriginalError: errors.New("some_error")}
+					return &models.CustomError{ErrorType: 500, OriginalError: errors.New("error")}
 				},
 			},
 			input: 1,
-			expected: http.StatusInternalServerError,
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
 		},
 	}
 
@@ -407,7 +443,8 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.UpdateSettings(ctx)) {
-				assert.Equal(t, tt.expected, rec.Code)
+				assert.Equal(t, tt.expectedStatus, rec.Code)
+				assert.Equal(t, tt.expectedJSON, rec.Body.String())
 			}
 		})
 	}

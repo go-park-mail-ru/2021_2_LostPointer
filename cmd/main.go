@@ -5,6 +5,9 @@ import (
 	handlersMusic "2021_2_LostPointer/pkg/music/delivery"
 	repositoryMusic "2021_2_LostPointer/pkg/music/repository"
 	usecaseMusic "2021_2_LostPointer/pkg/music/usecase"
+	deliveryUser "2021_2_LostPointer/pkg/users/delivery"
+	repositoryUser "2021_2_LostPointer/pkg/users/repository"
+	usecaseUser "2021_2_LostPointer/pkg/users/usecase"
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis/v8"
@@ -14,10 +17,6 @@ import (
 	"go.uber.org/zap/zapcore"
 	"log"
 	"os"
-
-	deliveryUser "2021_2_LostPointer/pkg/users/delivery"
-	repositoryUser "2021_2_LostPointer/pkg/users/repository"
-	usecaseUser "2021_2_LostPointer/pkg/users/usecase"
 )
 
 const redisDB = 1

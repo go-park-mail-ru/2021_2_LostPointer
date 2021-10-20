@@ -1,13 +1,14 @@
 package main
 
 import (
-	middleware "2021_2_LostPointer/pkg/middleware"
-	handlersMusic "2021_2_LostPointer/pkg/music/delivery"
-	repositoryMusic "2021_2_LostPointer/pkg/music/repository"
-	usecaseMusic "2021_2_LostPointer/pkg/music/usecase"
-	deliveryUser "2021_2_LostPointer/pkg/users/delivery"
-	repositoryUser "2021_2_LostPointer/pkg/users/repository"
-	usecaseUser "2021_2_LostPointer/pkg/users/usecase"
+	middleware "2021_2_LostPointer/internal/middleware"
+	handlersMusic "2021_2_LostPointer/internal/music/delivery"
+	repositoryMusic "2021_2_LostPointer/internal/music/repository"
+	usecaseMusic "2021_2_LostPointer/internal/music/usecase"
+
+	deliveryArtist "2021_2_LostPointer/internal/artist/delivery"
+	repositoryArtist "2021_2_LostPointer/internal/artist/repository"
+	usecaseArtist "2021_2_LostPointer/internal/artist/usecase"
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis/v8"
@@ -17,13 +18,18 @@ import (
 	"go.uber.org/zap/zapcore"
 	"log"
 	"os"
+
+	deliveryUser "2021_2_LostPointer/internal/users/delivery"
+	repositoryUser "2021_2_LostPointer/internal/users/repository"
+	usecaseUser "2021_2_LostPointer/internal/users/usecase"
 )
 
 const redisDB = 1
 
 type RequestHandlers struct {
-	userHandlers       deliveryUser.UserDelivery
+	userHandlers 	deliveryUser.UserDelivery
 	musicHandlers      handlersMusic.MusicHandlers
+	artistHandlers     deliveryArtist.ArtistDelivery
 	middlewareHandlers middleware.Middleware
 }
 
@@ -36,13 +42,18 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client, logger *zap.Su
 
 	musicRepo := repositoryMusic.NewMusicRepository(db)
 	musicUseCase := usecaseMusic.NewMusicUseCase(musicRepo)
-	musicHandlers := handlersMusic.NewMusicDelivery(musicUseCase)
+	musicHandlers := handlersMusic.NewMusicDelivery(musicUseCase, logger)
+
+	artistRepo := repositoryArtist.NewArtistRepository(db)
+	artistUseCase := usecaseArtist.NewArtistUseCase(artistRepo)
+	artistHandlers := deliveryArtist.NewArtistDelivery(artistUseCase, logger)
 
 	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase)
 
 	api := &(RequestHandlers{
 		userHandlers:       userHandlers,
 		musicHandlers:      musicHandlers,
+		artistHandlers:     artistHandlers,
 		middlewareHandlers: middlewareHandlers,
 	})
 
@@ -109,6 +120,7 @@ func main() {
 
 	api.userHandlers.InitHandlers(server)
 	api.musicHandlers.InitHandlers(server)
+	api.artistHandlers.InitHandlers(server)
 	api.middlewareHandlers.InitMiddlewareHandlers(server)
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))

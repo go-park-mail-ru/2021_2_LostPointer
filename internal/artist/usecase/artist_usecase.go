@@ -1,7 +1,8 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/internal/artist/repository"
+	"2021_2_LostPointer/internal/artist"
+	_ "2021_2_LostPointer/internal/artist"
 	"2021_2_LostPointer/internal/models"
 	"net/http"
 )
@@ -9,16 +10,16 @@ import (
 const DatabaseNotResponding = "Database not responding"
 
 type ArtistUseCase struct {
-	ArtistRepository repository.ArtistRepository
+	ArtistRepository artist.ArtistRepository
 }
 
-func NewArtistUseCase(artistRepository repository.ArtistRepository) ArtistUseCase {
+func NewArtistUseCase(artistRepository artist.ArtistRepository) ArtistUseCase {
 	return ArtistUseCase{ArtistRepository: artistRepository}
 }
 
 func (artistUseCase ArtistUseCase) GetProfile(id int, isAuthorized bool) (*models.Artist, *models.CustomError) {
 	var err error
-	artist, err := artistUseCase.ArtistRepository.Get(id)
+	art, err := artistUseCase.ArtistRepository.Get(id)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
@@ -26,7 +27,7 @@ func (artistUseCase ArtistUseCase) GetProfile(id int, isAuthorized bool) (*model
 			Message:       DatabaseNotResponding,
 		}
 	}
-	artist.Tracks, err = artistUseCase.ArtistRepository.GetTracks(id, isAuthorized)
+	art.Tracks, err = artistUseCase.ArtistRepository.GetTracks(id, isAuthorized)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
@@ -34,7 +35,7 @@ func (artistUseCase ArtistUseCase) GetProfile(id int, isAuthorized bool) (*model
 			Message:       DatabaseNotResponding,
 		}
 	}
-	artist.Albums, err = artistUseCase.ArtistRepository.GetAlbums(id)
+	art.Albums, err = artistUseCase.ArtistRepository.GetAlbums(id)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
@@ -43,5 +44,5 @@ func (artistUseCase ArtistUseCase) GetProfile(id int, isAuthorized bool) (*model
 		}
 	}
 
-	return artist, nil
+	return art, nil
 }

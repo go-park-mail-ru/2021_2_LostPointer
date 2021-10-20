@@ -8,11 +8,20 @@ import (
 	"errors"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestMusicDelivery_Home(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
 	playlist := models.Playlist{
 		Id:   1,
 		Name: "awa",
@@ -90,7 +99,7 @@ func TestMusicDelivery_Home(t *testing.T) {
 		{
 			name:          "default test",
 			useCaseMock:   &mock.MockMusicUseCase{
-				GetMusicCollectionFunc: func(ctx echo.Context) (*models.MusicCollection, error) {
+				GetMusicCollectionFunc: func(isAuthorized bool) (*models.MusicCollection, *models.CustomError) {
 					return &collection, nil
 				},
 			},
@@ -100,8 +109,12 @@ func TestMusicDelivery_Home(t *testing.T) {
 		{
 			name:          "InternalServeError test",
 			useCaseMock:   &mock.MockMusicUseCase{
-				GetMusicCollectionFunc: func(ctx echo.Context) (*models.MusicCollection, error) {
-					return nil, errors.New("error")
+				GetMusicCollectionFunc: func(isAuthorized bool) (*models.MusicCollection, *models.CustomError	) {
+					return nil, &models.CustomError{
+						ErrorType: http.StatusInternalServerError,
+						OriginalError: errors.New("error"),
+						Message: "error",
+					}
 				},
 			},
 			expected:      collection,
@@ -117,7 +130,10 @@ func TestMusicDelivery_Home(t *testing.T) {
 			ctx := server.NewContext(request, recorder)
 			ctx.SetPath("api/v1/home")
 
-			delivery := NewMusicDelivery(test.useCaseMock)
+			ctx.Set("REQUEST_ID", "1")
+			ctx.Set("IS_AUTHORIZED", true)
+
+			delivery := NewMusicDelivery(test.useCaseMock, logger)
 			_ = delivery.Home(ctx)
 
 			body := recorder.Body

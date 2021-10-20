@@ -1,7 +1,7 @@
 package delivery
 
 import (
-	"2021_2_LostPointer/internal/artist/usecase"
+	"2021_2_LostPointer/internal/artist"
 	"2021_2_LostPointer/internal/models"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
@@ -13,11 +13,11 @@ const InvalidParameter = "Invalid parameter"
 const DatabaseNotResponding = "Database not responding"
 
 type ArtistDelivery struct {
-	ArtistUseCase usecase.ArtistUseCase
+	ArtistUseCase artist.ArtistUseCase
 	Logger        *zap.SugaredLogger
 }
 
-func NewArtistDelivery(artistUseCase usecase.ArtistUseCase, logger *zap.SugaredLogger) ArtistDelivery {
+func NewArtistDelivery(artistUseCase artist.ArtistUseCase, logger *zap.SugaredLogger) ArtistDelivery {
 	return ArtistDelivery{ArtistUseCase: artistUseCase, Logger: logger}
 }
 
@@ -37,7 +37,7 @@ func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 		)
 	}
 
-	artist, customErr := artistDelivery.ArtistUseCase.GetProfile(artistID, isAuthorized)
+	art, customErr := artistDelivery.ArtistUseCase.GetProfile(artistID, isAuthorized)
 	if customErr != nil {
 		artistDelivery.Logger.Error(
 			zap.String("ID", requestID),
@@ -54,7 +54,7 @@ func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, artist)
+	return ctx.JSON(http.StatusOK, art)
 }
 
 func (artistDelivery ArtistDelivery) InitHandlers(server *echo.Echo) {

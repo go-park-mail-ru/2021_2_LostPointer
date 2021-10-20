@@ -4,7 +4,7 @@ import (
 	"2021_2_LostPointer/internal/models"
 )
 
-//go:generate moq -out ../mock/music_usecase_mock.go -internal mock . MusicUseCase:MockMusicUseCase
+//go:generate moq -out ../mock/music_usecase_mock.go -pkg mock . MusicUseCase:MockMusicUseCase
 type MusicUseCase interface {
 	GetMusicCollection(isAuthorized bool) (*models.MusicCollection, *models.CustomError)
 	GetTracksForCollection(amount int, isAuthorized bool) ([]models.Track, error)

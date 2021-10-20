@@ -1,13 +1,10 @@
 package usecase
 
-
 import (
 	"2021_2_LostPointer/internal/mock"
 	"2021_2_LostPointer/internal/models"
 	"errors"
-	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -748,17 +745,10 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			useCase := NewMusicUseCase(test.dbMock)
-			server := echo.New()
-			request := httptest.NewRequest(echo.GET, "/", nil)
-			recorder := httptest.NewRecorder()
-			ctx := server.NewContext(request, recorder)
-			ctx.SetPath("api/v1/home")
-			ctx.Set("IS_AUTHORIZED", test.isAuthorized)
-			result, err := useCase.GetMusicCollection(ctx)
+			result, err := useCase.GetMusicCollection(test.isAuthorized)
 			if test.expectedError {
-				assert.Error(t, err)
+				assert.Error(t, err.OriginalError)
 			} else {
-				assert.NoError(t, err)
 				assert.Equal(t, test.expected, *result)
 			}
 		})

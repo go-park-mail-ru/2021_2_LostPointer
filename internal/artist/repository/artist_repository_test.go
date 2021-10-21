@@ -110,7 +110,7 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 					"alb.artwork FROM tracks t " +
 					"LEFT JOIN albums alb ON alb.id = t.album " +
 					"WHERE t.artist = $1 " +
-					"ORDER BY t.listen_count")).WithArgs(driver.Value(135)).WillReturnRows(rows)
+					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Track{track},
 			expectedError: false,
@@ -126,7 +126,7 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 					"alb.artwork FROM tracks t " +
 					"LEFT JOIN albums alb ON alb.id = t.album " +
 					"WHERE t.artist = $1 " +
-					"ORDER BY t.listen_count")).WithArgs(driver.Value(135)).WillReturnRows(rows)
+					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Track{tracksUnAuth},
 			expectedError: false,
@@ -142,7 +142,7 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 					"alb.artwork FROM tracks t " +
 					"LEFT JOIN albums alb ON alb.id = t.album " +
 					"WHERE t.artist = $1 " +
-					"ORDER BY t.listen_count")).WithArgs(driver.Value(135)).WillReturnError(errors.New("error"))
+					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Track{tracksUnAuth},
 			expectedError: true,
@@ -159,7 +159,7 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 					"alb.artwork FROM tracks t " +
 					"LEFT JOIN albums alb ON alb.id = t.album " +
 					"WHERE t.artist = $1 " +
-					"ORDER BY t.listen_count")).WithArgs(driver.Value(135)).WillReturnError(errors.New("error"))
+					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Track{tracksUnAuth},
 			expectedError: true,
@@ -169,7 +169,7 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			test.mock()
-			result, err := repository.GetTracks(test.id, test.isAuthorized)
+			result, err := repository.GetTracks(test.id, test.isAuthorized, 1)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {
@@ -213,7 +213,7 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 					"JOIN tracks t on t.album = a.id " +
 					"WHERE a.artist = $1 " +
 					"GROUP BY a.id, a.title, a.artwork, a.year " +
-					"ORDER BY a.year DESC")).WithArgs(driver.Value(135)).WillReturnRows(rows)
+					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Album{album},
 			expectedError: false,
@@ -229,7 +229,7 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 					"JOIN tracks t on t.album = a.id " +
 					"WHERE a.artist = $1 " +
 					"GROUP BY a.id, a.title, a.artwork, a.year " +
-					"ORDER BY a.year DESC")).WithArgs(driver.Value(135)).WillReturnError(errors.New("error"))
+					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Album{album},
 			expectedError: true,
@@ -246,7 +246,7 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 					"JOIN tracks t on t.album = a.id " +
 					"WHERE a.artist = $1 " +
 					"GROUP BY a.id, a.title, a.artwork, a.year " +
-					"ORDER BY a.year DESC")).WithArgs(driver.Value(135)).WillReturnError(errors.New("error"))
+					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Album{album},
 			expectedError: true,
@@ -256,7 +256,7 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			test.mock()
-			result, err := repository.GetAlbums(test.id)
+			result, err := repository.GetAlbums(test.id, 1)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {

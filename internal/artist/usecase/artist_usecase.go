@@ -9,7 +9,8 @@ import (
 
 const DatabaseNotResponding = "Database not responding"
 const TracksDefaultAmount = 20
-const AlbumsDefaultAmount = 20
+const AlbumsDefaultAmount = 8
+
 
 type ArtistUseCase struct {
 	ArtistRepository artist.ArtistRepository

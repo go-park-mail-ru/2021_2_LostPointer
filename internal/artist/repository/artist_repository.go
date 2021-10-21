@@ -25,13 +25,13 @@ func (artistRepository ArtistRepository) Get(id int) (*models.Artist, error) {
 	return artist, nil
 }
 
-func (artistRepository ArtistRepository) GetTracks(id int, isAuthorized bool) ([]models.Track, error) {
+func (artistRepository ArtistRepository) GetTracks(id int, isAuthorized bool, amount int) ([]models.Track, error) {
 	var tracks []models.Track
 	trackRows, err := artistRepository.Database.Query("SELECT t.id, t.title, explicit, file, duration, lossless, "+
 		"alb.artwork FROM tracks t "+
 		"LEFT JOIN albums alb ON alb.id = t.album "+
 		"WHERE t.artist = $1 "+
-		"ORDER BY t.listen_count", id)
+		"ORDER BY t.listen_count LIMIT $2", id, amount)
 	if err != nil {
 		return nil, err
 	}
@@ -53,14 +53,14 @@ func (artistRepository ArtistRepository) GetTracks(id int, isAuthorized bool) ([
 	return tracks, nil
 }
 
-func (artistRepository ArtistRepository) GetAlbums(id int) ([]models.Album, error) {
+func (artistRepository ArtistRepository) GetAlbums(id int, amount int) ([]models.Album, error) {
 	var albums []models.Album
 	albumRows, err := artistRepository.Database.Query("SELECT a.id, a.title, a.artwork, a.year, SUM(t.duration) AS "+
 		"tracksDuration FROM albums a "+
 		"JOIN tracks t on t.album = a.id "+
 		"WHERE a.artist = $1 "+
 		"GROUP BY a.id, a.title, a.artwork, a.year "+
-		"ORDER BY a.year DESC", id)
+		"ORDER BY a.year DESC LIMIT $2", id, amount)
 	if err != nil {
 		return nil, err
 	}

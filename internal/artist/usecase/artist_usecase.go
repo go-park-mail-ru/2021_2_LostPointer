@@ -8,6 +8,8 @@ import (
 )
 
 const DatabaseNotResponding = "Database not responding"
+const TracksDefaultAmount = 20
+const AlbumsDefaultAmount = 20
 
 type ArtistUseCase struct {
 	ArtistRepository artist.ArtistRepository
@@ -27,7 +29,7 @@ func (artistUseCase ArtistUseCase) GetProfile(id int, isAuthorized bool) (*model
 			Message:       DatabaseNotResponding,
 		}
 	}
-	art.Tracks, err = artistUseCase.ArtistRepository.GetTracks(id, isAuthorized)
+	art.Tracks, err = artistUseCase.ArtistRepository.GetTracks(id, isAuthorized, TracksDefaultAmount)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
@@ -35,7 +37,7 @@ func (artistUseCase ArtistUseCase) GetProfile(id int, isAuthorized bool) (*model
 			Message:       DatabaseNotResponding,
 		}
 	}
-	art.Albums, err = artistUseCase.ArtistRepository.GetAlbums(id)
+	art.Albums, err = artistUseCase.ArtistRepository.GetAlbums(id, AlbumsDefaultAmount)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,

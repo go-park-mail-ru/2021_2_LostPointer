@@ -58,10 +58,10 @@ func TestArtistUseCase_GetProfile(t *testing.T) {
 						Avatar: "awa",
 					}, nil
 				},
-				GetTracksFunc: func(id int, isAuthorized bool) ([]models.Track, error) {
+				GetTracksFunc: func(id int, isAuthorized bool, amount int) ([]models.Track, error) {
 					return []models.Track{track}, nil
 				},
-				GetAlbumsFunc: func(id int) ([]models.Album, error) {
+				GetAlbumsFunc: func(id int, amount int) ([]models.Album, error) {
 					return []models.Album{album}, nil
 				},
 			},
@@ -79,10 +79,10 @@ func TestArtistUseCase_GetProfile(t *testing.T) {
 						Avatar: "awa",
 					}, nil
 				},
-				GetTracksFunc: func(id int, isAuthorized bool) ([]models.Track, error) {
+				GetTracksFunc: func(id int, isAuthorized bool, amount int) ([]models.Track, error) {
 					return []models.Track{tracksUnAuth}, nil
 				},
-				GetAlbumsFunc: func(id int) ([]models.Album, error) {
+				GetAlbumsFunc: func(id int, amount int) ([]models.Album, error) {
 					return []models.Album{album}, nil
 				},
 			},
@@ -100,10 +100,10 @@ func TestArtistUseCase_GetProfile(t *testing.T) {
 						Avatar: "awa",
 					}, nil
 				},
-				GetTracksFunc: func(id int, isAuthorized bool) ([]models.Track, error) {
+				GetTracksFunc: func(id int, isAuthorized bool, amount int) ([]models.Track, error) {
 					return []models.Track{tracksUnAuth}, nil
 				},
-				GetAlbumsFunc: func(id int) ([]models.Album, error) {
+				GetAlbumsFunc: func(id int, amount int) ([]models.Album, error) {
 					return []models.Album{album}, nil
 				},
 			},
@@ -117,10 +117,10 @@ func TestArtistUseCase_GetProfile(t *testing.T) {
 				GetFunc: func(id int) (*models.Artist, error) {
 					return nil, errors.New("error")
 				},
-				GetTracksFunc: func(id int, isAuthorized bool) ([]models.Track, error) {
+				GetTracksFunc: func(id int, isAuthorized bool, amount int) ([]models.Track, error) {
 					return []models.Track{tracksUnAuth}, nil
 				},
-				GetAlbumsFunc: func(id int) ([]models.Album, error) {
+				GetAlbumsFunc: func(id int, amount int) ([]models.Album, error) {
 					return []models.Album{album}, nil
 				},
 			},
@@ -138,10 +138,10 @@ func TestArtistUseCase_GetProfile(t *testing.T) {
 						Avatar: "awa",
 					}, nil
 				},
-				GetTracksFunc: func(id int, isAuthorized bool) ([]models.Track, error) {
+				GetTracksFunc: func(id int, isAuthorized bool, amount int) ([]models.Track, error) {
 					return nil, errors.New("error")
 				},
-				GetAlbumsFunc: func(id int) ([]models.Album, error) {
+				GetAlbumsFunc: func(id int, amount int) ([]models.Album, error) {
 					return []models.Album{album}, nil
 				},
 			},
@@ -159,10 +159,10 @@ func TestArtistUseCase_GetProfile(t *testing.T) {
 						Avatar: "awa",
 					}, nil
 				},
-				GetTracksFunc: func(id int, isAuthorized bool) ([]models.Track, error) {
+				GetTracksFunc: func(id int, isAuthorized bool, amount int) ([]models.Track, error) {
 					return []models.Track{tracksUnAuth}, nil
 				},
-				GetAlbumsFunc: func(id int) ([]models.Album, error) {
+				GetAlbumsFunc: func(id int, amount int) ([]models.Album, error) {
 					return nil, errors.New("error")
 				},
 			},

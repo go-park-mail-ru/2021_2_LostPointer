@@ -11,6 +11,8 @@ import (
 
 const InvalidParameter = "Invalid parameter"
 const DatabaseNotResponding = "Database not responding"
+const NoArtists = "No artists"
+const SelectionLimit = 4
 
 type ArtistDelivery struct {
 	ArtistUseCase artist.ArtistUseCase
@@ -57,6 +59,30 @@ func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, art)
 }
 
+func (artistDelivery ArtistDelivery) Home(ctx echo.Context) error {
+	requestID := ctx.Get("REQUEST_ID").(string)
+
+	artists, err := artistDelivery.ArtistUseCase.GetHome(SelectionLimit)
+	if err != nil {
+		artistDelivery.Logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.OriginalError.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+		)
+		return ctx.JSON(http.StatusInternalServerError, models.Response{
+			Status:  http.StatusInternalServerError,
+			Message: NoArtists},
+		)
+	}
+
+	artistDelivery.Logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+	return ctx.JSON(http.StatusOK, artists)
+}
+
 func (artistDelivery ArtistDelivery) InitHandlers(server *echo.Echo) {
 	server.GET("api/v1/artist/:id", artistDelivery.GetProfile)
+	server.GET("api/v1/home/artists", artistDelivery.Home)
 }

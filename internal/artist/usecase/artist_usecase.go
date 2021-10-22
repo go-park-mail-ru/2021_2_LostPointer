@@ -48,3 +48,16 @@ func (artistUseCase ArtistUseCase) GetProfile(id int, isAuthorized bool) (*model
 
 	return art, nil
 }
+
+func (artistUseCase ArtistUseCase) GetHome(amount int) ([]models.Artist, *models.CustomError) {
+	artists, err := artistUseCase.ArtistRepository.GetRandom(amount)
+	if err != nil {
+		return nil, &models.CustomError{
+			ErrorType:     http.StatusInternalServerError,
+			OriginalError: err,
+			Message:       DatabaseNotResponding,
+		}
+	}
+
+	return artists, nil
+}

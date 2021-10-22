@@ -119,5 +119,78 @@ func TestArtistDelivery_GetProfile(t *testing.T) {
 			}
 		})
 	}
-
 }
+
+func TestArtistDelivery_Home(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
+	artist := models.Artist{
+		Id:     1,
+		Name:   "awa",
+		Avatar: "awa",
+	}
+	tests := []struct {
+		name          string
+		param         string
+		useCaseMock   *mock.MockArtistUseCase
+		expected      []models.Artist
+		expectedError bool
+	}{
+		{
+			name:  "get home",
+			param: "1",
+			useCaseMock: &mock.MockArtistUseCase{
+				GetHomeFunc: func(amount int) ([]models.Artist, *models.CustomError) {
+					return []models.Artist{artist}, nil
+				}},
+			expected:      []models.Artist{artist},
+			expectedError: false,
+		},
+		{
+			name:  "GetHome() error",
+			param: "1",
+			useCaseMock: &mock.MockArtistUseCase{
+				GetHomeFunc: func(amount int) ([]models.Artist, *models.CustomError) {
+					return nil, &models.CustomError{
+						ErrorType:     http.StatusInternalServerError,
+						OriginalError: errors.New("error"),
+						Message:       "error",
+					}
+				}},
+			expected:      []models.Artist{artist},
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := echo.New()
+			request := httptest.NewRequest(echo.GET, "/", nil)
+			recorder := httptest.NewRecorder()
+			ctx := server.NewContext(request, recorder)
+			ctx.SetPath("api/v1/home/artists")
+			ctx.SetParamNames("id")
+			ctx.SetParamValues(test.param)
+			ctx.Set("REQUEST_ID", "1")
+			ctx.Set("IS_AUTHORIZED", true)
+			delivery := NewArtistDelivery(test.useCaseMock, logger)
+			_ = delivery.Home(ctx)
+			body := recorder.Body
+			status := recorder.Result().Status
+			var result []models.Artist
+			_ = json.Unmarshal(body.Bytes(), &result)
+			if test.expectedError {
+				assert.Equal(t, "500 Internal Server Error", status)
+			} else {
+				assert.Equal(t, test.expected, result)
+				assert.Equal(t, "200 OK", status)
+			}
+		})
+	}
+}
+
+

@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
 	"github.com/labstack/echo"
@@ -176,7 +177,7 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 		})
 	}
 
-	_, _, customError := userD.userLogic.IsAuthorized(cookie.Value)
+	_, userID, customError := userD.userLogic.IsAuthorized(cookie.Value)
 	if customError != nil {
 		if customError.ErrorType == http.StatusInternalServerError {
 			userD.logger.Error(
@@ -204,15 +205,29 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 		}
 	}
 
+	avatarFilename, customError := userD.userLogic.GetAvatarFilename(userID)
+	if customError != nil {
+		if customError.ErrorType == http.StatusInternalServerError {
+			userD.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.OriginalError.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status: http.StatusInternalServerError,
+				Message: customError.OriginalError.Error(),
+			})
+		}
+	}
+
 	userD.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
 
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status: http.StatusOK,
-		Message: UserIsAuthorizedMessage,
-	})
+	return ctx.JSON(http.StatusOK,
+		struct {Status int `json:"status"`; Avatar string `json:"avatar"`}{http.StatusOK, avatarFilename})
 }
 
 func (userD UserDelivery) Logout(ctx echo.Context) error {
@@ -404,11 +419,30 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 	})
 }
 
+func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
+	cookie, err := ctx.Cookie("Session_cookie")
+	if err != nil {
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status: http.StatusUnauthorized,
+			Message: UserIsNotAuthorizedMessage,
+		})
+	}
+	token, _ := csrf.Tokens.Create(cookie.Value, 900+time.Now().Unix())
+	csrf := models.Csrf{}
+	csrf.Token = token
+
+	return ctx.JSON(http.StatusOK, &models.Response{
+		Status: http.StatusOK,
+		Message: token,
+	})
+}
+
 func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/signup", userD.Register)
 	server.POST("/api/v1/user/signin", userD.Login)
 	server.POST("/api/v1/user/logout", userD.Logout)
 	server.GET("/api/v1/auth", userD.IsAuthorized)
 	server.GET("/api/v1/user/settings", userD.GetSettings)
+	server.GET("api/v1/csrf", userD.GetCsrf)
 	server.PATCH("/api/v1/user/settings", userD.UpdateSettings)
 }

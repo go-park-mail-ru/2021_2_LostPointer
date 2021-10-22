@@ -5,7 +5,7 @@ import (
 	"mime/multipart"
 )
 
-//go:generate moq -out ../mock/user_repo_db_mock.go -internal mock . UserRepository:MockUserRepository
+//go:generate moq -out ../mock/user_repo_db_mock.go -pkg mock . UserRepository:MockUserRepository
 type UserRepository interface {
 	CreateUser(models.User, ...string) (uint64, error)
 	IsEmailUnique(string) (bool, error)
@@ -20,14 +20,14 @@ type UserRepository interface {
 	UpdateAvatar(int, string) error
 }
 
-//go:generate moq -out ../mock/user_repo_redis_mock.go -internal mock . RedisStore:MockRedisStore
+//go:generate moq -out ../mock/user_repo_redis_mock.go -pkg mock . RedisStore:MockRedisStore
 type RedisStore interface {
 	StoreSession(uint64, ...string) (string, error)
 	GetSessionUserId(string) (int, *models.CustomError)
 	DeleteSession(string)
 }
 
-//go:generate moq -out ../mock/user_repo_filysystem_mock.go -internal mock . FileSystem:MockFileSystem
+//go:generate moq -out ../mock/user_repo_filysystem_mock.go -pkg mock . FileSystem:MockFileSystem
 type FileSystem interface {
 	CreateImage(*multipart.FileHeader) (string, error)
 	DeleteImage(string) error

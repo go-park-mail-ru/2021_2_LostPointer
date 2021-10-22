@@ -176,7 +176,7 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 		})
 	}
 
-	_, _, customError := userD.userLogic.IsAuthorized(cookie.Value)
+	_, userID, customError := userD.userLogic.IsAuthorized(cookie.Value)
 	if customError != nil {
 		if customError.ErrorType == http.StatusInternalServerError {
 			userD.logger.Error(
@@ -204,15 +204,29 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 		}
 	}
 
+	avatarFilename, customError := userD.userLogic.GetAvatarFilename(userID)
+	if customError != nil {
+		if customError.ErrorType == http.StatusInternalServerError {
+			userD.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", customError.OriginalError.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status: http.StatusInternalServerError,
+				Message: customError.OriginalError.Error(),
+			})
+		}
+	}
+
 	userD.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
 
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status: http.StatusOK,
-		Message: UserIsAuthorizedMessage,
-	})
+	return ctx.JSON(http.StatusOK,
+		struct {Status int `json:"status"`; Avatar string `json:"avatar"`}{http.StatusOK, avatarFilename})
 }
 
 func (userD UserDelivery) Logout(ctx echo.Context) error {

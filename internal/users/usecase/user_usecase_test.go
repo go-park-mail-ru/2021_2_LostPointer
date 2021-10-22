@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"mime/multipart"
+	"net/http"
 	"testing"
 )
 
@@ -551,6 +552,73 @@ func TestUserUseCase_Register(t *testing.T) {
 	}
 }
 
+func TestUserUseCase_GetAvatarFilename(t *testing.T) {
+	type response struct {
+		filename string
+		err 	 *models.CustomError
+	}
+
+	tests := []struct {
+		name 		  string
+		dbMock 	  	  *mock.MockUserRepository
+		redisMock 	  *mock.MockRedisStore
+		fsMock        *mock.MockFileSystem
+		input 		  int
+		expected 	  response
+		expectedErr   bool
+	}{
+		{
+			name: "Successfully got avatar filename",
+			dbMock: &mock.MockUserRepository{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "avatar", nil
+				},
+			},
+			redisMock: &mock.MockRedisStore{},
+			fsMock: &mock.MockFileSystem{},
+			input: 1,
+			expected: response{
+				filename: "avatar" + "_150px.webp",
+			},
+		},
+		{
+			name: "GetAvatarFilename returned error",
+			dbMock: &mock.MockUserRepository{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "", errors.New("error")
+				},
+			},
+			redisMock: &mock.MockRedisStore{},
+			fsMock: &mock.MockFileSystem{},
+			input: 1,
+			expected: response{
+				err: &models.CustomError{
+					ErrorType: http.StatusInternalServerError,
+					OriginalError: errors.New("error"),
+				},
+			},
+			expectedErr: true,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			r := NewUserUserCase(testCase.dbMock, testCase.redisMock, testCase.fsMock)
+			got := response{}
+
+			got.filename, got.err = r.GetAvatarFilename(testCase.input)
+
+			if testCase.expectedErr {
+				assert.NotNil(t, got.err)
+				assert.Equal(t, testCase.expected.err.ErrorType, got.err.ErrorType)
+			} else {
+				assert.Nil(t, got.err)
+				assert.Equal(t, testCase.expected, got)
+			}
+		})
+	}
+}
+
 func TestUserUseCase_GetSettings(t *testing.T) {
 	type response struct {
 		settings *models.SettingsGet
@@ -642,8 +710,8 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 	tests := []struct {
 		name 	  	  string
 		dbMock 	  	  *mock.MockUserRepository
-		redisMock 	  *mock.MockRedisStore
-		fsMock        *mock.MockFileSystem
+		redisMock	  *mock.MockRedisStore
+		fsMock 		  *mock.MockFileSystem
 		input 	  	  *inputStruct
 		expected  	  *models.CustomError
 		expectedErr   bool
@@ -1276,3 +1344,5 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 		})
 	}
 }
+
+

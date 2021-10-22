@@ -755,7 +755,7 @@ func TestRedisStore_StoreSession(t *testing.T) {
 		_ = db.Close()
 	}(db)
 
-	sessionToken := GetRandomString(40)
+	sessionToken := GetRandomString(SessionTokenLength)
 	var userID uint64 = 1
 
 	tests := []struct {

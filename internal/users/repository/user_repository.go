@@ -14,6 +14,7 @@ import (
 	"log"
 	"math/rand"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -235,8 +236,6 @@ func (Data UserRepository) UpdateAvatar(userID int, fileName string) error {
 }
 
 func (Data UserRepository) GetAvatarFilename(userID int) (string, error) {
-	var filename string
-
 	rows, err := Data.userDB.Query(`SELECT avatar FROM users WHERE id=$1`, userID)
 	if err != nil {
 		return "", err
@@ -246,14 +245,9 @@ func (Data UserRepository) GetAvatarFilename(userID int) (string, error) {
 		return "", nil
 	}
 
-	var avatarNULL sql.NullString
-	if err := rows.Scan(&avatarNULL); err != nil {
+	var filename string
+	if err := rows.Scan(&filename); err != nil {
 		return "", err
-	}
-	if !avatarNULL.Valid {
-		filename = "placeholder"
-	} else {
-		filename = avatarNULL.String
 	}
 
 	return filename, nil
@@ -340,14 +334,14 @@ func (r RedisStore) GetSessionUserId(session string) (int, *models.CustomError) 
 	res, err := r.redisConnection.Get(ctx, session).Result()
 	if err != nil {
 		if err.Error() == "redis: nil" {
-			return 0, &models.CustomError{ErrorType: 401}  // status 401
+			return 0, &models.CustomError{ErrorType: http.StatusUnauthorized}  // status 401
 		} else {
-			return -1, &models.CustomError{ErrorType: 500, OriginalError: err} // status 500
+			return -1, &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err} // status 500
 		}
 	}
 	id, err := strconv.Atoi(res)
 	if err != nil {
-		return -1, &models.CustomError{ErrorType: 500, OriginalError: err} // status 500
+		return -1, &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err} // status 500
 	}
 	return id, nil
 }

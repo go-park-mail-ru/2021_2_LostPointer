@@ -70,7 +70,26 @@ func (musicRepository MusicRepository) GetRandomAlbums(amount int) ([]models.Alb
 	return albums, nil
 }
 
+func (musicRepository MusicRepository) GetRandomArtists(amount int) ([]models.Artist, error) {
+	rows, err := musicRepository.Database.Query("SELECT artists.id, artists.name, artists.avatar FROM artists "+
+		"WHERE artists.name NOT LIKE '%Frank Sinatra%' ORDER BY RANDOM() LIMIT $1", amount)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
+	artists := make([]models.Artist, 0, 10)
+	var artist models.Artist
+	for rows.Next() {
+		if err := rows.Scan(&artist.Id, &artist.Name, &artist.Avatar); err != nil {
+			return nil, err
+		}
+		artists = append(artists, artist)
+	}
+	return artists, nil
+}
 
 func (musicRepository MusicRepository) GetRandomPlaylists(amount int) ([]models.Playlist, error) {
 	rows, err := musicRepository.Database.Query("SELECT playlists.id, playlists.title, playlists.user "+

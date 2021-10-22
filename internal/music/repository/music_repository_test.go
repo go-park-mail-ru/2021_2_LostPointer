@@ -376,6 +376,142 @@ func TestMusicRepository_GetRandomAlbums(t *testing.T) {
 	}
 }
 
+func TestMusicRepository_GetRandomArtists(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	repository := NewMusicRepository(db)
+
+	artist := models.Artist{
+		Id:     1,
+		Name:   "awa",
+		Avatar: "awa",
+	}
+
+	tests := []struct {
+		name          string
+		amount        int
+		mock          func()
+		expected      []models.Artist
+		expectedError bool
+	}{
+		{
+			name:   "get 4 random artists",
+			amount: 4,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(artist.Id, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT artists.id, artists.name, artists.avatar FROM artists " +
+					"WHERE artists.name NOT LIKE '%Frank Sinatra%' ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() []models.Artist {
+				var artists []models.Artist
+				for i := 0; i < 4; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 10 random artists",
+			amount: 10,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < 10; i++ {
+					rows.AddRow(artist.Id, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT artists.id, artists.name, artists.avatar FROM artists " +
+					"WHERE artists.name NOT LIKE '%Frank Sinatra%' ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(10)).WillReturnRows(rows)
+			},
+			expected: func() []models.Artist {
+				var artists []models.Artist
+				for i := 0; i < 10; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 100 random artists",
+			amount: 100,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < 100; i++ {
+					rows.AddRow(artist.Id, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT artists.id, artists.name, artists.avatar FROM artists " +
+					"WHERE artists.name NOT LIKE '%Frank Sinatra%' ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(100)).WillReturnRows(rows)
+			},
+			expected: func() []models.Artist {
+				var artists []models.Artist
+				for i := 0; i < 100; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "query error",
+			amount: 1,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(artist.Id, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT artists.id, artists.name, artists.avatar FROM artists " +
+					"WHERE artists.name NOT LIKE '%Frank Sinatra%' ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(1)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []models.Artist {
+				var artists []models.Artist
+				for i := 0; i < 1; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: true,
+		},
+		{
+			name:   "scan error",
+			amount: 1,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar", "newArg"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(artist.Id, artist.Name, artist.Avatar, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT artists.id, artists.name, artists.avatar FROM artists " +
+					"WHERE artists.name NOT LIKE '%Frank Sinatra%' ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			expected: func() []models.Artist {
+				var artists []models.Artist
+				for i := 0; i < 1; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.mock()
+			result, err := repository.GetRandomArtists(test.amount)
+			if test.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, test.expected, result)
+			}
+		})
+	}
+}
 
 func TestMusicRepository_GetRandomPlaylists(t *testing.T) {
 	db, mock, err := sqlmock.New()

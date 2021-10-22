@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
 	"github.com/labstack/echo"
@@ -418,11 +419,30 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 	})
 }
 
+func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
+	cookie, err := ctx.Cookie("Session_cookie")
+	if err != nil {
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status: http.StatusUnauthorized,
+			Message: UserIsNotAuthorizedMessage,
+		})
+	}
+	token, _ := csrf.Tokens.Create(cookie.Value, 900+time.Now().Unix())
+	csrf := models.Csrf{}
+	csrf.Token = token
+
+	return ctx.JSON(http.StatusOK, &models.Response{
+		Status: http.StatusOK,
+		Message: token,
+	})
+}
+
 func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/signup", userD.Register)
 	server.POST("/api/v1/user/signin", userD.Login)
 	server.POST("/api/v1/user/logout", userD.Logout)
 	server.GET("/api/v1/auth", userD.IsAuthorized)
 	server.GET("/api/v1/user/settings", userD.GetSettings)
+	server.GET("api/v1/csrf", userD.GetCsrf)
 	server.PATCH("/api/v1/user/settings", userD.UpdateSettings)
 }

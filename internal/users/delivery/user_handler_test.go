@@ -89,8 +89,11 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 		{
 			name: "Handler returned status 200",
 			usecaseMock: &mock.MockUserUseCase{
-				IsAuthorizedFunc: func(s string) (bool, int, *models.CustomError) {
+				IsAuthorizedFunc: func(string) (bool, int, *models.CustomError) {
 					return true, 1, nil
+				},
+				GetAvatarFilenameFunc: func(int) (string, *models.CustomError) {
+					return "avatar", nil
 				},
 			},
 			cookie: &http.Cookie{
@@ -99,7 +102,7 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 				Expires:  time.Now().Add(cookieLifetime),
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON: "{\"status\":200,\"message\":\"User is authorized\"}\n",
+			expectedJSON: "{\"status\":200,\"avatar\":\"avatar\"}\n",
 		},
 		{
 			name: "Handler returned status 401, usecase.IsAuthorized returned false",
@@ -122,6 +125,45 @@ func TestUserDelivery_IsAuthorized(t *testing.T) {
 			cookie: &http.Cookie{ },
 			expectedStatus: http.StatusOK,
 			expectedJSON: "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+		},
+		{
+			name: "Handler returned status 500, usecase.GetAvatarFilename returned custom error with ErrorType = 500",
+			usecaseMock: &mock.MockUserUseCase{
+				IsAuthorizedFunc: func(string) (bool, int, *models.CustomError) {
+					return true, 1, nil
+				},
+				GetAvatarFilenameFunc: func(int) (string, *models.CustomError) {
+					return "", &models.CustomError{
+						ErrorType: http.StatusInternalServerError,
+						OriginalError: errors.New("error"),
+					}
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
+		},
+		{
+			name: "Handler returned status 500, usecase.IsAuthorized returned custom error with ErrorType = 500",
+			usecaseMock: &mock.MockUserUseCase{
+				IsAuthorizedFunc: func(string) (bool, int, *models.CustomError) {
+					return false, -1, &models.CustomError{
+						ErrorType: http.StatusInternalServerError,
+						OriginalError: errors.New("error"),
+					}
+				},
+			},
+			cookie: &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "Cookie_value",
+				Expires:  time.Now().Add(cookieLifetime),
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
 		},
 	}
 
@@ -329,6 +371,13 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 			expectedStatus: http.StatusInternalServerError,
 			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
 		},
+		{
+			name: "Handler returned status 500, InternalServerError occurred while checking authorization",
+			usecaseMock: &mock.MockUserUseCase{	},
+			input: -1,
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
+		},
 	}
 
 	for _, tt := range tests {
@@ -340,7 +389,7 @@ func TestUserDelivery_GetSettings(t *testing.T) {
 			ctx.SetPath("/api/v1/user/settings")
 			ctx.Set("USER_ID", tt.input)
 			ctx.Set("REQUEST_ID", "1")
-			ctx.Set("AUTHORIZATION_ERROR", "1")
+			ctx.Set("AUTHORIZATION_ERROR", "error")
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.GetSettings(ctx)) {
@@ -428,6 +477,13 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			expectedStatus: http.StatusInternalServerError,
 			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
 		},
+		{
+			name: "Handler returned status 500, InternalServerError occurred while checking authorization",
+			usecaseMock: &mock.MockUserUseCase{	},
+			input: -1,
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON: "{\"status\":500,\"message\":\"error\"}\n",
+		},
 	}
 
 	for _, tt := range tests {
@@ -439,7 +495,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			ctx := server.NewContext(req, rec)
 			ctx.Set("USER_ID", tt.input)
 			ctx.Set("REQUEST_ID", "1")
-			ctx.Set("AUTHORIZATION_ERROR", "1")
+			ctx.Set("AUTHORIZATION_ERROR", "error")
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.UpdateSettings(ctx)) {

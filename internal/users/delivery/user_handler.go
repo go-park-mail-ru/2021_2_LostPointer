@@ -21,7 +21,7 @@ const UserAuthorizedMessage = "User is authorized"
 
 type UserDelivery struct {
 	userLogic users.UserUseCase
-	logger *zap.SugaredLogger
+	logger    *zap.SugaredLogger
 }
 
 func NewUserDelivery(logger *zap.SugaredLogger, userRealization users.UserUseCase) UserDelivery {
@@ -40,7 +40,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
 		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status: http.StatusInternalServerError,
+			Status:  http.StatusInternalServerError,
 			Message: err.Error(),
 		})
 	}
@@ -55,7 +55,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status: http.StatusInternalServerError,
+				Status:  http.StatusInternalServerError,
 				Message: customError.OriginalError.Error(),
 			})
 		} else if customError.ErrorType == http.StatusBadRequest {
@@ -66,7 +66,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusOK, &models.Response{
-				Status: http.StatusBadRequest,
+				Status:  http.StatusBadRequest,
 				Message: customError.Message,
 			})
 		}
@@ -89,7 +89,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 	)
 
 	return ctx.JSON(http.StatusCreated, &models.Response{
-		Status: http.StatusCreated,
+		Status:  http.StatusCreated,
 		Message: UserCreatedMessage,
 	})
 }
@@ -107,7 +107,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 		)
 
 		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status: http.StatusInternalServerError,
+			Status:  http.StatusInternalServerError,
 			Message: err.Error(),
 		})
 	}
@@ -122,7 +122,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status: http.StatusInternalServerError,
+				Status:  http.StatusInternalServerError,
 				Message: customError.OriginalError.Error(),
 			})
 		} else if customError.ErrorType == http.StatusBadRequest {
@@ -133,7 +133,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusOK, &models.Response{
-				Status: http.StatusBadRequest,
+				Status:  http.StatusBadRequest,
 				Message: customError.Message,
 			})
 		}
@@ -156,7 +156,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 	)
 
 	return ctx.JSON(http.StatusOK, &models.Response{
-		Status: http.StatusOK,
+		Status:  http.StatusOK,
 		Message: UserAuthorizedMessage,
 	})
 }
@@ -172,7 +172,7 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 		)
 
 		return ctx.JSON(http.StatusOK, &models.Response{
-			Status: http.StatusUnauthorized,
+			Status:  http.StatusUnauthorized,
 			Message: UserIsNotAuthorizedMessage,
 		})
 	}
@@ -187,7 +187,7 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status: http.StatusInternalServerError,
+				Status:  http.StatusInternalServerError,
 				Message: customError.OriginalError.Error(),
 			})
 		}
@@ -199,7 +199,7 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusOK, &models.Response{
-				Status: http.StatusUnauthorized,
+				Status:  http.StatusUnauthorized,
 				Message: UserIsNotAuthorizedMessage,
 			})
 		}
@@ -215,7 +215,7 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status: http.StatusInternalServerError,
+				Status:  http.StatusInternalServerError,
 				Message: customError.OriginalError.Error(),
 			})
 		}
@@ -227,7 +227,10 @@ func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
 	)
 
 	return ctx.JSON(http.StatusOK,
-		struct {Status int `json:"status"`; Avatar string `json:"avatar"`}{http.StatusOK, avatarFilename})
+		struct {
+			Status int    `json:"status"`
+			Avatar string `json:"avatar"`
+		}{http.StatusOK, avatarFilename})
 }
 
 func (userD UserDelivery) Logout(ctx echo.Context) error {
@@ -241,7 +244,7 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 		)
 
 		return ctx.JSON(http.StatusOK, &models.Response{
-			Status: http.StatusUnauthorized,
+			Status:  http.StatusUnauthorized,
 			Message: UserIsNotAuthorizedMessage,
 		})
 	}
@@ -256,7 +259,7 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 	)
 
 	return ctx.JSON(http.StatusOK, &models.Response{
-		Status: http.StatusOK,
+		Status:  http.StatusOK,
 		Message: LoggedOutMessage,
 	})
 }
@@ -273,7 +276,7 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 		)
 
 		return ctx.JSON(http.StatusOK, &models.Response{
-			Status: http.StatusUnauthorized,
+			Status:  http.StatusUnauthorized,
 			Message: UserIsNotAuthorizedMessage,
 		})
 	}
@@ -285,7 +288,7 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 		)
 
 		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status: http.StatusInternalServerError,
+			Status:  http.StatusInternalServerError,
 			Message: authErrorMessage,
 		})
 	}
@@ -300,7 +303,7 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status: http.StatusInternalServerError,
+				Status:  http.StatusInternalServerError,
 				Message: customError.OriginalError.Error(),
 			})
 		}
@@ -326,7 +329,7 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 		)
 
 		return ctx.JSON(http.StatusOK, &models.Response{
-			Status: http.StatusUnauthorized,
+			Status:  http.StatusUnauthorized,
 			Message: UserIsNotAuthorizedMessage,
 		})
 	}
@@ -338,7 +341,7 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 		)
 
 		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status: http.StatusInternalServerError,
+			Status:  http.StatusInternalServerError,
 			Message: authErrorMessage,
 		})
 	}
@@ -353,7 +356,7 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status: http.StatusInternalServerError,
+				Status:  http.StatusInternalServerError,
 				Message: customError.OriginalError.Error(),
 			})
 		}
@@ -373,11 +376,11 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 	}
 
 	newSettings := &models.SettingsUpload{
-		Email: email,
-		Nickname: nickname,
-		OldPassword: oldPassword,
-		NewPassword: newPassword,
-		Avatar: file,
+		Email:          email,
+		Nickname:       nickname,
+		OldPassword:    oldPassword,
+		NewPassword:    newPassword,
+		Avatar:         file,
 		AvatarFileName: fileName,
 	}
 
@@ -391,7 +394,7 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status: http.StatusInternalServerError,
+				Status:  http.StatusInternalServerError,
 				Message: customError.OriginalError.Error(),
 			})
 		} else if customError.ErrorType == 400 {
@@ -402,7 +405,7 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 			)
 
 			return ctx.JSON(http.StatusOK, &models.Response{
-				Status: http.StatusBadRequest,
+				Status:  http.StatusBadRequest,
 				Message: customError.Message,
 			})
 		}
@@ -414,25 +417,26 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 	)
 
 	return ctx.JSON(http.StatusOK, &models.Response{
-		Status: http.StatusOK,
+		Status:  http.StatusOK,
 		Message: SettingsUploadedMessage,
 	})
 }
 
 func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
+	//fmt.Println(cookie)
 	if err != nil {
 		return ctx.JSON(http.StatusOK, &models.Response{
-			Status: http.StatusUnauthorized,
+			Status:  http.StatusUnauthorized,
 			Message: UserIsNotAuthorizedMessage,
 		})
 	}
 	token, _ := csrf.Tokens.Create(cookie.Value, 900+time.Now().Unix())
 	csrf := models.Csrf{}
-	csrf.Token = token
+	csrf.Token = token // ?
 
 	return ctx.JSON(http.StatusOK, &models.Response{
-		Status: http.StatusOK,
+		Status:  http.StatusOK,
 		Message: token,
 	})
 }

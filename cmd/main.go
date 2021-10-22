@@ -1,14 +1,19 @@
 package main
 
 import (
-	middleware "2021_2_LostPointer/internal/middleware"
-	handlersMusic "2021_2_LostPointer/internal/music/delivery"
-	repositoryMusic "2021_2_LostPointer/internal/music/repository"
-	usecaseMusic "2021_2_LostPointer/internal/music/usecase"
-
 	deliveryArtist "2021_2_LostPointer/internal/artist/delivery"
 	repositoryArtist "2021_2_LostPointer/internal/artist/repository"
 	usecaseArtist "2021_2_LostPointer/internal/artist/usecase"
+	middleware "2021_2_LostPointer/internal/middleware"
+
+	deliveryTrack "2021_2_LostPointer/internal/track/delivery"
+	repositoryTrack "2021_2_LostPointer/internal/track/repository"
+	usecaseTrack "2021_2_LostPointer/internal/track/usecase"
+
+	deliveryAlbum "2021_2_LostPointer/internal/album/delivery"
+	repositoryAlbum "2021_2_LostPointer/internal/album/repository"
+	usecaseAlbum "2021_2_LostPointer/internal/album/usecase"
+
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis/v8"
@@ -27,9 +32,11 @@ import (
 const redisDB = 1
 
 type RequestHandlers struct {
-	userHandlers 	deliveryUser.UserDelivery
-	musicHandlers      handlersMusic.MusicHandlers
+	userHandlers deliveryUser.UserDelivery
+	//musicHandlers      handlersMusic.MusicHandlers
 	artistHandlers     deliveryArtist.ArtistDelivery
+	trackHandlers      deliveryTrack.TrackDelivery
+	albumHandlers      deliveryAlbum.AlbumDelivery
 	middlewareHandlers middleware.Middleware
 }
 
@@ -40,20 +47,30 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client, logger *zap.Su
 	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore, fileSystem)
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
 
-	musicRepo := repositoryMusic.NewMusicRepository(db)
-	musicUseCase := usecaseMusic.NewMusicUseCase(musicRepo)
-	musicHandlers := handlersMusic.NewMusicDelivery(musicUseCase, logger)
+	//musicRepo := repositoryMusic.NewMusicRepository(db)
+	//musicUseCase := usecaseMusic.NewMusicUseCase(musicRepo)
+	//musicHandlers := handlersMusic.NewMusicDelivery(musicUseCase, logger)
 
 	artistRepo := repositoryArtist.NewArtistRepository(db)
 	artistUseCase := usecaseArtist.NewArtistUseCase(artistRepo)
 	artistHandlers := deliveryArtist.NewArtistDelivery(artistUseCase, logger)
 
+	trackRepo := repositoryTrack.NewTrackRepository(db)
+	trackUseCase := usecaseTrack.NewTrackUseCase(trackRepo)
+	trackHandlers := deliveryTrack.NewTrackDelivery(trackUseCase, logger)
+
+	albumRepo := repositoryAlbum.NewAlbumRepository(db)
+	albumUseCase := usecaseAlbum.NewAlbumUseCase(albumRepo)
+	albumHandlers := deliveryAlbum.NewAlbumDelivery(albumUseCase, logger)
+
 	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase)
 
 	api := &(RequestHandlers{
-		userHandlers:       userHandlers,
-		musicHandlers:      musicHandlers,
+		userHandlers: userHandlers,
+		//musicHandlers:      musicHandlers,
 		artistHandlers:     artistHandlers,
+		trackHandlers:      trackHandlers,
+		albumHandlers:      albumHandlers,
 		middlewareHandlers: middlewareHandlers,
 	})
 
@@ -119,8 +136,10 @@ func main() {
 	api := NewRequestHandler(db, redisConnection, logger)
 
 	api.userHandlers.InitHandlers(server)
-	api.musicHandlers.InitHandlers(server)
+	//api.musicHandlers.InitHandlers(server)
 	api.artistHandlers.InitHandlers(server)
+	api.trackHandlers.InitHandlers(server)
+	api.albumHandlers.InitHandlers(server)
 	api.middlewareHandlers.InitMiddlewareHandlers(server)
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))

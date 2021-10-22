@@ -183,3 +183,90 @@ func TestArtistUseCase_GetProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestArtistUseCase_GetHome(t *testing.T) {
+	artist := models.Artist{
+		Id:     1,
+		Name:   "awa",
+		Avatar: "awa",
+	}
+	tests := []struct {
+		name          string
+		amount        int
+		dbMock        *mock.MockArtistRepository
+		expected      []models.Artist
+		expectedError bool
+	}{
+		{
+			name:   "get 4 artists",
+			amount: 4,
+			dbMock: &mock.MockArtistRepository{
+				GetRandomFunc: func(amount int) ([]models.Artist, error) {
+					var artists []models.Artist
+					for i := 0; i < amount; i++ {
+						artists = append(artists, artist)
+					}
+					return artists, nil
+				},
+			},
+			expected: func() []models.Artist {
+				var artists []models.Artist
+				for i := 0; i < 4; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 10 artists",
+			amount: 10,
+			dbMock: &mock.MockArtistRepository{
+				GetRandomFunc: func(amount int) ([]models.Artist, error) {
+					var artists []models.Artist
+					for i := 0; i < amount; i++ {
+						artists = append(artists, artist)
+					}
+					return artists, nil
+				},
+			},
+			expected: func() []models.Artist {
+				var artists []models.Artist
+				for i := 0; i < 10; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get artists error",
+			amount: 10,
+			dbMock: &mock.MockArtistRepository{
+				GetRandomFunc: func(amount int) ([]models.Artist, error) {
+					return nil, errors.New("error")
+				},
+			},
+			expected: func() []models.Artist {
+				var artists []models.Artist
+				for i := 0; i < 10; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			useCase := NewArtistUseCase(test.dbMock)
+			result, err := useCase.GetHome(test.amount)
+			if test.expectedError {
+				assert.Error(t, err.OriginalError)
+			} else {
+				assert.Equal(t, test.expected, result)
+			}
+		})
+	}
+}

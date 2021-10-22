@@ -7,4 +7,5 @@ type ArtistRepository interface {
 	Get(id int) (*models.Artist, error)
 	GetTracks(id int, isAuthorized bool, amount int) ([]models.Track, error)
 	GetAlbums(id int, amount int) ([]models.Album, error)
+	GetRandom(amount int) ([]models.Artist, error)
 }

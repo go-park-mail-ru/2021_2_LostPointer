@@ -38,8 +38,8 @@ func TestPlaylistRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 4; i++ {
 					rows.AddRow(playlist.Id, playlist.Name, playlist.User)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user " +
-					"FROM playlists LIMIT $1")).WithArgs(driver.Value(4)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user "+
+					"FROM playlists WHERE playlists.user = $1 LIMIT $2")).WithArgs(driver.Value(0), driver.Value(4)).WillReturnRows(rows)
 			},
 			expected: func() []models.Playlist {
 				var playlists []models.Playlist
@@ -58,8 +58,8 @@ func TestPlaylistRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 10; i++ {
 					rows.AddRow(playlist.Id, playlist.Name, playlist.User)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user " +
-					"FROM playlists LIMIT $1")).WithArgs(driver.Value(10)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user "+
+					"FROM playlists WHERE playlists.user = $1 LIMIT $2")).WithArgs(driver.Value(0), driver.Value(10)).WillReturnRows(rows)
 			},
 			expected: func() []models.Playlist {
 				var playlists []models.Playlist
@@ -78,8 +78,8 @@ func TestPlaylistRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 100; i++ {
 					rows.AddRow(playlist.Id, playlist.Name, playlist.User)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user " +
-					"FROM playlists LIMIT $1")).WithArgs(driver.Value(100)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user "+
+					"FROM playlists WHERE playlists.user = $1 LIMIT $2")).WithArgs(driver.Value(0), driver.Value(100)).WillReturnRows(rows)
 			},
 			expected: func() []models.Playlist {
 				var playlists []models.Playlist
@@ -98,8 +98,8 @@ func TestPlaylistRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 1; i++ {
 					rows.AddRow(playlist.Id, playlist.Name, playlist.User)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user " +
-					"FROM playlists LIMIT $1")).WithArgs(driver.Value(1)).WillReturnError(errors.New("error"))
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user "+
+					"FROM playlists WHERE playlists.user = $1 LIMIT $2")).WithArgs(driver.Value(0), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []models.Playlist {
 				var playlists []models.Playlist
@@ -119,8 +119,8 @@ func TestPlaylistRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 1; i++ {
 					rows.AddRow(playlist.Id, playlist.Name, playlist.User, newArg)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user " +
-					"FROM playlists LIMIT $1")).WithArgs(driver.Value(1)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT playlists.id, playlists.title, playlists.user "+
+					"FROM playlists WHERE playlists.user = $1 LIMIT $2")).WithArgs(driver.Value(0), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected: func() []models.Playlist {
 				var playlists []models.Playlist
@@ -136,7 +136,7 @@ func TestPlaylistRepository_GetRandom(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			test.mock()
-			result, err := repository.GetRandom(test.amount)
+			result, err := repository.Get(test.amount, 0)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {

@@ -7,6 +7,7 @@ import (
 )
 
 const DatabaseNotResponding = "Database not responding"
+const SiteID = 0
 
 type PlaylistUseCase struct {
 	PlaylistRepository playlist.PlaylistRepository
@@ -17,7 +18,7 @@ func NewPlaylistUseCase(playlistRepository playlist.PlaylistRepository) Playlist
 }
 
 func (playlistUseCase PlaylistUseCase) GetHome(amount int) ([]models.Playlist, *models.CustomError) {
-	playlists, err := playlistUseCase.PlaylistRepository.GetRandom(amount)
+	playlists, err := playlistUseCase.PlaylistRepository.Get(amount, SiteID)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,

@@ -14,6 +14,10 @@ import (
 	repositoryAlbum "2021_2_LostPointer/internal/album/repository"
 	usecaseAlbum "2021_2_LostPointer/internal/album/usecase"
 
+	deliveryPlaylist "2021_2_LostPointer/internal/playlist/delivery"
+	repositoryPlaylist "2021_2_LostPointer/internal/playlist/repository"
+	usecasePlaylist "2021_2_LostPointer/internal/playlist/usecase"
+
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis/v8"
@@ -32,11 +36,11 @@ import (
 const redisDB = 1
 
 type RequestHandlers struct {
-	userHandlers deliveryUser.UserDelivery
-	//musicHandlers      handlersMusic.MusicHandlers
+	userHandlers       deliveryUser.UserDelivery
 	artistHandlers     deliveryArtist.ArtistDelivery
 	trackHandlers      deliveryTrack.TrackDelivery
 	albumHandlers      deliveryAlbum.AlbumDelivery
+	playlistHandlers   deliveryPlaylist.PlaylistDelivery
 	middlewareHandlers middleware.Middleware
 }
 
@@ -46,10 +50,6 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client, logger *zap.Su
 	fileSystem := repositoryUser.NewFileSystem()
 	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore, fileSystem)
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
-
-	//musicRepo := repositoryMusic.NewMusicRepository(db)
-	//musicUseCase := usecaseMusic.NewMusicUseCase(musicRepo)
-	//musicHandlers := handlersMusic.NewMusicDelivery(musicUseCase, logger)
 
 	artistRepo := repositoryArtist.NewArtistRepository(db)
 	artistUseCase := usecaseArtist.NewArtistUseCase(artistRepo)
@@ -63,14 +63,18 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client, logger *zap.Su
 	albumUseCase := usecaseAlbum.NewAlbumUseCase(albumRepo)
 	albumHandlers := deliveryAlbum.NewAlbumDelivery(albumUseCase, logger)
 
+	playlistRepo := repositoryPlaylist.NewPlaylistRepository(db)
+	playlistUseCase := usecasePlaylist.NewPlaylistUseCase(playlistRepo)
+	playlistHandlers := deliveryPlaylist.NewPlaylistDelivery(playlistUseCase, logger)
+
 	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase)
 
 	api := &(RequestHandlers{
-		userHandlers: userHandlers,
-		//musicHandlers:      musicHandlers,
+		userHandlers:       userHandlers,
 		artistHandlers:     artistHandlers,
 		trackHandlers:      trackHandlers,
 		albumHandlers:      albumHandlers,
+		playlistHandlers:   playlistHandlers,
 		middlewareHandlers: middlewareHandlers,
 	})
 
@@ -136,10 +140,10 @@ func main() {
 	api := NewRequestHandler(db, redisConnection, logger)
 
 	api.userHandlers.InitHandlers(server)
-	//api.musicHandlers.InitHandlers(server)
 	api.artistHandlers.InitHandlers(server)
 	api.trackHandlers.InitHandlers(server)
 	api.albumHandlers.InitHandlers(server)
+	api.playlistHandlers.InitHandlers(server)
 	api.middlewareHandlers.InitMiddlewareHandlers(server)
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))

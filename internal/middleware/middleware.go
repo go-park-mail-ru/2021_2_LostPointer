@@ -14,14 +14,14 @@ import (
 )
 
 type Middleware struct {
-	logger *zap.SugaredLogger
+	logger      *zap.SugaredLogger
 	UserUseCase users.UserUseCase
 }
 
 func NewMiddlewareHandler(logger *zap.SugaredLogger, userUseCase users.UserUseCase) Middleware {
 	return Middleware{
 		UserUseCase: userUseCase,
-		logger: logger,
+		logger:      logger,
 	}
 }
 
@@ -83,7 +83,7 @@ func (middleware Middleware) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(rwContext echo.Context) error {
-		if rwContext.Request().RequestURI == "/api/v1/user/settings" || rwContext.Request().Method == "PATCH" {
+		if rwContext.Request().Method == "PATCH" {
 			cookie, err := rwContext.Cookie("Session_cookie")
 			if err != nil {
 				middleware.logger.Debug(
@@ -92,7 +92,7 @@ func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
 				)
 
 				return rwContext.JSON(http.StatusUnauthorized, &models.Response{
-					Status: http.StatusUnauthorized,
+					Status:  http.StatusUnauthorized,
 					Message: "Cookie expired",
 				})
 			}
@@ -104,14 +104,14 @@ func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
 
 			if err != nil {
 				return rwContext.JSON(http.StatusForbidden, &models.Response{
-					Status: http.StatusForbidden,
+					Status:  http.StatusForbidden,
 					Message: "Cookie expired",
 				})
 			}
 
-			if !isValidCsrf  {
+			if !isValidCsrf {
 				return rwContext.JSON(http.StatusForbidden, &models.Response{
-					Status: http.StatusForbidden,
+					Status:  http.StatusForbidden,
 					Message: "Cookie expired",
 				})
 			}

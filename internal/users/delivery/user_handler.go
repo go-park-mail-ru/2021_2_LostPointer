@@ -424,7 +424,6 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 
 func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
-	//fmt.Println(cookie)
 	if err != nil {
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,

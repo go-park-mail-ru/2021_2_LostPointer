@@ -25,7 +25,7 @@ func TestPlaylistUseCase_GetHome(t *testing.T) {
 			name:   "get 4 playlists",
 			amount: 4,
 			dbMock: &mock.MockPlayListRepository{
-				GetRandomFunc: func(amount int) ([]models.Playlist, error) {
+				GetFunc: func(amount int, id int) ([]models.Playlist, error) {
 					var playlists []models.Playlist
 					for i := 0; i < amount; i++ {
 						playlists = append(playlists, playlist)
@@ -46,7 +46,7 @@ func TestPlaylistUseCase_GetHome(t *testing.T) {
 			name:   "get 10 playlists",
 			amount: 10,
 			dbMock: &mock.MockPlayListRepository{
-				GetRandomFunc: func(amount int) ([]models.Playlist, error) {
+				GetFunc: func(amount int, id int) ([]models.Playlist, error) {
 					var playlists []models.Playlist
 					for i := 0; i < amount; i++ {
 						playlists = append(playlists, playlist)
@@ -67,7 +67,7 @@ func TestPlaylistUseCase_GetHome(t *testing.T) {
 			name:   "get 10 error",
 			amount: 10,
 			dbMock: &mock.MockPlayListRepository{
-				GetRandomFunc: func(amount int) ([]models.Playlist, error) {
+				GetFunc: func(amount int, id int) ([]models.Playlist, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -87,9 +87,8 @@ func TestPlaylistUseCase_GetHome(t *testing.T) {
 			useCase := NewPlaylistUseCase(test.dbMock)
 			result, err := useCase.GetHome(test.amount)
 			if test.expectedError {
-				assert.Error(t, err)
+				assert.Error(t, err.OriginalError)
 			} else {
-				assert.NoError(t, err)
 				assert.Equal(t, test.expected, result)
 			}
 		})

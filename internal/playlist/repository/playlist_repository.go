@@ -13,9 +13,9 @@ func NewPlaylistRepository(db *sql.DB) PlaylistRepository {
 	return PlaylistRepository{Database: db}
 }
 
-func (playlistRepository PlaylistRepository) GetRandom(amount int) ([]models.Playlist, error) {
+func (playlistRepository PlaylistRepository) Get(amount int, id int) ([]models.Playlist, error) {
 	rows, err := playlistRepository.Database.Query("SELECT playlists.id, playlists.title, playlists.user "+
-		"FROM playlists LIMIT $1", amount)
+		"FROM playlists WHERE playlists.user = $1 LIMIT $2", id, amount)
 	if err != nil {
 		return nil, err
 	}

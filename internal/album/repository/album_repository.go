@@ -32,7 +32,7 @@ func (albumRepository AlbumRepository) GetRandom(amount int) ([]models.Album, er
 	albums := make([]models.Album, 0, 10)
 	var album models.Album
 	for rows.Next() {
-		if err := rows.Scan(&album.Id, &album.Title, &album.Year, &album.Artist, &album.ArtWork, &album.TracksCount, &album.TracksDuration); err != nil {
+		if err := rows.Scan(&album.Id, &album.Title, &album.Year, &album.Artist, &album.Artwork, &album.TracksCount, &album.TracksDuration); err != nil {
 			return nil, err
 		}
 		albums = append(albums, album)

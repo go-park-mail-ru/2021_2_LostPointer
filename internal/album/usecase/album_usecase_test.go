@@ -14,7 +14,7 @@ func TestAlbumUseCase_GetHome(t *testing.T) {
 		Title:          "awa",
 		Year:           1,
 		Artist:         "awa",
-		ArtWork:        "awa",
+		Artwork:        "awa",
 		TracksCount:    1,
 		TracksDuration: 1,
 	}

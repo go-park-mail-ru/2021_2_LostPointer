@@ -217,7 +217,7 @@ func TestMusicRepository_GetRandomAlbums(t *testing.T) {
 		Title:          "awa",
 		Year:           1,
 		Artist:         "awa",
-		ArtWork:        "awa",
+		Artwork:        "awa",
 		TracksCount:    1,
 		TracksDuration: 1,
 	}
@@ -235,7 +235,7 @@ func TestMusicRepository_GetRandomAlbums(t *testing.T) {
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "art.name", "a.artwork", "a.track_count", "tracksDuration"})
 				for i := 0; i < 4; i++ {
-					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.ArtWork, album.TracksCount, album.TracksDuration)
+					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.Artwork, album.TracksCount, album.TracksDuration)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.year, art.name, " +
 					"a.artwork, a.track_count, SUM(t.duration) as tracksDuration FROM albums a " +
@@ -261,7 +261,7 @@ func TestMusicRepository_GetRandomAlbums(t *testing.T) {
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "art.name", "a.artwork", "a.track_count", "tracksDuration"})
 				for i := 0; i < 10; i++ {
-					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.ArtWork, album.TracksCount, album.TracksDuration)
+					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.Artwork, album.TracksCount, album.TracksDuration)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.year, art.name, " +
 					"a.artwork, a.track_count, SUM(t.duration) as tracksDuration FROM albums a " +
@@ -287,7 +287,7 @@ func TestMusicRepository_GetRandomAlbums(t *testing.T) {
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "art.name", "a.artwork", "a.track_count", "tracksDuration"})
 				for i := 0; i < 100; i++ {
-					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.ArtWork, album.TracksCount, album.TracksDuration)
+					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.Artwork, album.TracksCount, album.TracksDuration)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.year, art.name, " +
 					"a.artwork, a.track_count, SUM(t.duration) as tracksDuration FROM albums a " +
@@ -313,7 +313,7 @@ func TestMusicRepository_GetRandomAlbums(t *testing.T) {
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "art.name", "a.artwork", "a.track_count", "tracksDuration"})
 				for i := 0; i < 1; i++ {
-					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.ArtWork, album.TracksCount, album.TracksDuration)
+					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.Artwork, album.TracksCount, album.TracksDuration)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.year, art.name, " +
 					"a.artwork, a.track_count, SUM(t.duration) as tracksDuration FROM albums a " +
@@ -340,7 +340,7 @@ func TestMusicRepository_GetRandomAlbums(t *testing.T) {
 				var newArg = 1
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "art.name", "a.artwork", "a.track_count", "tracksDuration", "newArg"})
 				for i := 0; i < 1; i++ {
-					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.ArtWork, album.TracksCount, album.TracksDuration, newArg)
+					rows.AddRow(album.Id, album.Title, album.Year, album.Artist, album.Artwork, album.TracksCount, album.TracksDuration, newArg)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.year, art.name, " +
 					"a.artwork, a.track_count, SUM(t.duration) as tracksDuration FROM albums a " +

@@ -39,7 +39,7 @@ func TestMusicDelivery_Home(t *testing.T) {
 		Title:          "awa",
 		Year:           1,
 		Artist:         "awa",
-		ArtWork:        "awa",
+		Artwork:        "awa",
 		TracksCount:    1,
 		TracksDuration: 1,
 	}
@@ -97,8 +97,8 @@ func TestMusicDelivery_Home(t *testing.T) {
 		expectedError bool
 	}{
 		{
-			name:          "default test",
-			useCaseMock:   &mock.MockMusicUseCase{
+			name: "default test",
+			useCaseMock: &mock.MockMusicUseCase{
 				GetMusicCollectionFunc: func(isAuthorized bool) (*models.MusicCollection, *models.CustomError) {
 					return &collection, nil
 				},
@@ -107,13 +107,13 @@ func TestMusicDelivery_Home(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:          "InternalServeError test",
-			useCaseMock:   &mock.MockMusicUseCase{
-				GetMusicCollectionFunc: func(isAuthorized bool) (*models.MusicCollection, *models.CustomError	) {
+			name: "InternalServeError test",
+			useCaseMock: &mock.MockMusicUseCase{
+				GetMusicCollectionFunc: func(isAuthorized bool) (*models.MusicCollection, *models.CustomError) {
 					return nil, &models.CustomError{
-						ErrorType: http.StatusInternalServerError,
+						ErrorType:     http.StatusInternalServerError,
 						OriginalError: errors.New("error"),
-						Message: "error",
+						Message:       "error",
 					}
 				},
 			},

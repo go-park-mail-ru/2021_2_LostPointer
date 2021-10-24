@@ -106,10 +106,10 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"t.id", "t.title", "explicit", "file", "duration", "lossless", "alb.artwork"})
 				rows.AddRow(track.Id, track.Title, track.Explicit, track.File, track.Duration, track.Lossless, track.Cover)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, " +
-					"alb.artwork FROM tracks t " +
-					"LEFT JOIN albums alb ON alb.id = t.album " +
-					"WHERE t.artist = $1 " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, "+
+					"alb.artwork FROM tracks t "+
+					"LEFT JOIN albums alb ON alb.id = t.album "+
+					"WHERE t.artist = $1 "+
 					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Track{track},
@@ -122,10 +122,10 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"t.id", "t.title", "explicit", "file", "duration", "lossless", "alb.artwork"})
 				rows.AddRow(track.Id, track.Title, track.Explicit, track.File, track.Duration, track.Lossless, track.Cover)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, " +
-					"alb.artwork FROM tracks t " +
-					"LEFT JOIN albums alb ON alb.id = t.album " +
-					"WHERE t.artist = $1 " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, "+
+					"alb.artwork FROM tracks t "+
+					"LEFT JOIN albums alb ON alb.id = t.album "+
+					"WHERE t.artist = $1 "+
 					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Track{tracksUnAuth},
@@ -138,10 +138,10 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"t.id", "t.title", "explicit", "file", "duration", "lossless", "alb.artwork"})
 				rows.AddRow(track.Id, track.Title, track.Explicit, track.File, track.Duration, track.Lossless, track.Cover)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, " +
-					"alb.artwork FROM tracks t " +
-					"LEFT JOIN albums alb ON alb.id = t.album " +
-					"WHERE t.artist = $1 " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, "+
+					"alb.artwork FROM tracks t "+
+					"LEFT JOIN albums alb ON alb.id = t.album "+
+					"WHERE t.artist = $1 "+
 					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Track{tracksUnAuth},
@@ -155,10 +155,10 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 				var newArg = 1
 				rows := sqlmock.NewRows([]string{"t.id", "t.title", "explicit", "file", "duration", "lossless", "alb.artwork", "newArg"})
 				rows.AddRow(track.Id, track.Title, track.Explicit, track.File, track.Duration, track.Lossless, track.Cover, newArg)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, " +
-					"alb.artwork FROM tracks t " +
-					"LEFT JOIN albums alb ON alb.id = t.album " +
-					"WHERE t.artist = $1 " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, "+
+					"alb.artwork FROM tracks t "+
+					"LEFT JOIN albums alb ON alb.id = t.album "+
+					"WHERE t.artist = $1 "+
 					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Track{tracksUnAuth},
@@ -191,7 +191,7 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 		Id:             1,
 		Title:          "awa",
 		Year:           1,
-		ArtWork:        "awa",
+		Artwork:        "awa",
 		TracksDuration: 1,
 	}
 
@@ -207,12 +207,12 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 			id:   135,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.artwork", "a.year", "tracksDuration"})
-				rows.AddRow(album.Id, album.Title, album.ArtWork, album.Year, album.TracksDuration)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.artwork, a.year, SUM(t.duration) AS " +
-					"tracksDuration FROM albums a " +
-					"JOIN tracks t on t.album = a.id " +
-					"WHERE a.artist = $1 " +
-					"GROUP BY a.id, a.title, a.artwork, a.year " +
+				rows.AddRow(album.Id, album.Title, album.Artwork, album.Year, album.TracksDuration)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.artwork, a.year, SUM(t.duration) AS "+
+					"tracksDuration FROM albums a "+
+					"JOIN tracks t on t.album = a.id "+
+					"WHERE a.artist = $1 "+
+					"GROUP BY a.id, a.title, a.artwork, a.year "+
 					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Album{album},
@@ -223,12 +223,12 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 			id:   135,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.artwork", "a.year", "tracksDuration"})
-				rows.AddRow(album.Id, album.Title, album.ArtWork, album.Year, album.TracksDuration)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.artwork, a.year, SUM(t.duration) AS " +
-					"tracksDuration FROM albums a " +
-					"JOIN tracks t on t.album = a.id " +
-					"WHERE a.artist = $1 " +
-					"GROUP BY a.id, a.title, a.artwork, a.year " +
+				rows.AddRow(album.Id, album.Title, album.Artwork, album.Year, album.TracksDuration)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.artwork, a.year, SUM(t.duration) AS "+
+					"tracksDuration FROM albums a "+
+					"JOIN tracks t on t.album = a.id "+
+					"WHERE a.artist = $1 "+
+					"GROUP BY a.id, a.title, a.artwork, a.year "+
 					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Album{album},
@@ -240,12 +240,12 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 			mock: func() {
 				var newArg = 1
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.artwork", "a.year", "tracksDuration", "newArg"})
-				rows.AddRow(album.Id, album.Title, album.ArtWork, album.Year, album.TracksDuration, newArg)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.artwork, a.year, SUM(t.duration) AS " +
-					"tracksDuration FROM albums a " +
-					"JOIN tracks t on t.album = a.id " +
-					"WHERE a.artist = $1 " +
-					"GROUP BY a.id, a.title, a.artwork, a.year " +
+				rows.AddRow(album.Id, album.Title, album.Artwork, album.Year, album.TracksDuration, newArg)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT a.id, a.title, a.artwork, a.year, SUM(t.duration) AS "+
+					"tracksDuration FROM albums a "+
+					"JOIN tracks t on t.album = a.id "+
+					"WHERE a.artist = $1 "+
+					"GROUP BY a.id, a.title, a.artwork, a.year "+
 					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Album{album},
@@ -403,4 +403,3 @@ func TestArtistRepository_GetRandom(t *testing.T) {
 		})
 	}
 }
-

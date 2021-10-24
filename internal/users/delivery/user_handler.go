@@ -424,6 +424,33 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 
 func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("Session_cookie")
+	userID := ctx.Get("USER_ID").(int)
+	requestID := ctx.Get("REQUEST_ID").(string)
+	authErrorMessage := ctx.Get("AUTHORIZATION_ERROR").(string)
+	if userID == 0 {
+		userD.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: UserIsNotAuthorizedMessage,
+		})
+	}
+	if userID == -1 {
+		userD.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", authErrorMessage),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+		)
+
+		return ctx.JSON(http.StatusInternalServerError, &models.Response{
+			Status:  http.StatusInternalServerError,
+			Message: authErrorMessage,
+		})
+	}
 	if err != nil {
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
@@ -431,8 +458,6 @@ func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
 		})
 	}
 	token, _ := csrf.Tokens.Create(cookie.Value, 900+time.Now().Unix())
-	csrf := models.Csrf{}
-	csrf.Token = token // ?
 
 	return ctx.JSON(http.StatusOK, &models.Response{
 		Status:  http.StatusOK,

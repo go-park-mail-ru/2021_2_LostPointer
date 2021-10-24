@@ -5,7 +5,7 @@ type Album struct {
 	Title          string `json:"title"`
 	Year           int64  `json:"year"`
 	Artist         string `json:"artist,omitempty"`
-	ArtWork        string `json:"artWork"`
+	Artwork        string `json:"artwork"`
 	TracksCount    int64  `json:"tracksCount"`
 	TracksDuration int64  `json:"tracksDuration"`
 }

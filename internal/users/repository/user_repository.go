@@ -30,14 +30,14 @@ const AvatarDefaultFileName = "default_avatar"
 var ctx = context.Background()
 
 type UserRepository struct {
-	userDB 	*sql.DB
+	userDB *sql.DB
 }
 
 type RedisStore struct {
 	redisConnection *redis.Client
 }
 
-type FileSystem struct {}
+type FileSystem struct{}
 
 func NewUserRepository(db *sql.DB) UserRepository {
 	return UserRepository{userDB: db}
@@ -58,7 +58,7 @@ func GetRandomString(l int) string {
 	rand.Seed(time.Now().UnixNano())
 	bytes := make([]byte, l)
 	for i := 0; i < l; i++ {
-		bytes[i] = validCharacters[RandInt(0, len(validCharacters) - 1)]
+		bytes[i] = validCharacters[RandInt(0, len(validCharacters)-1)]
 	}
 	return string(bytes)
 }
@@ -84,8 +84,8 @@ func (Data UserRepository) CreateUser(userData models.User, customSalt ...string
 	}
 	err := Data.userDB.QueryRow(
 		`INSERT INTO users(email, password, nickname, salt, avatar) VALUES($1, $2, $3, $4, $5) RETURNING id`,
-		strings.ToLower(userData.Email), GetHash(userData.Password + salt), userData.Nickname, salt, AvatarDefaultFileName,
-		).Scan(&id)
+		strings.ToLower(userData.Email), GetHash(userData.Password+salt), userData.Nickname, salt, AvatarDefaultFileName,
+	).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -112,7 +112,7 @@ func (Data UserRepository) DoesUserExist(authData models.Auth) (uint64, error) {
 		return 0, err
 	}
 	// Не совпадает пароль
-	if GetHash(authData.Password + salt) != password {
+	if GetHash(authData.Password+salt) != password {
 		return 0, nil
 	}
 
@@ -125,6 +125,9 @@ func (Data UserRepository) IsEmailUnique(email string) (bool, error) {
 		log.Println(err)
 		return false, err
 	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 	if rows.Next() {
 		return false, nil
 	}
@@ -136,6 +139,9 @@ func (Data UserRepository) IsNicknameUnique(nickname string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 	if rows.Next() {
 		return false, nil
 	}
@@ -187,7 +193,7 @@ func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string)
 		return false, err
 	}
 	// Не совпадает пароль
-	if GetHash(oldPassword + salt) != password {
+	if GetHash(oldPassword+salt) != password {
 		return false, nil
 	}
 
@@ -219,7 +225,7 @@ func (Data UserRepository) UpdatePassword(userID int, password string, customSal
 		salt = GetRandomString(SaltLength)
 	}
 
-	err := Data.userDB.QueryRow(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`, GetHash(password + salt), salt, userID).Err()
+	err := Data.userDB.QueryRow(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`, GetHash(password+salt), salt, userID).Err()
 	if err != nil {
 		return err
 	}
@@ -240,6 +246,9 @@ func (Data UserRepository) GetAvatarFilename(userID int) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	if !rows.Next() {
 		return "", nil
@@ -297,7 +306,7 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 func (File FileSystem) DeleteImage(filename string) error {
 	// 1) Проверяем, что файл существует
 	doesFileExist := true
-	if _, err := os.Stat(filename + "_150px.webp"); os.IsNotExist(err){
+	if _, err := os.Stat(filename + "_150px.webp"); os.IsNotExist(err) {
 		doesFileExist = false
 	}
 
@@ -334,7 +343,7 @@ func (r RedisStore) GetSessionUserId(session string) (int, *models.CustomError) 
 	res, err := r.redisConnection.Get(ctx, session).Result()
 	if err != nil {
 		if err.Error() == "redis: nil" {
-			return 0, &models.CustomError{ErrorType: http.StatusUnauthorized}  // status 401
+			return 0, &models.CustomError{ErrorType: http.StatusUnauthorized} // status 401
 		} else {
 			return -1, &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err} // status 500
 		}

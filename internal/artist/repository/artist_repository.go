@@ -70,7 +70,7 @@ func (artistRepository ArtistRepository) GetAlbums(id int, amount int) ([]models
 
 	var album models.Album
 	for albumRows.Next() {
-		if err := albumRows.Scan(&album.Id, &album.Title, &album.ArtWork, &album.Year, &album.TracksDuration); err != nil {
+		if err := albumRows.Scan(&album.Id, &album.Title, &album.Artwork, &album.Year, &album.TracksDuration); err != nil {
 			return nil, err
 		}
 		albums = append(albums, album)

@@ -141,7 +141,7 @@ func TestMusicUseCase_GetAlbumsForCollection(t *testing.T) {
 		Title:          "awa",
 		Year:           1,
 		Artist:         "awa",
-		ArtWork:        "awa",
+		Artwork:        "awa",
 		TracksCount:    1,
 		TracksDuration: 1,
 	}
@@ -427,7 +427,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 		Title:          "awa",
 		Year:           1,
 		Artist:         "awa",
-		ArtWork:        "awa",
+		Artwork:        "awa",
 		TracksCount:    1,
 		TracksDuration: 1,
 	}
@@ -457,7 +457,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 		expectedError bool
 	}{
 		{
-			name: "get full collection",
+			name:         "get full collection",
 			isAuthorized: true,
 			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
@@ -517,7 +517,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "get tracks error",
+			name:         "get tracks error",
 			isAuthorized: true,
 			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
@@ -573,7 +573,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "get albums error",
+			name:         "get albums error",
 			isAuthorized: true,
 			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
@@ -629,7 +629,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "get artists error",
+			name:         "get artists error",
 			isAuthorized: true,
 			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
@@ -685,7 +685,7 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "get playlists error",
+			name:         "get playlists error",
 			isAuthorized: true,
 			dbMock: &mock.MockMusicRepository{
 				GetRandomTracksFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
@@ -754,4 +754,3 @@ func TestMusicUseCase_GetMusicCollection(t *testing.T) {
 		})
 	}
 }
-

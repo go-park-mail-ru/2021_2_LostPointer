@@ -37,7 +37,7 @@ func TestArtistDelivery_GetProfile(t *testing.T) {
 		Id:             1,
 		Title:          "awa",
 		Year:           1,
-		ArtWork:        "awa",
+		Artwork:        "awa",
 		TracksDuration: 1,
 	}
 
@@ -192,5 +192,3 @@ func TestArtistDelivery_Home(t *testing.T) {
 		})
 	}
 }
-
-

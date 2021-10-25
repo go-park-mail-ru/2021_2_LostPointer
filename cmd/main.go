@@ -5,6 +5,7 @@ import (
 	repositoryArtist "2021_2_LostPointer/internal/artist/repository"
 	usecaseArtist "2021_2_LostPointer/internal/artist/usecase"
 	middleware "2021_2_LostPointer/internal/middleware"
+	"time"
 
 	deliveryTrack "2021_2_LostPointer/internal/track/delivery"
 	repositoryTrack "2021_2_LostPointer/internal/track/repository"
@@ -95,6 +96,7 @@ func InitializeDatabase() *sql.DB {
 	if err != nil {
 		log.Fatalln("NO CONNECTION TO DATABASE", err.Error())
 	}
+	db.SetConnMaxLifetime(time.Second * 300)
 
 	return db
 }

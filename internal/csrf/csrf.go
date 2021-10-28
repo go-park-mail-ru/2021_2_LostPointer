@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +14,7 @@ import (
 var Tokens *HashToken
 
 func init() {
-	Tokens, _ = NewHMACHashToken("Rangers")
+	Tokens, _ = NewHMACHashToken("SomeSecret")
 }
 
 type HashToken struct {
@@ -28,9 +27,6 @@ func NewHMACHashToken(secret string) (*HashToken, error) {
 
 func (tk *HashToken) Create(cookie string, tokenExpTime int64) (string, error) {
 	h := hmac.New(sha256.New, tk.Secret)
-
-	log.Println("HMAC", h)
-
 	data := fmt.Sprintf("%s:%d", cookie, tokenExpTime)
 	_, err := h.Write([]byte(data))
 	if err != nil {

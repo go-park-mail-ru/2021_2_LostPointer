@@ -19,6 +19,11 @@ import (
 	repositoryPlaylist "2021_2_LostPointer/internal/playlist/repository"
 	usecasePlaylist "2021_2_LostPointer/internal/playlist/usecase"
 
+	deliveryQueue "2021_2_LostPointer/internal/queues/delivery"
+	repositoryQueue "2021_2_LostPointer/internal/queues/repository"
+	usecaseQueue "2021_2_LostPointer/internal/queues/usecase"
+
+
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis/v8"
@@ -34,8 +39,6 @@ import (
 	usecaseUser "2021_2_LostPointer/internal/users/usecase"
 )
 
-const redisDB = 1
-
 type RequestHandlers struct {
 	userHandlers       deliveryUser.UserDelivery
 	artistHandlers     deliveryArtist.ArtistDelivery
@@ -43,11 +46,12 @@ type RequestHandlers struct {
 	albumHandlers      deliveryAlbum.AlbumDelivery
 	playlistHandlers   deliveryPlaylist.PlaylistDelivery
 	middlewareHandlers middleware.Middleware
+	queueHandlers      deliveryQueue.QueueDelivery
 }
 
-func NewRequestHandler(db *sql.DB, redisConnection *redis.Client, logger *zap.SugaredLogger) *RequestHandlers {
+func NewRequestHandler(db *sql.DB, redisConnUsers *redis.Client, redisConnQueue *redis.Client, logger *zap.SugaredLogger) *RequestHandlers {
 	userDB := repositoryUser.NewUserRepository(db)
-	redisStore := repositoryUser.NewRedisStore(redisConnection)
+	redisStore := repositoryUser.NewRedisStore(redisConnUsers)
 	fileSystem := repositoryUser.NewFileSystem()
 	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore, fileSystem)
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
@@ -68,6 +72,10 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client, logger *zap.Su
 	playlistUseCase := usecasePlaylist.NewPlaylistUseCase(playlistRepo)
 	playlistHandlers := deliveryPlaylist.NewPlaylistDelivery(playlistUseCase, logger)
 
+	queueRepo := repositoryQueue.NewQueueRepository(db, redisConnQueue)
+	queueUseCase := usecaseQueue.NewQueueUseCase(queueRepo)
+	queueHandlers := deliveryQueue.NewQueueDelivery(queueUseCase, logger)
+
 	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase)
 
 	api := &(RequestHandlers{
@@ -77,6 +85,7 @@ func NewRequestHandler(db *sql.DB, redisConnection *redis.Client, logger *zap.Su
 		albumHandlers:      albumHandlers,
 		playlistHandlers:   playlistHandlers,
 		middlewareHandlers: middlewareHandlers,
+		queueHandlers: queueHandlers,
 	})
 
 	return api
@@ -101,7 +110,7 @@ func InitializeDatabase() *sql.DB {
 	return db
 }
 
-func InitializeRedis() *redis.Client {
+func InitializeRedisUsers() *redis.Client {
 	var AddrConfig string
 	if len(os.Getenv("REDIS_PORT")) == 0 {
 		AddrConfig = os.Getenv("REDIS_HOST")
@@ -109,13 +118,30 @@ func InitializeRedis() *redis.Client {
 		AddrConfig = fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
 	}
 
-	redisConnection := redis.NewClient(&redis.Options{
+	redisConnUsers := redis.NewClient(&redis.Options{
 		Addr:     AddrConfig,
 		Password: os.Getenv("REDIS_PASS"),
-		DB:       redisDB,
+		DB:       1,
 	})
 
-	return redisConnection
+	return redisConnUsers
+}
+
+func InitializeRedisQueues() *redis.Client {
+	var AddrConfig string
+	if len(os.Getenv("REDIS_PORT")) == 0 {
+		AddrConfig = os.Getenv("REDIS_HOST")
+	} else {
+		AddrConfig = fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
+	}
+
+	redisConnUsers := redis.NewClient(&redis.Options{
+		Addr:     AddrConfig,
+		Password: os.Getenv("REDIS_PASS"),
+		DB:       2,
+	})
+
+	return redisConnUsers
 }
 
 func main() {
@@ -132,20 +158,27 @@ func main() {
 			db.Close()
 		}
 	}()
-	redisConnection := InitializeRedis()
+	redisConnUsers := InitializeRedisUsers()
 	defer func() {
-		if redisConnection != nil {
-			redisConnection.Close()
+		if redisConnUsers != nil {
+			redisConnUsers.Close()
+		}
+	}()
+	redisConnQueues := InitializeRedisQueues()
+	defer func() {
+		if redisConnQueues != nil {
+			redisConnUsers.Close()
 		}
 	}()
 
-	api := NewRequestHandler(db, redisConnection, logger)
+	api := NewRequestHandler(db, redisConnUsers, redisConnQueues, logger)
 
 	api.userHandlers.InitHandlers(server)
 	api.artistHandlers.InitHandlers(server)
 	api.trackHandlers.InitHandlers(server)
 	api.albumHandlers.InitHandlers(server)
 	api.playlistHandlers.InitHandlers(server)
+	api.queueHandlers.InitHandlers(server)
 	api.middlewareHandlers.InitMiddlewareHandlers(server)
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))

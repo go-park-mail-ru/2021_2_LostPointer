@@ -766,7 +766,7 @@ func TestRedisStore_StoreSession(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successfully stored session in redis",
+			name: "Successfully stored sessions in redis",
 			mock: func() {
 				mock.ExpectSet(sessionToken, userID, time.Hour).SetVal("")
 			},
@@ -814,7 +814,7 @@ func TestRedisStore_GetSessionUserId(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "Successfully returned session",
+			name: "Successfully returned sessions",
 			mock: func() {
 				mock.ExpectGet("cookie").SetVal("1")
 			},

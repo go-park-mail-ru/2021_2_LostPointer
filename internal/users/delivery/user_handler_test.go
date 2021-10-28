@@ -495,7 +495,7 @@ func TestUserDelivery_UpdateSettings(t *testing.T) {
 			ctx := server.NewContext(req, rec)
 			ctx.Set("USER_ID", tt.input)
 			ctx.Set("REQUEST_ID", "1")
-			ctx.Set("AUTHORIZATION_ERROR", "errorxw")
+			ctx.Set("AUTHORIZATION_ERROR", "error")
 
 			r := NewUserDelivery(logger, tt.usecaseMock)
 			if assert.NoError(t, r.UpdateSettings(ctx)) {

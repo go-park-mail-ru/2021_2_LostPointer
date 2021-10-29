@@ -34,12 +34,6 @@ func (artistRepository ArtistRepository) GetTracks(id int, isAuthorized bool, am
 		"LEFT JOIN artists art ON tracks.artist = art.id "+
 		"WHERE tracks.artist = $1 "+
 		"ORDER BY tracks.listen_count LIMIT $2", id, amount)
-
-	//	artistRepository.Database.Query("SELECT t.id, t.title, explicit, file, duration, lossless, "+
-	//"alb.artwork FROM tracks t "+
-	//"LEFT JOIN albums alb ON alb.id = t.album "+
-	//"WHERE t.artist = $1 "+
-	//"ORDER BY t.listen_count LIMIT $2", id, amount)
 	if err != nil {
 		return nil, err
 	}

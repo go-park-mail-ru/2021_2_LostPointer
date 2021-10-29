@@ -80,13 +80,20 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 	repository := NewArtistRepository(db)
 
 	track := models.Track{
-		Id:       1,
-		Title:    "awa",
-		Explicit: true,
-		File:     "awa",
-		Duration: 1,
-		Lossless: true,
-		Cover:    "awa",
+		Id:          1,
+		Title:       "awa",
+		Explicit:    true,
+		Genre:       "awa",
+		Number:      1,
+		File:        "awa",
+		ListenCount: 1,
+		Duration:    1,
+		Lossless:    true,
+		Album: models.Album{
+			Id:      1,
+			Title:   "awa",
+			Artwork: "awa",
+		},
 	}
 	tracksUnAuth := track
 	tracksUnAuth.File = ""
@@ -104,29 +111,33 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 			id:           135,
 			isAuthorized: true,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"t.id", "t.title", "explicit", "file", "duration", "lossless", "alb.artwork"})
-				rows.AddRow(track.Id, track.Title, track.Explicit, track.File, track.Duration, track.Lossless, track.Cover)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, "+
-					"alb.artwork FROM tracks t "+
-					"LEFT JOIN albums alb ON alb.id = t.album "+
-					"WHERE t.artist = $1 "+
-					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork"})
+				rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks "+
+					"LEFT JOIN genres g ON tracks.genre = g.id "+
+					"LEFT JOIN albums alb ON tracks.album = alb.id "+
+					"LEFT JOIN artists art ON tracks.artist = art.id "+
+					"WHERE tracks.artist = $1 "+
+					"ORDER BY tracks.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Track{track},
 			expectedError: false,
 		},
 		{
-			name:         "get tracks with artist id  unauthorized",
+			name:         "get tracks with artist id 135 unauthorized",
 			id:           135,
 			isAuthorized: false,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"t.id", "t.title", "explicit", "file", "duration", "lossless", "alb.artwork"})
-				rows.AddRow(track.Id, track.Title, track.Explicit, track.File, track.Duration, track.Lossless, track.Cover)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, "+
-					"alb.artwork FROM tracks t "+
-					"LEFT JOIN albums alb ON alb.id = t.album "+
-					"WHERE t.artist = $1 "+
-					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork"})
+				rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks "+
+					"LEFT JOIN genres g ON tracks.genre = g.id "+
+					"LEFT JOIN albums alb ON tracks.album = alb.id "+
+					"LEFT JOIN artists art ON tracks.artist = art.id "+
+					"WHERE tracks.artist = $1 "+
+					"ORDER BY tracks.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Track{tracksUnAuth},
 			expectedError: false,
@@ -136,13 +147,15 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 			id:           135,
 			isAuthorized: false,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"t.id", "t.title", "explicit", "file", "duration", "lossless", "alb.artwork"})
-				rows.AddRow(track.Id, track.Title, track.Explicit, track.File, track.Duration, track.Lossless, track.Cover)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, "+
-					"alb.artwork FROM tracks t "+
-					"LEFT JOIN albums alb ON alb.id = t.album "+
-					"WHERE t.artist = $1 "+
-					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork"})
+				rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks "+
+					"LEFT JOIN genres g ON tracks.genre = g.id "+
+					"LEFT JOIN albums alb ON tracks.album = alb.id "+
+					"LEFT JOIN artists art ON tracks.artist = art.id "+
+					"WHERE tracks.artist = $1 "+
+					"ORDER BY tracks.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Track{tracksUnAuth},
 			expectedError: true,
@@ -153,13 +166,15 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 			isAuthorized: false,
 			mock: func() {
 				var newArg = 1
-				rows := sqlmock.NewRows([]string{"t.id", "t.title", "explicit", "file", "duration", "lossless", "alb.artwork", "newArg"})
-				rows.AddRow(track.Id, track.Title, track.Explicit, track.File, track.Duration, track.Lossless, track.Cover, newArg)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT t.id, t.title, explicit, file, duration, lossless, "+
-					"alb.artwork FROM tracks t "+
-					"LEFT JOIN albums alb ON alb.id = t.album "+
-					"WHERE t.artist = $1 "+
-					"ORDER BY t.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "newArg"})
+				rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, newArg)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks "+
+					"LEFT JOIN genres g ON tracks.genre = g.id "+
+					"LEFT JOIN albums alb ON tracks.album = alb.id "+
+					"LEFT JOIN artists art ON tracks.artist = art.id "+
+					"WHERE tracks.artist = $1 "+
+					"ORDER BY tracks.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Track{tracksUnAuth},
 			expectedError: true,

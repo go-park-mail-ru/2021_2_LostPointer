@@ -27,11 +27,19 @@ func (artistRepository ArtistRepository) Get(id int) (*models.Artist, error) {
 
 func (artistRepository ArtistRepository) GetTracks(id int, isAuthorized bool, amount int) ([]models.Track, error) {
 	var tracks []models.Track
-	trackRows, err := artistRepository.Database.Query("SELECT t.id, t.title, explicit, file, duration, lossless, "+
-		"alb.artwork FROM tracks t "+
-		"LEFT JOIN albums alb ON alb.id = t.album "+
-		"WHERE t.artist = $1 "+
-		"ORDER BY t.listen_count LIMIT $2", id, amount)
+	trackRows, err := artistRepository.Database.Query("SELECT tracks.id, tracks.title, explicit, "+
+		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks "+
+		"LEFT JOIN genres g ON tracks.genre = g.id "+
+		"LEFT JOIN albums alb ON tracks.album = alb.id "+
+		"LEFT JOIN artists art ON tracks.artist = art.id "+
+		"WHERE tracks.artist = $1 "+
+		"ORDER BY tracks.listen_count LIMIT $2", id, amount)
+
+	//	artistRepository.Database.Query("SELECT t.id, t.title, explicit, file, duration, lossless, "+
+	//"alb.artwork FROM tracks t "+
+	//"LEFT JOIN albums alb ON alb.id = t.album "+
+	//"WHERE t.artist = $1 "+
+	//"ORDER BY t.listen_count LIMIT $2", id, amount)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +49,9 @@ func (artistRepository ArtistRepository) GetTracks(id int, isAuthorized bool, am
 
 	var track models.Track
 	for trackRows.Next() {
-		if err := trackRows.Scan(&track.Id, &track.Title, &track.Explicit, &track.File, &track.Duration, &track.Lossless, &track.Cover); err != nil {
+		if err := trackRows.Scan(&track.Id, &track.Title, &track.Explicit, &track.Genre,
+			&track.Number, &track.File, &track.ListenCount, &track.Duration, &track.Lossless, &track.Album.Id,
+			&track.Album.Title, &track.Album.Artwork); err != nil {
 			return nil, err
 		}
 		if !isAuthorized {

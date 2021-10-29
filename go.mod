@@ -21,6 +21,7 @@ require (
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/hhrutter/lzw v0.0.0-20190829144645-6f07a24e8650 // indirect
 	github.com/hhrutter/tiff v0.0.0-20190829141212-736cae8d0bc7 // indirect
+	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/matryer/moq v0.2.3 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect

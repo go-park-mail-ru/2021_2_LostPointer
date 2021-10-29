@@ -8,8 +8,7 @@ import (
 type UserUseCase interface {
 	Register(models.User) (string, *models.CustomError)
 	Login(models.Auth) (string, *models.CustomError)
-	IsAuthorized(string) (bool, int, *models.CustomError)
-	Logout(string)
+	Logout(string) error
 	GetSettings(int) (*models.SettingsGet, *models.CustomError)
 	UpdateSettings(int, *models.SettingsGet, *models.SettingsUpload) *models.CustomError
 	GetAvatarFilename(int) (string, *models.CustomError)

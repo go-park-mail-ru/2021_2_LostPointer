@@ -4,8 +4,7 @@ import (
 	deliveryArtist "2021_2_LostPointer/internal/artist/delivery"
 	repositoryArtist "2021_2_LostPointer/internal/artist/repository"
 	usecaseArtist "2021_2_LostPointer/internal/artist/usecase"
-	middleware "2021_2_LostPointer/internal/middleware"
-	"time"
+	"2021_2_LostPointer/internal/middleware"
 
 	deliveryTrack "2021_2_LostPointer/internal/track/delivery"
 	repositoryTrack "2021_2_LostPointer/internal/track/repository"
@@ -23,6 +22,11 @@ import (
 	repositoryQueue "2021_2_LostPointer/internal/queues/repository"
 	usecaseQueue "2021_2_LostPointer/internal/queues/usecase"
 
+	deliveryUser "2021_2_LostPointer/internal/users/delivery"
+	repositoryUser "2021_2_LostPointer/internal/users/repository"
+	usecaseUser "2021_2_LostPointer/internal/users/usecase"
+
+	authorizationMicro "2021_2_LostPointer/internal/microservices/authorization/delivery"
 
 	"database/sql"
 	"fmt"
@@ -31,12 +35,10 @@ import (
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc"
 	"log"
 	"os"
-
-	deliveryUser "2021_2_LostPointer/internal/users/delivery"
-	repositoryUser "2021_2_LostPointer/internal/users/repository"
-	usecaseUser "2021_2_LostPointer/internal/users/usecase"
+	"time"
 )
 
 type RequestHandlers struct {
@@ -49,11 +51,13 @@ type RequestHandlers struct {
 	queueHandlers      deliveryQueue.QueueDelivery
 }
 
-func NewRequestHandler(db *sql.DB, redisConnUsers *redis.Client, redisConnQueue *redis.Client, logger *zap.SugaredLogger) *RequestHandlers {
+func NewRequestHandler(db *sql.DB, redisConnUsers *redis.Client, redisConnQueue *redis.Client, logger *zap.SugaredLogger,
+	sessionChecker authorizationMicro.SessionCheckerClient) *RequestHandlers {
+
 	userDB := repositoryUser.NewUserRepository(db)
 	redisStore := repositoryUser.NewRedisStore(redisConnUsers)
 	fileSystem := repositoryUser.NewFileSystem()
-	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore, fileSystem)
+	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore, fileSystem, sessionChecker)
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
 
 	artistRepo := repositoryArtist.NewArtistRepository(db)
@@ -76,7 +80,7 @@ func NewRequestHandler(db *sql.DB, redisConnUsers *redis.Client, redisConnQueue 
 	queueUseCase := usecaseQueue.NewQueueUseCase(queueRepo)
 	queueHandlers := deliveryQueue.NewQueueDelivery(queueUseCase, logger)
 
-	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase)
+	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase, sessionChecker)
 
 	api := &(RequestHandlers{
 		userHandlers:       userHandlers,
@@ -144,6 +148,27 @@ func InitializeRedisQueues() *redis.Client {
 	return redisConnUsers
 }
 
+func LoadMicroservices(server *echo.Echo) (authorizationMicro.SessionCheckerClient, []*grpc.ClientConn) {
+	connections := make([]*grpc.ClientConn, 0)
+
+	authPORT := os.Getenv("AUTH_PORT")
+	log.Println("AUTH_PORT", authPORT)
+
+	authConn, err := grpc.Dial(
+		"127.0.0.1:"+authPORT,
+		grpc.WithInsecure(),
+	)
+	connections = append(connections, authConn)
+
+	if err != nil {
+		server.Logger.Fatal("cant connect to grpc")
+	}
+
+	authorizationManager := authorizationMicro.NewSessionCheckerClient(authConn)
+
+	return authorizationManager, connections
+}
+
 func main() {
 	server := echo.New()
 	config := zap.NewDevelopmentConfig()
@@ -171,7 +196,16 @@ func main() {
 		}
 	}()
 
-	api := NewRequestHandler(db, redisConnUsers, redisConnQueues, logger)
+	auth, conn := LoadMicroservices(server)
+	defer func() {
+		if len(conn) > 0 {
+			for i, _ := range conn {
+				conn[i].Close()
+			}
+		}
+	}()
+
+	api := NewRequestHandler(db, redisConnUsers, redisConnQueues, logger, auth)
 
 	api.userHandlers.InitHandlers(server)
 	api.artistHandlers.InitHandlers(server)

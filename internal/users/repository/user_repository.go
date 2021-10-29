@@ -14,9 +14,7 @@ import (
 	"log"
 	"math/rand"
 	"mime/multipart"
-	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -74,8 +72,8 @@ func GetHash(str string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (Data UserRepository) CreateUser(userData models.User, customSalt ...string) (uint64, error) {
-	var id uint64
+func (Data UserRepository) CreateUser(userData *models.User, customSalt ...string) (int, error) {
+	var id int
 	var salt string
 
 	if len(customSalt) != 0 {
@@ -94,8 +92,8 @@ func (Data UserRepository) CreateUser(userData models.User, customSalt ...string
 	return id, nil
 }
 
-func (Data UserRepository) DoesUserExist(authData models.Auth) (uint64, error) {
-	var id uint64
+func (Data UserRepository) DoesUserExist(authData *models.Auth) (int, error) {
+	var id int
 	var password, salt string
 
 	rows, err := Data.userDB.Query(`SELECT id, password, salt FROM users WHERE email=$1`, authData.Email)
@@ -338,24 +336,4 @@ func (r RedisStore) StoreSession(userID uint64, customSessionToken ...string) (s
 		return "", err
 	}
 	return sessionToken, nil
-}
-
-func (r RedisStore) GetSessionUserId(session string) (int, *models.CustomError) {
-	res, err := r.redisConnection.Get(ctx, session).Result()
-	if err != nil {
-		if err.Error() == "redis: nil" {
-			return 0, &models.CustomError{ErrorType: http.StatusUnauthorized} // status 401
-		} else {
-			return -1, &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err} // status 500
-		}
-	}
-	id, err := strconv.Atoi(res)
-	if err != nil {
-		return -1, &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err} // status 500
-	}
-	return id, nil
-}
-
-func (r RedisStore) DeleteSession(cookieValue string) {
-	r.redisConnection.Del(ctx, cookieValue)
 }

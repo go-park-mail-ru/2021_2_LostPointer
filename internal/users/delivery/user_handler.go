@@ -13,7 +13,6 @@ import (
 const cookieLifetime = time.Hour * 24 * 30
 
 const UserIsNotAuthorizedMessage = "User is not authorized"
-const UserIsAuthorizedMessage = "User is authorized"
 const LoggedOutMessage = "Logged out"
 const SettingsUploadedMessage = "Settings were uploaded successfully"
 const UserCreatedMessage = "User was created successfully"

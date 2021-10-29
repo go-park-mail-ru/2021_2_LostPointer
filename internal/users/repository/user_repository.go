@@ -26,6 +26,7 @@ const SessionTokenLength = 40
 const AvatarWidthBig = 500
 const AvatarWidthLittle = 150
 const AvatarDefaultFileName = "default_avatar"
+const SessionLifetime = 24 * 30 * time.Hour
 
 var ctx = context.Background()
 
@@ -332,7 +333,7 @@ func (r RedisStore) StoreSession(userID uint64, customSessionToken ...string) (s
 	} else {
 		sessionToken = GetRandomString(SessionTokenLength)
 	}
-	err := r.redisConnection.Set(ctx, sessionToken, userID, time.Hour).Err()
+	err := r.redisConnection.Set(ctx, sessionToken, userID, SessionLifetime).Err()
 	if err != nil {
 		return "", err
 	}

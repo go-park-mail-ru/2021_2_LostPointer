@@ -120,10 +120,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 			)
 
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: customError.OriginalError.Error(),
-			})
+			return ctx.NoContent(http.StatusInternalServerError)
 		} else if customError.ErrorType == http.StatusBadRequest {
 			userD.logger.Info(
 				zap.String("ID", requestID),

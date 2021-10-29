@@ -64,7 +64,7 @@ func (authU AuthorizationUseCase) SignIn(ctx context.Context, auth *session.Auth
 
 	err = authU.sessionsDB.CreateSession(userID, currentSession.Cookies)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, "")
 	}
 
 	return currentSession, nil

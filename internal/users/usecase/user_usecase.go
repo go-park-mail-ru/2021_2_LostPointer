@@ -6,7 +6,8 @@ import (
 	"2021_2_LostPointer/internal/users"
 	"2021_2_LostPointer/internal/utils/validation"
 	"context"
-	"log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"net/http"
 	"os"
 	"regexp"
@@ -56,7 +57,14 @@ func (userR UserUseCase) Register(userData models.User) (string, *models.CustomE
 	})
 
 	if err != nil {
-		return "", &models.CustomError{ErrorType: http.StatusBadRequest, Message: err.Error()}
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.Aborted:
+				return "", &models.CustomError{ErrorType: http.StatusBadRequest, Message: e.Message()}
+			case codes.Internal:
+				return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
+			}
+		}
 	}
 
 	return cookie.Cookies, nil
@@ -68,8 +76,14 @@ func (userR UserUseCase) Login(authData models.Auth) (string, *models.CustomErro
 		Password: authData.Password,
 	})
 	if err != nil {
-		log.Println(err)
-		return "", &models.CustomError{ErrorType: http.StatusBadRequest, Message: err.Error()}
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.Aborted:
+				return "", &models.CustomError{ErrorType: http.StatusBadRequest, Message: e.Message()}
+			case codes.Internal:
+				return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
+			}
+		}
 	}
 
 	return cookie.Cookies, nil

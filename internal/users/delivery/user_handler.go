@@ -44,7 +44,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 		})
 	}
 
-	sessionToken, customError := userD.userLogic.Register(userData)
+	cookieValue, customError := userD.userLogic.Register(userData)
 	if customError != nil {
 		if customError.ErrorType == http.StatusInternalServerError {
 			userD.logger.Error(
@@ -73,7 +73,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 
 	cookie := &http.Cookie{
 		Name:     "Session_cookie",
-		Value:    sessionToken,
+		Value:    cookieValue,
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
@@ -111,7 +111,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 		})
 	}
 
-	sessionToken, customError := userD.userLogic.Login(authData)
+	cookieValue, customError := userD.userLogic.Login(authData)
 	if customError != nil {
 		if customError.ErrorType == http.StatusInternalServerError {
 			userD.logger.Error(
@@ -140,7 +140,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 
 	cookie := &http.Cookie{
 		Name:     "Session_cookie",
-		Value:    sessionToken,
+		Value:    cookieValue,
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
@@ -160,49 +160,9 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 	})
 }
 
-func (userD UserDelivery) IsAuthorized(ctx echo.Context) error {
-	cookie, err := ctx.Cookie("Session_cookie")
+func (userD UserDelivery) GetAvatarForMainPage(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
-	if err != nil {
-		userD.logger.Info(
-			zap.String("ID", requestID),
-			zap.String("ERROR", UserIsNotAuthorizedMessage),
-			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
-		)
-
-		return ctx.JSON(http.StatusOK, &models.Response{
-			Status:  http.StatusUnauthorized,
-			Message: UserIsNotAuthorizedMessage,
-		})
-	}
-
-	_, userID, customError := userD.userLogic.IsAuthorized(cookie.Value)
-	if customError != nil {
-		if customError.ErrorType == http.StatusInternalServerError {
-			userD.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", customError.OriginalError.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: customError.OriginalError.Error(),
-			})
-		}
-		if customError.ErrorType == http.StatusUnauthorized {
-			userD.logger.Info(
-				zap.String("ID", requestID),
-				zap.String("ERROR", UserIsNotAuthorizedMessage),
-				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
-			)
-
-			return ctx.JSON(http.StatusOK, &models.Response{
-				Status:  http.StatusUnauthorized,
-				Message: UserIsNotAuthorizedMessage,
-			})
-		}
-	}
+	userID := ctx.Get("USER_ID").(int)
 
 	avatarFilename, customError := userD.userLogic.GetAvatarFilename(userID)
 	if customError != nil {
@@ -248,7 +208,17 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 		})
 	}
 
-	userD.userLogic.Logout(cookie.Value)
+	err = userD.userLogic.Logout(cookie.Value)
+	if err != nil {
+		userD.logger.Debug(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusConflict),
+		)
+
+		return ctx.NoContent(http.StatusConflict)
+	}
+
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
 	ctx.SetCookie(cookie)
 
@@ -266,8 +236,7 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
 	userID := ctx.Get("USER_ID").(int)
-	authErrorMessage := ctx.Get("AUTHORIZATION_ERROR").(string)
-	if userID == 0 { // 401
+	if userID == -1 {
 		userD.logger.Info(
 			zap.String("ID", requestID),
 			zap.String("ERROR", UserIsNotAuthorizedMessage),
@@ -277,18 +246,6 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: UserIsNotAuthorizedMessage,
-		})
-	}
-	if userID == -1 { // 500
-		userD.logger.Error(
-			zap.String("ID", requestID),
-			zap.String("ERROR", authErrorMessage),
-			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-		)
-
-		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status:  http.StatusInternalServerError,
-			Message: authErrorMessage,
 		})
 	}
 
@@ -319,8 +276,7 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 	userID := ctx.Get("USER_ID").(int)
 	requestID := ctx.Get("REQUEST_ID").(string)
-	authErrorMessage := ctx.Get("AUTHORIZATION_ERROR").(string)
-	if userID == 0 {
+	if userID == -1 {
 		userD.logger.Info(
 			zap.String("ID", requestID),
 			zap.String("ERROR", UserIsNotAuthorizedMessage),
@@ -330,18 +286,6 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: UserIsNotAuthorizedMessage,
-		})
-	}
-	if userID == -1 {
-		userD.logger.Error(
-			zap.String("ID", requestID),
-			zap.String("ERROR", authErrorMessage),
-			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-		)
-
-		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status:  http.StatusInternalServerError,
-			Message: authErrorMessage,
 		})
 	}
 
@@ -422,11 +366,9 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 }
 
 func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
-	cookie, err := ctx.Cookie("Session_cookie")
 	userID := ctx.Get("USER_ID").(int)
 	requestID := ctx.Get("REQUEST_ID").(string)
-	authErrorMessage := ctx.Get("AUTHORIZATION_ERROR").(string)
-	if userID == 0 {
+	if userID == -1  {
 		userD.logger.Info(
 			zap.String("ID", requestID),
 			zap.String("ERROR", UserIsNotAuthorizedMessage),
@@ -438,24 +380,7 @@ func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
 			Message: UserIsNotAuthorizedMessage,
 		})
 	}
-	if userID == -1 {
-		userD.logger.Error(
-			zap.String("ID", requestID),
-			zap.String("ERROR", authErrorMessage),
-			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-		)
-
-		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status:  http.StatusInternalServerError,
-			Message: authErrorMessage,
-		})
-	}
-	if err != nil {
-		return ctx.JSON(http.StatusOK, &models.Response{
-			Status:  http.StatusUnauthorized,
-			Message: UserIsNotAuthorizedMessage,
-		})
-	}
+	cookie, _ := ctx.Cookie("Session_cookie")
 	token, _ := csrf.Tokens.Create(cookie.Value, 900+time.Now().Unix())
 
 	return ctx.JSON(http.StatusOK, &models.Response{
@@ -468,7 +393,7 @@ func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/signup", userD.Register)
 	server.POST("/api/v1/user/signin", userD.Login)
 	server.POST("/api/v1/user/logout", userD.Logout)
-	server.GET("/api/v1/auth", userD.IsAuthorized)
+	server.GET("/api/v1/auth", userD.GetAvatarForMainPage)
 	server.GET("/api/v1/user/settings", userD.GetSettings)
 	server.GET("api/v1/csrf", userD.GetCsrf)
 	server.PATCH("/api/v1/user/settings", userD.UpdateSettings)

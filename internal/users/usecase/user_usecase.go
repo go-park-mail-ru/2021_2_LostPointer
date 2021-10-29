@@ -1,8 +1,11 @@
 package usecase
 
 import (
+	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
+	"2021_2_LostPointer/internal/utils/validation"
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -22,157 +25,65 @@ const NickNameValidationInvalidLengthMessage = "The length of nickname must be f
 const InvalidEmailMessage = "Invalid email"
 const NotUniqueEmailMessage = "Email is not unique"
 const NotUniqueNicknameMessage = "Nickname is not unique"
-const WrongCredentialsMessage = "Wrong email or password"
-const OldPasswordFieldIsEmptyMessage = "Old password field is empty"
+	const OldPasswordFieldIsEmptyMessage = "Old password field is empty"
 const NewPasswordFieldIsEmptyMessage = "New password field is empty"
 const WrongPasswordMessage = "Wrong password"
 
 const EmailRegexPattern = `[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`
 
 type UserUseCase struct {
-	userDB	   users.UserRepository
-	redisStore users.RedisStore
-	fileSystem users.FileSystem
+	userDB	   	   users.UserRepository
+	redisStore 	   users.RedisStore
+	fileSystem 	   users.FileSystem
+	sessionChecker session.SessionCheckerClient
 }
 
-func NewUserUserCase(userDB users.UserRepository, redisStore users.RedisStore, fileSystem users.FileSystem) UserUseCase {
+func NewUserUserCase(userDB users.UserRepository, redisStore users.RedisStore, fileSystem users.FileSystem,
+	sessionChecker session.SessionCheckerClient) UserUseCase {
 	return UserUseCase{
 		userDB: userDB,
 		redisStore: redisStore,
 		fileSystem: fileSystem,
+		sessionChecker: sessionChecker,
 	}
-}
-
-func ValidatePassword(password string) (bool, string, error) {
-	patterns := map[string]string {
-		`^.{` + passwordRequiredLength + `,}$`: PasswordValidationInvalidLengthMessage,
-		`[0-9]`: PasswordValidationNoDigitMessage,
-		`[A-Z]`: PasswordValidationNoUppercaseMessage,
-		`[a-z]`: PasswordValidationNoLowerCaseMessage,
-		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: PasswordValidationNoSpecialSymbolMessage,
-
-	}
-
-	for pattern, errorMessage := range patterns {
-		isValid, err := regexp.MatchString(pattern, password)
-		if err != nil {
-			return false, "", err
-		}
-		if !isValid {
-			return false, errorMessage, err
-		}
-	}
-
-	return true, "", nil
-}
-
-func ValidateRegisterCredentials(userData models.User) (bool, string, error) {
-	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + minNicknameLength + `,` + maxNicknameLength + `}$`, userData.Nickname)
-	if err != nil {
-		return false, "", err
-	}
-	if !isNicknameValid {
-		return false, NickNameValidationInvalidLengthMessage, nil
-	}
-
-	isEmailValid, err := regexp.MatchString(EmailRegexPattern, userData.Email)
-	if err != nil {
-		return false, "", err
-	}
-	if !isEmailValid {
-		return false, InvalidEmailMessage, nil
-	}
-
-	passwordValid, message, err := ValidatePassword(userData.Password)
-	if err != nil {
-		return false, "", err
-	}
-	if !passwordValid {
-		return false, message, nil
-	}
-
-	return true, "", nil
 }
 
 func (userR UserUseCase) Register(userData models.User) (string, *models.CustomError) {
-	// 1) Проверка email и nickname на уникальность
-	isEmailUnique, err := userR.userDB.IsEmailUnique(userData.Email)
+	cookie, err := userR.sessionChecker.Signup(context.Background(), &session.SignUpData{
+		Email: userData.Email,
+		Password: userData.Password,
+		Nickname: userData.Nickname,
+	})
+
 	if err != nil {
-		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
-	}
-	if !isEmailUnique {
-		return "", &models.CustomError{ErrorType: http.StatusBadRequest, OriginalError: nil, Message: NotUniqueEmailMessage}
-	}
-	isNicknameUnique, err := userR.userDB.IsNicknameUnique(userData.Nickname)
-	if err != nil {
-		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
-	}
-	if !isNicknameUnique {
-		return "", &models.CustomError{ErrorType: http.StatusBadRequest, OriginalError: nil, Message: NotUniqueNicknameMessage}
+		return "", &models.CustomError{ErrorType: http.StatusBadRequest, Message: err.Error()}
 	}
 
-	// 2) Валидация данных (email, nickname, password)
-	isValidCredentials, msg, err := ValidateRegisterCredentials(userData)
-	if err != nil {
-		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
-	}
-	if !isValidCredentials {
-		return "", &models.CustomError{ErrorType: http.StatusBadRequest, OriginalError: nil, Message: msg}
-	}
-
-	// 3) Создание пользователя в базе
-	userID, err := userR.userDB.CreateUser(userData)
-	if err != nil {
-		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
-	}
-
-	// 4) Создание сессии в Redis
-	sessionToken, err := userR.redisStore.StoreSession(userID)
-	if err != nil {
-		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
-	}
-
-	return sessionToken, nil
+	return cookie.Cookies, nil
 }
 
 func (userR UserUseCase) Login(authData models.Auth) (string, *models.CustomError) {
-	// 1) Проверка что пользователь существует в базе
-	userID, err := userR.userDB.DoesUserExist(authData)
+	cookie, err := userR.sessionChecker.SignIn(context.Background(), &session.Auth{
+		Login: authData.Email,
+		Password: authData.Password,
+	})
 	if err != nil {
-		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
-	}
-	if userID == 0 {
-		return "", &models.CustomError{ErrorType: http.StatusBadRequest, OriginalError: nil, Message: WrongCredentialsMessage}
+		log.Println(err)
+		return "", &models.CustomError{ErrorType: http.StatusBadRequest, Message: err.Error()}
 	}
 
-	log.Println("OK")
-
-	// 2) Создание сессии в Redis
-	sessionToken, err := userR.redisStore.StoreSession(userID)
-	if err != nil {
-		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
-	}
-
-	log.Println(sessionToken)
-
-	return sessionToken, nil
+	return cookie.Cookies, nil
 }
 
-func (userR UserUseCase) IsAuthorized(cookieValue string) (bool, int, *models.CustomError) {
-	// 1) Получаем id пользователя по сессии
-	id, customError := userR.redisStore.GetSessionUserId(cookieValue)
-	if customError != nil {
-		return false, id, customError
-	}
-	return true, id, nil
-}
+func (userR UserUseCase) Logout(cookieValue string) error {
+	_, err := userR.sessionChecker.DeleteSession(context.Background(), &session.SessionData{
+		Cookies: cookieValue,
+	})
 
-func (userR UserUseCase) Logout(cookieValue string) {
-	userR.redisStore.DeleteSession(cookieValue)
+	return err
 }
 
 func (userR UserUseCase) GetSettings(userID int) (*models.SettingsGet, *models.CustomError) {
-	// 1) Получаем настройки пользователя из базы по его ID
 	settings, err := userR.userDB.GetSettings(userID)
 	if err != nil {
 		return nil,  &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -236,8 +147,6 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 		}
 	}
 
-	log.Println(len(newSettings.OldPassword), len(newSettings.NewPassword))
-
 	// 3) Проверяем, что изменили пароль
 	if len(newSettings.OldPassword) != 0 && len(newSettings.NewPassword) != 0 {
 		// 3.1) Проверка, что старый пароль введен правильно
@@ -250,7 +159,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 		}
 
 		// 3.2) Валидация нового пароля
-		isNewPasswordValid, msg, err := ValidatePassword(newSettings.NewPassword)
+		isNewPasswordValid, msg, err := validation.ValidatePassword(newSettings.NewPassword)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}

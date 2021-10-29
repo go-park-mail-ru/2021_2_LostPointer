@@ -9,6 +9,7 @@ import (
 	"github.com/chai2010/webp"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"github.com/kennygrant/sanitize"
 	"github.com/sunshineplan/imgconv"
 	"io"
 	"log"
@@ -82,9 +83,11 @@ func (Data UserRepository) CreateUser(userData models.User, customSalt ...string
 	} else {
 		salt = GetRandomString(SaltLength)
 	}
+
+	sanitizedData := sanitizeUserData(userData)
 	err := Data.userDB.QueryRow(
 		`INSERT INTO users(email, password, nickname, salt, avatar) VALUES($1, $2, $3, $4, $5) RETURNING id`,
-		strings.ToLower(userData.Email), GetHash(userData.Password+salt), userData.Nickname, salt, AvatarDefaultFileName,
+		strings.ToLower(sanitizedData.Email), GetHash(sanitizedData.Password+salt), sanitizedData.Nickname, salt, AvatarDefaultFileName,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -201,7 +204,8 @@ func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string)
 }
 
 func (Data UserRepository) UpdateEmail(userID int, email string) error {
-	err := Data.userDB.QueryRow(`UPDATE users SET email=$1 WHERE id=$2`, strings.ToLower(email), userID).Err()
+	sanitizedEmail := sanitizeEmail(email)
+	err := Data.userDB.QueryRow(`UPDATE users SET email=$1 WHERE id=$2`, strings.ToLower(sanitizedEmail), userID).Err()
 	if err != nil {
 		return err
 	}
@@ -209,7 +213,8 @@ func (Data UserRepository) UpdateEmail(userID int, email string) error {
 }
 
 func (Data UserRepository) UpdateNickname(userID int, nickname string) error {
-	err := Data.userDB.QueryRow(`UPDATE users SET nickname=$1 WHERE id=$2`, nickname, userID).Err()
+	sanitizedNickname := sanitizeNickname(nickname)
+	err := Data.userDB.QueryRow(`UPDATE users SET nickname=$1 WHERE id=$2`, sanitizedNickname, userID).Err()
 	if err != nil {
 		return err
 	}
@@ -234,7 +239,9 @@ func (Data UserRepository) UpdatePassword(userID int, password string, customSal
 
 func (Data UserRepository) UpdateAvatar(userID int, fileName string) error {
 	log.Println(fileName)
-	err := Data.userDB.QueryRow(`UPDATE users SET avatar=$1 WHERE id=$2`, fileName, userID).Err()
+
+	sanitizedEmail := sanitizeFileName(fileName)
+	err := Data.userDB.QueryRow(`UPDATE users SET avatar=$1 WHERE id=$2`, sanitizedEmail, userID).Err()
 	if err != nil {
 		return err
 	}
@@ -357,4 +364,26 @@ func (r RedisStore) GetSessionUserId(session string) (int, *models.CustomError) 
 
 func (r RedisStore) DeleteSession(cookieValue string) {
 	r.redisConnection.Del(ctx, cookieValue)
+}
+
+func sanitizeUserData(userData models.User) models.User {
+	var sanitizedData models.User
+
+	sanitizedData.Nickname = sanitize.HTML(userData.Nickname)
+	sanitizedData.Email = sanitize.HTML(userData.Email)
+	sanitizedData.Password = sanitize.HTML(userData.Password)
+
+	return sanitizedData
+}
+
+func sanitizeEmail(email string) string {
+	return sanitize.HTML(email)
+}
+
+func sanitizeNickname(nickname string) string {
+	return sanitize.HTML(nickname)
+}
+
+func sanitizeFileName(fileName string) string {
+	return sanitize.HTML(fileName)
 }

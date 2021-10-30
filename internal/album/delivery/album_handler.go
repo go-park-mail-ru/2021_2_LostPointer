@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-const NoArtists = "No albums"
+const NoArtists = "No artists"
 const SelectionLimit = 4
 
 type AlbumDelivery struct {

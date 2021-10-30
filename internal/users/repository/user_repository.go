@@ -240,8 +240,7 @@ func (Data UserRepository) UpdatePassword(userID int, password string, customSal
 func (Data UserRepository) UpdateAvatar(userID int, fileName string) error {
 	log.Println(fileName)
 
-	sanitizedEmail := sanitizeFileName(fileName)
-	err := Data.userDB.QueryRow(`UPDATE users SET avatar=$1 WHERE id=$2`, sanitizedEmail, userID).Err()
+	err := Data.userDB.QueryRow(`UPDATE users SET avatar=$1 WHERE id=$2`, fileName, userID).Err()
 	if err != nil {
 		return err
 	}
@@ -371,7 +370,7 @@ func sanitizeUserData(userData models.User) models.User {
 
 	sanitizedData.Nickname = sanitize.HTML(userData.Nickname)
 	sanitizedData.Email = sanitize.HTML(userData.Email)
-	sanitizedData.Password = sanitize.HTML(userData.Password)
+	sanitizedData.Password = userData.Password
 
 	return sanitizedData
 }
@@ -382,8 +381,4 @@ func sanitizeEmail(email string) string {
 
 func sanitizeNickname(nickname string) string {
 	return sanitize.HTML(nickname)
-}
-
-func sanitizeFileName(fileName string) string {
-	return sanitize.HTML(fileName)
 }

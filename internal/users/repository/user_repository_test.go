@@ -893,7 +893,7 @@ func TestSanitizeUserData(t *testing.T) {
 	dangData := models.User{
 		Nickname: "<script>nickname</script>",
 		Email: "<script>email</script>",
-		Password: "<script>password</script>",
+		Password: "password",
 	}
 	result := sanitizeUserData(dangData)
 	expected := models.User{
@@ -917,14 +917,6 @@ func TestSanitizeNickname(t *testing.T) {
 	dangEmail := "<script>nickname</script>"
 	result := sanitizeNickname(dangEmail)
 	expected := "nickname"
-
-	assert.Equal(t, expected, result)
-}
-
-func TestSanitizeFileName(t *testing.T) {
-	dangEmail := "<script>fileName</script>"
-	result := sanitizeFileName(dangEmail)
-	expected := "fileName"
 
 	assert.Equal(t, expected, result)
 }

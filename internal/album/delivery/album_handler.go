@@ -3,13 +3,11 @@ package delivery
 import (
 	"2021_2_LostPointer/internal/album"
 	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/utils/constants"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 	"net/http"
 )
-
-const NoArtists = "No artists"
-const SelectionLimit = 4
 
 type AlbumDelivery struct {
 	AlbumUseCase album.AlbumUseCase
@@ -23,7 +21,7 @@ func NewAlbumDelivery(albumUseCase album.AlbumUseCase, logger *zap.SugaredLogger
 func (albumDelivery AlbumDelivery) Home(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
 
-	artists, err := albumDelivery.AlbumUseCase.GetHome(SelectionLimit)
+	artists, err := albumDelivery.AlbumUseCase.GetHome(constants.AlbumCollectionLimit)
 	if err != nil {
 		albumDelivery.Logger.Error(
 			zap.String("ID", requestID),
@@ -32,7 +30,7 @@ func (albumDelivery AlbumDelivery) Home(ctx echo.Context) error {
 		)
 		return ctx.JSON(http.StatusInternalServerError, models.Response{
 			Status:  http.StatusInternalServerError,
-			Message: NoArtists},
+			Message: constants.NoArtists},
 		)
 	}
 

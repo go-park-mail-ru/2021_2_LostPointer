@@ -3,10 +3,9 @@ package usecase
 import (
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/track"
+	"2021_2_LostPointer/internal/utils/constants"
 	"net/http"
 )
-
-const DatabaseNotResponding = "Database not responding"
 
 type TrackUseCase struct {
 	TrackRepository track.TrackRepository
@@ -22,7 +21,7 @@ func (trackUseCase TrackUseCase) GetHome(amount int, isAuthorized bool) ([]model
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
 			OriginalError: err,
-			Message:       DatabaseNotResponding,
+			Message:       constants.DatabaseNotResponding,
 		}
 	}
 

@@ -3,11 +3,11 @@ package usecase
 import (
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/playlist"
+	"2021_2_LostPointer/internal/utils/constants"
 	"net/http"
 )
 
-const DatabaseNotResponding = "Database not responding"
-const SiteID = 0
+
 
 type PlaylistUseCase struct {
 	PlaylistRepository playlist.PlaylistRepository
@@ -18,12 +18,12 @@ func NewPlaylistUseCase(playlistRepository playlist.PlaylistRepository) Playlist
 }
 
 func (playlistUseCase PlaylistUseCase) GetHome(amount int) ([]models.Playlist, *models.CustomError) {
-	playlists, err := playlistUseCase.PlaylistRepository.Get(amount, SiteID)
+	playlists, err := playlistUseCase.PlaylistRepository.Get(amount, constants.SiteID)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
 			OriginalError: err,
-			Message:       DatabaseNotResponding,
+			Message:       constants.DatabaseNotResponding,
 		}
 	}
 

@@ -43,7 +43,7 @@ func (middleware Middleware) CheckAuthorization(next echo.HandlerFunc) echo.Hand
 		}
 
 		if err == nil {
-			userID, err = middleware.sessionChecker.CheckSession(context.Background(), &session.SessionData{
+			userID, err = middleware.sessionChecker.GetUserBySession(context.Background(), &session.SessionData{
 				Cookies: cookie.Value,
 			})
 		}

@@ -2,30 +2,18 @@ package validation
 
 import (
 	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/utils/constants"
 	"regexp"
 )
 
-const passwordRequiredLength = "8"
-const minNicknameLength = "3"
-const maxNicknameLength = "15"
-
-const PasswordValidationInvalidLengthMessage = "Password must contain at least " + passwordRequiredLength + " characters"
-const PasswordValidationNoDigitMessage = "Password must contain at least one digit"
-const PasswordValidationNoUppercaseMessage = "Password must contain at least one uppercase letter"
-const PasswordValidationNoLowerCaseMessage = "Password must contain at least one lowercase letter"
-const PasswordValidationNoSpecialSymbolMessage = "Password must contain as least one special character"
-const NickNameValidationInvalidLengthMessage = "The length of nickname must be from " + minNicknameLength + " to " + maxNicknameLength + " characters"
-const InvalidEmailMessage = "Invalid email"
-
-const EmailRegexPattern = `[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`
 
 func ValidatePassword(password string) (bool, string, error) {
 	patterns := map[string]string {
-		`^.{` + passwordRequiredLength + `,}$`: PasswordValidationInvalidLengthMessage,
-		`[0-9]`:                                PasswordValidationNoDigitMessage,
-		`[A-Z]`:                                PasswordValidationNoUppercaseMessage,
-		`[a-z]`:                                PasswordValidationNoLowerCaseMessage,
-		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: PasswordValidationNoSpecialSymbolMessage,
+		`^.{` + constants.PasswordRequiredLength + `,}$`: constants.PasswordValidationInvalidLengthMessage,
+		`[0-9]`: constants.PasswordValidationNoDigitMessage,
+		`[A-Z]`: constants.PasswordValidationNoUppercaseMessage,
+		`[a-z]`: constants.PasswordValidationNoLowerCaseMessage,
+		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: constants.PasswordValidationNoSpecialSymbolMessage,
 
 	}
 
@@ -43,20 +31,20 @@ func ValidatePassword(password string) (bool, string, error) {
 }
 
 func ValidateRegisterCredentials(userData *models.User) (bool, string, error) {
-	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` +minNicknameLength+ `,` +maxNicknameLength+ `}$`, userData.Nickname)
+	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + constants.MinNicknameLength+ `,` + constants.MaxNicknameLength+ `}$`, userData.Nickname)
 	if err != nil {
 		return false, "", err
 	}
 	if !isNicknameValid {
-		return false, NickNameValidationInvalidLengthMessage, nil
+		return false, constants.NickNameValidationInvalidLengthMessage, nil
 	}
 
-	isEmailValid, err := regexp.MatchString(EmailRegexPattern, userData.Email)
+	isEmailValid, err := regexp.MatchString(constants.EmailRegexPattern, userData.Email)
 	if err != nil {
 		return false, "", err
 	}
 	if !isEmailValid {
-		return false, InvalidEmailMessage, nil
+		return false, constants.InvalidEmailMessage, nil
 	}
 
 	passwordValid, message, err := ValidatePassword(userData.Password)

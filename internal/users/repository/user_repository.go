@@ -2,12 +2,11 @@ package repository
 
 import (
 	"2021_2_LostPointer/internal/models"
-	"context"
+	"2021_2_LostPointer/internal/utils/constants"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
 	"github.com/chai2010/webp"
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/sunshineplan/imgconv"
 	"io"
@@ -19,33 +18,14 @@ import (
 	"time"
 )
 
-const SaltLength = 8
-const SessionTokenLength = 40
-const AvatarWidthBig = 500
-const AvatarWidthLittle = 150
-const AvatarDefaultFileName = "default_avatar"
-const SessionLifetime = 24 * 30 * time.Hour
-
-var ctx = context.Background()
-
 type UserRepository struct {
 	userDB *sql.DB
-}
-
-type RedisStore struct {
-	redisConnection *redis.Client
 }
 
 type FileSystem struct{}
 
 func NewUserRepository(db *sql.DB) UserRepository {
 	return UserRepository{userDB: db}
-}
-
-func NewRedisStore(redisConnection *redis.Client) RedisStore {
-	return RedisStore{
-		redisConnection: redisConnection,
-	}
 }
 
 func NewFileSystem() FileSystem {
@@ -79,11 +59,11 @@ func (Data UserRepository) CreateUser(userData *models.User, customSalt ...strin
 	if len(customSalt) != 0 {
 		salt = customSalt[0]
 	} else {
-		salt = GetRandomString(SaltLength)
+		salt = GetRandomString(constants.SaltLength)
 	}
 	err := Data.userDB.QueryRow(
 		`INSERT INTO users(email, password, nickname, salt, avatar) VALUES($1, $2, $3, $4, $5) RETURNING id`,
-		strings.ToLower(userData.Email), GetHash(userData.Password+salt), userData.Nickname, salt, AvatarDefaultFileName,
+		strings.ToLower(userData.Email), GetHash(userData.Password+salt), userData.Nickname, salt, constants.AvatarDefaultFileName,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -167,8 +147,8 @@ func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) 
 	if err = rows.Scan(&settings.Email, &avatarFilename, &settings.Nickname); err != nil {
 		return nil, err
 	}
-	settings.BigAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + "_500px.webp"
-	settings.SmallAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + "_150px.webp"
+	settings.BigAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + constants.BigAvatarPostfix
+	settings.SmallAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + constants.LittleAvatarPostfix
 
 	return &settings, nil
 }
@@ -221,7 +201,7 @@ func (Data UserRepository) UpdatePassword(userID int, password string, customSal
 	if len(customSalt) != 0 {
 		salt = customSalt[0]
 	} else {
-		salt = GetRandomString(SaltLength)
+		salt = GetRandomString(constants.SaltLength)
 	}
 
 	err := Data.userDB.QueryRow(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`, GetHash(password+salt), salt, userID).Err()
@@ -277,8 +257,8 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 
 	fileName := uuid.NewString()
 
-	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthBig, Height: AvatarWidthBig})
-	out, err := os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + "_500px.webp")
+	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigAvatarHeight})
+	out, err := os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + constants.BigAvatarPostfix)
 	if err != nil {
 		return "", err
 	}
@@ -288,8 +268,8 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 
-	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthLittle, Height: AvatarWidthLittle})
-	out, err = os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + "_150px.webp")
+	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittleAvatarHeight})
+	out, err = os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + constants.LittleAvatarPostfix)
 	if err != nil {
 		return "", err
 	}
@@ -305,35 +285,21 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 func (File FileSystem) DeleteImage(filename string) error {
 	// 1) Проверяем, что файл существует
 	doesFileExist := true
-	if _, err := os.Stat(filename + "_150px.webp"); os.IsNotExist(err) {
+	if _, err := os.Stat(filename + constants.LittleAvatarPostfix); os.IsNotExist(err) {
 		doesFileExist = false
 	}
 
 	// 2) Удаляем файл со старой аватаркой
-	if filename != "placeholder" && doesFileExist {
-		err := os.Remove(filename + "_150px.webp")
+	if filename != constants.AvatarDefaultFileName && doesFileExist {
+		err := os.Remove(filename + constants.LittleAvatarPostfix)
 		if err != nil {
 			return err
 		}
-		err = os.Remove(filename + "_500px.webp")
+		err = os.Remove(filename + constants.BigAvatarPostfix)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (r RedisStore) StoreSession(userID uint64, customSessionToken ...string) (string, error) {
-	var sessionToken string
-	if len(customSessionToken) != 0 {
-		sessionToken = customSessionToken[0]
-	} else {
-		sessionToken = GetRandomString(SessionTokenLength)
-	}
-	err := r.redisConnection.Set(ctx, sessionToken, userID, SessionLifetime).Err()
-	if err != nil {
-		return "", err
-	}
-	return sessionToken, nil
 }

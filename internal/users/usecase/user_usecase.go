@@ -4,6 +4,7 @@ import (
 	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
+	"2021_2_LostPointer/internal/utils/constants"
 	"2021_2_LostPointer/internal/utils/validation"
 	"context"
 	"google.golang.org/grpc/codes"
@@ -13,37 +14,16 @@ import (
 	"regexp"
 )
 
-const passwordRequiredLength = "8"
-const minNicknameLength = "3"
-const maxNicknameLength = "15"
-
-const PasswordValidationInvalidLengthMessage = "Password must contain at least " + passwordRequiredLength + " characters"
-const PasswordValidationNoDigitMessage = "Password must contain at least one digit"
-const PasswordValidationNoUppercaseMessage = "Password must contain at least one uppercase letter"
-const PasswordValidationNoLowerCaseMessage = "Password must contain at least one lowercase letter"
-const PasswordValidationNoSpecialSymbolMessage = "Password must contain as least one special character"
-const NickNameValidationInvalidLengthMessage = "The length of nickname must be from " + minNicknameLength + " to " + maxNicknameLength + " characters"
-const InvalidEmailMessage = "Invalid email"
-const NotUniqueEmailMessage = "Email is not unique"
-const NotUniqueNicknameMessage = "Nickname is not unique"
-	const OldPasswordFieldIsEmptyMessage = "Old password field is empty"
-const NewPasswordFieldIsEmptyMessage = "New password field is empty"
-const WrongPasswordMessage = "Wrong password"
-
-const EmailRegexPattern = `[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`
 
 type UserUseCase struct {
 	userDB	   	   users.UserRepository
-	redisStore 	   users.RedisStore
-	fileSystem 	   users.FileSystem
 	sessionChecker session.SessionCheckerClient
+	fileSystem users.FileSystem
 }
 
-func NewUserUserCase(userDB users.UserRepository, redisStore users.RedisStore, fileSystem users.FileSystem,
-	sessionChecker session.SessionCheckerClient) UserUseCase {
+func NewUserUserCase(userDB users.UserRepository, fileSystem users.FileSystem, sessionChecker session.SessionCheckerClient) UserUseCase {
 	return UserUseCase{
 		userDB: userDB,
-		redisStore: redisStore,
 		fileSystem: fileSystem,
 		sessionChecker: sessionChecker,
 	}
@@ -110,12 +90,12 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 	// 1) Проверяем, что изменился email
 	if newSettings.Email != oldSettings.Email && len(newSettings.Email) != 0 {
 		// 1.1) Валидация нового email
-		isEmailValid, err := regexp.MatchString(EmailRegexPattern, newSettings.Email)
+		isEmailValid, err := regexp.MatchString(constants.EmailRegexPattern, newSettings.Email)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 		if !isEmailValid {
-			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: InvalidEmailMessage}
+			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.InvalidEmailMessage}
 		}
 
 		// 1.2) Проверка, что новый email уникален
@@ -124,7 +104,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 		if !isEmailUnique {
-			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: NotUniqueEmailMessage}
+			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NotUniqueEmailMessage}
 		}
 
 		// 1.3) Обновляем email в базе
@@ -137,12 +117,12 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 	// 2) Проверяем, что изменился nickname
 	if newSettings.Nickname != oldSettings.Nickname && len(newSettings.Nickname) != 0 {
 		// 2.1) Валидация нового nickname
-		isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + minNicknameLength + `,` + maxNicknameLength + `}$`, newSettings.Nickname)
+		isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + constants.MinNicknameLength + `,` + constants.MaxNicknameLength + `}$`, newSettings.Nickname)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 		if !isNicknameValid {
-			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: NickNameValidationInvalidLengthMessage}
+			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NickNameValidationInvalidLengthMessage}
 		}
 
 		// 2.2) Проврека, что новый nickname уникален
@@ -151,7 +131,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 		if !isNicknameUnique {
-			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: NotUniqueNicknameMessage}
+			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NotUniqueNicknameMessage}
 		}
 
 		// 2.3) Обновляем nickname в базе
@@ -169,7 +149,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 		if !isOldPasswordCorrect {
-			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: WrongPasswordMessage}
+			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.WrongPasswordMessage}
 		}
 
 		// 3.2) Валидация нового пароля
@@ -187,9 +167,9 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 	} else if len(newSettings.OldPassword) == 0 && len(newSettings.NewPassword) != 0 {
-		return &models.CustomError{ErrorType: http.StatusBadRequest, Message: OldPasswordFieldIsEmptyMessage}
+		return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.OldPasswordFieldIsEmptyMessage}
 	} else if len(newSettings.OldPassword) != 0 && len(newSettings.NewPassword) == 0 {
-		return &models.CustomError{ErrorType: http.StatusBadRequest, Message: NewPasswordFieldIsEmptyMessage}
+		return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NewPasswordFieldIsEmptyMessage}
 	}
 
 	// 4) Проверяем, что изменили аватарку
@@ -225,5 +205,5 @@ func (userR UserUseCase) GetAvatarFilename(userID int) (string, *models.CustomEr
 	if err != nil {
 		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 	}
-	return os.Getenv("ROOT_PATH_PREFIX") + filename + "_150px.webp", nil
+	return os.Getenv("ROOT_PATH_PREFIX") + filename + constants.LittleAvatarPostfix, nil
 }

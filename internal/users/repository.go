@@ -20,11 +20,6 @@ type UserRepository interface {
 	UpdateAvatar(int, string) error
 }
 
-//go:generate moq -out ../mock/user_repo_redis_mock.go -pkg mock . RedisStore:MockRedisStore
-type RedisStore interface {
-	StoreSession(uint64, ...string) (string, error)
-}
-
 //go:generate moq -out ../mock/user_repo_filysystem_mock.go -pkg mock . FileSystem:MockFileSystem
 type FileSystem interface {
 	CreateImage(*multipart.FileHeader) (string, error)

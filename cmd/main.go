@@ -51,13 +51,11 @@ type RequestHandlers struct {
 	queueHandlers      deliveryQueue.QueueDelivery
 }
 
-func NewRequestHandler(db *sql.DB, redisConnUsers *redis.Client, redisConnQueue *redis.Client, logger *zap.SugaredLogger,
-	sessionChecker authorizationMicro.SessionCheckerClient) *RequestHandlers {
+func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.SugaredLogger,	sessionChecker authorizationMicro.SessionCheckerClient) *RequestHandlers {
 
 	userDB := repositoryUser.NewUserRepository(db)
-	redisStore := repositoryUser.NewRedisStore(redisConnUsers)
 	fileSystem := repositoryUser.NewFileSystem()
-	userUseCase := usecaseUser.NewUserUserCase(userDB, redisStore, fileSystem, sessionChecker)
+	userUseCase := usecaseUser.NewUserUserCase(userDB, fileSystem, sessionChecker)
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
 
 	artistRepo := repositoryArtist.NewArtistRepository(db)
@@ -155,7 +153,7 @@ func LoadMicroservices(server *echo.Echo) (authorizationMicro.SessionCheckerClie
 	log.Println("AUTH_PORT", authPORT)
 
 	authConn, err := grpc.Dial(
-		"127.0.0.1:"+authPORT,
+		"127.0.0.1" + authPORT,
 		grpc.WithInsecure(),
 	)
 	connections = append(connections, authConn)
@@ -192,7 +190,7 @@ func main() {
 	redisConnQueues := InitializeRedisQueues()
 	defer func() {
 		if redisConnQueues != nil {
-			redisConnUsers.Close()
+			redisConnQueues.Close()
 		}
 	}()
 
@@ -205,7 +203,7 @@ func main() {
 		}
 	}()
 
-	api := NewRequestHandler(db, redisConnUsers, redisConnQueues, logger, auth)
+	api := NewRequestHandler(db, redisConnQueues, logger, auth)
 
 	api.userHandlers.InitHandlers(server)
 	api.artistHandlers.InitHandlers(server)

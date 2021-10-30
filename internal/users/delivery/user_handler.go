@@ -4,6 +4,7 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
+	"2021_2_LostPointer/internal/utils/constants"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 	"net/http"
@@ -12,11 +13,6 @@ import (
 
 const cookieLifetime = time.Hour * 24 * 30
 
-const UserIsNotAuthorizedMessage = "User is not authorized"
-const LoggedOutMessage = "Logged out"
-const SettingsUploadedMessage = "Settings were uploaded successfully"
-const UserCreatedMessage = "User was created successfully"
-const UserAuthorizedMessage = "User is authorized"
 
 type UserDelivery struct {
 	userLogic users.UserUseCase
@@ -89,7 +85,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusCreated, &models.Response{
 		Status:  http.StatusCreated,
-		Message: UserCreatedMessage,
+		Message: constants.UserCreatedMessage,
 	})
 }
 
@@ -153,7 +149,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, &models.Response{
 		Status:  http.StatusOK,
-		Message: UserAuthorizedMessage,
+		Message: constants.UserAuthorizedMessage,
 	})
 }
 
@@ -195,13 +191,13 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 	if err != nil {
 		userD.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
 		)
 
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
-			Message: UserIsNotAuthorizedMessage,
+			Message: constants.UserIsNotAuthorizedMessage,
 		})
 	}
 
@@ -226,7 +222,7 @@ func (userD UserDelivery) Logout(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, &models.Response{
 		Status:  http.StatusOK,
-		Message: LoggedOutMessage,
+		Message: constants.LoggedOutMessage,
 	})
 }
 
@@ -236,13 +232,13 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 	if userID == -1 {
 		userD.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
 		)
 
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
-			Message: UserIsNotAuthorizedMessage,
+			Message: constants.UserIsNotAuthorizedMessage,
 		})
 	}
 
@@ -276,13 +272,13 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 	if userID == -1 {
 		userD.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
 		)
 
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
-			Message: UserIsNotAuthorizedMessage,
+			Message: constants.UserIsNotAuthorizedMessage,
 		})
 	}
 
@@ -358,7 +354,7 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, &models.Response{
 		Status:  http.StatusOK,
-		Message: SettingsUploadedMessage,
+		Message: constants.SettingsUploadedMessage,
 	})
 }
 
@@ -368,13 +364,13 @@ func (userD UserDelivery) GetCsrf(ctx echo.Context) error {
 	if userID == -1  {
 		userD.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", UserIsNotAuthorizedMessage),
+			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized),
 		)
 
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
-			Message: UserIsNotAuthorizedMessage,
+			Message: constants.UserIsNotAuthorizedMessage,
 		})
 	}
 	cookie, _ := ctx.Cookie("Session_cookie")

@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"log"
@@ -18,10 +17,6 @@ import (
 )
 
 func InitializeDataBases() (repositoryUser.UserRepository, sessionsRepository.SessionRepository) {
-	err := godotenv.Load("authoriz.env")
-	if err != nil {
-		log.Fatal("ERROR AT LOADING .ENV", err.Error())
-	}
 	connectionString := fmt.Sprintf(
 		"user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
 		os.Getenv("DBUSER"),
@@ -57,9 +52,9 @@ func InitializeDataBases() (repositoryUser.UserRepository, sessionsRepository.Se
 }
 
 func main() {
-
 	users, sessions := InitializeDataBases()
-	port := os.Getenv("AUTHORIZ_PORT")
+	port := os.Getenv("AUTH_PORT")
+	log.Println(port)
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatal("CANNOT LISTEN PORT : ", port, err.Error())

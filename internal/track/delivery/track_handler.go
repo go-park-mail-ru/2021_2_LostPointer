@@ -3,13 +3,13 @@ package delivery
 import (
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/track"
+	"2021_2_LostPointer/internal/utils/constants"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 	"net/http"
 )
 
-const NoArtists = "No tracks"
-const SelectionLimit = 10
+
 
 type TrackDelivery struct {
 	TrackUseCase track.TrackUseCase
@@ -22,9 +22,13 @@ func NewTrackDelivery(trackUseCase track.TrackUseCase, logger *zap.SugaredLogger
 
 func (trackDelivery TrackDelivery) Home(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
-	isAuthorized := ctx.Get("IS_AUTHORIZED").(bool)
+	userID := ctx.Get("USER_ID").(int)
+	var isAuthorized bool
+	if userID != -1 {
+		isAuthorized = true
+	}
 
-	artists, err := trackDelivery.TrackUseCase.GetHome(SelectionLimit, isAuthorized)
+	artists, err := trackDelivery.TrackUseCase.GetHome(constants.TracksCollectionLimit, isAuthorized)
 	if err != nil {
 		trackDelivery.Logger.Error(
 			zap.String("ID", requestID),
@@ -33,7 +37,7 @@ func (trackDelivery TrackDelivery) Home(ctx echo.Context) error {
 		)
 		return ctx.JSON(http.StatusInternalServerError, models.Response{
 			Status:  http.StatusInternalServerError,
-			Message: NoArtists},
+			Message: constants.NoArtists},
 		)
 	}
 

@@ -3,13 +3,13 @@ package delivery
 import (
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/playlist"
+	"2021_2_LostPointer/internal/utils/constants"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 	"net/http"
 )
 
-const NoPlaylists = "No playlists"
-const SelectionLimit = 4
+
 
 type PlaylistDelivery struct {
 	PlaylistUseCase playlist.PlaylistUseCase
@@ -23,7 +23,7 @@ func NewPlaylistDelivery(playlistUseCae playlist.PlaylistUseCase, logger *zap.Su
 func (playlistDelivery PlaylistDelivery) Home(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
 
-	artists, err := playlistDelivery.PlaylistUseCase.GetHome(SelectionLimit)
+	artists, err := playlistDelivery.PlaylistUseCase.GetHome(constants.PlaylistsCollectionLimit)
 	if err != nil {
 		playlistDelivery.Logger.Error(
 			zap.String("ID", requestID),
@@ -32,7 +32,7 @@ func (playlistDelivery PlaylistDelivery) Home(ctx echo.Context) error {
 		)
 		return ctx.JSON(http.StatusInternalServerError, models.Response{
 			Status:  http.StatusInternalServerError,
-			Message: NoPlaylists},
+			Message: constants.NoPlaylists},
 		)
 	}
 

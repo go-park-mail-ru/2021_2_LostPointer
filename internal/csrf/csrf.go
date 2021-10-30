@@ -14,7 +14,7 @@ import (
 var Tokens *HashToken
 
 func init() {
-	Tokens, _ = NewHMACHashToken("Rangers")
+	Tokens, _ = NewHMACHashToken("SomeSecret")
 }
 
 type HashToken struct {

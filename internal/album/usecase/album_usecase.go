@@ -3,10 +3,10 @@ package usecase
 import (
 	"2021_2_LostPointer/internal/album"
 	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/utils/constants"
 	"net/http"
 )
 
-const DatabaseNotResponding = "Database not responding"
 
 type AlbumUseCase struct {
 	AlbumRepository album.AlbumRepository
@@ -22,7 +22,7 @@ func (albumUseCase AlbumUseCase) GetHome(amount int) ([]models.Album, *models.Cu
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
 			OriginalError: err,
-			Message:       DatabaseNotResponding,
+			Message:       constants.DatabaseNotResponding,
 		}
 	}
 

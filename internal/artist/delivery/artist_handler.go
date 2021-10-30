@@ -3,16 +3,12 @@ package delivery
 import (
 	"2021_2_LostPointer/internal/artist"
 	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/utils/constants"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 )
-
-const InvalidParameter = "Invalid parameter"
-const DatabaseNotResponding = "Database not responding"
-const NoArtists = "No artists"
-const SelectionLimit = 4
 
 type ArtistDelivery struct {
 	ArtistUseCase artist.ArtistUseCase
@@ -25,7 +21,11 @@ func NewArtistDelivery(artistUseCase artist.ArtistUseCase, logger *zap.SugaredLo
 
 func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
-	isAuthorized := ctx.Get("IS_AUTHORIZED").(bool)
+	userID := ctx.Get("USER_ID").(int)
+	var isAuthorized bool
+	if userID != -1 {
+		isAuthorized = true
+	}
 	artistID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		artistDelivery.Logger.Error(
@@ -34,8 +34,8 @@ func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
 		return ctx.JSON(http.StatusInternalServerError, models.Response{
-			Status:  400,
-			Message: InvalidParameter},
+			Status:  http.StatusBadRequest,
+			Message: constants.InvalidParameter},
 		)
 	}
 
@@ -48,7 +48,7 @@ func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 		)
 		return ctx.JSON(http.StatusInternalServerError, models.Response{
 			Status:  http.StatusInternalServerError,
-			Message: DatabaseNotResponding},
+			Message: constants.DatabaseNotResponding},
 		)
 	}
 
@@ -62,7 +62,7 @@ func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 func (artistDelivery ArtistDelivery) Home(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
 
-	artists, err := artistDelivery.ArtistUseCase.GetHome(SelectionLimit)
+	artists, err := artistDelivery.ArtistUseCase.GetHome(constants.ArtistsCollectionLimit)
 	if err != nil {
 		artistDelivery.Logger.Error(
 			zap.String("ID", requestID),
@@ -71,7 +71,7 @@ func (artistDelivery ArtistDelivery) Home(ctx echo.Context) error {
 		)
 		return ctx.JSON(http.StatusInternalServerError, models.Response{
 			Status:  http.StatusInternalServerError,
-			Message: NoArtists},
+			Message: constants.NoArtists},
 		)
 	}
 

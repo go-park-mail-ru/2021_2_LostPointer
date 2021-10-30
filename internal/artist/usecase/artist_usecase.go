@@ -4,13 +4,9 @@ import (
 	"2021_2_LostPointer/internal/artist"
 	_ "2021_2_LostPointer/internal/artist"
 	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/utils/constants"
 	"net/http"
 )
-
-const DatabaseNotResponding = "Database not responding"
-const TracksDefaultAmount = 20
-const AlbumsDefaultAmount = 8
-
 
 type ArtistUseCase struct {
 	ArtistRepository artist.ArtistRepository
@@ -27,23 +23,23 @@ func (artistUseCase ArtistUseCase) GetProfile(id int, isAuthorized bool) (*model
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
 			OriginalError: err,
-			Message:       DatabaseNotResponding,
+			Message:       constants.DatabaseNotResponding,
 		}
 	}
-	art.Tracks, err = artistUseCase.ArtistRepository.GetTracks(id, isAuthorized, TracksDefaultAmount)
+	art.Tracks, err = artistUseCase.ArtistRepository.GetTracks(id, isAuthorized, constants.TracksDefaultAmountForArtist)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
 			OriginalError: err,
-			Message:       DatabaseNotResponding,
+			Message:       constants.DatabaseNotResponding,
 		}
 	}
-	art.Albums, err = artistUseCase.ArtistRepository.GetAlbums(id, AlbumsDefaultAmount)
+	art.Albums, err = artistUseCase.ArtistRepository.GetAlbums(id, constants.AlbumsDefaultAmountForArtist)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
 			OriginalError: err,
-			Message:       DatabaseNotResponding,
+			Message:       constants.DatabaseNotResponding,
 		}
 	}
 
@@ -56,7 +52,7 @@ func (artistUseCase ArtistUseCase) GetHome(amount int) ([]models.Artist, *models
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
 			OriginalError: err,
-			Message:       DatabaseNotResponding,
+			Message:       constants.DatabaseNotResponding,
 		}
 	}
 

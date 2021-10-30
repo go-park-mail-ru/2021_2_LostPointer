@@ -21,11 +21,15 @@ import (
 	"time"
 )
 
-const SaltLength = 8
-const SessionTokenLength = 40
-const AvatarWidthBig = 500
-const AvatarWidthLittle = 150
-const AvatarDefaultFileName = "default_avatar"
+const (
+	SaltLength = 8
+	SessionTokenLength = 40
+	AvatarHeightBig = 500
+	AvatarHeightLittle = 150
+	AvatarBigPostfix = "_500px.webp"
+	AvatarLittlePostfix = "_150px.webp"
+	AvatarDefaultFileName = "default_avatar"
+)
 
 var ctx = context.Background()
 
@@ -94,8 +98,10 @@ func (Data UserRepository) CreateUser(userData models.User, customSalt ...string
 }
 
 func (Data UserRepository) DoesUserExist(authData models.Auth) (uint64, error) {
-	var id uint64
-	var password, salt string
+	var (
+		id uint64
+		password, salt string
+	)
 
 	rows, err := Data.userDB.Query(`SELECT id, password, salt FROM users WHERE email=$1`, authData.Email)
 	if err != nil {
@@ -168,8 +174,8 @@ func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) 
 	if err = rows.Scan(&settings.Email, &avatarFilename, &settings.Nickname); err != nil {
 		return nil, err
 	}
-	settings.BigAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + "_500px.webp"
-	settings.SmallAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + "_150px.webp"
+	settings.BigAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + AvatarBigPostfix
+	settings.SmallAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + AvatarLittlePostfix
 
 	return &settings, nil
 }
@@ -277,9 +283,8 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 	}
 
 	fileName := uuid.NewString()
-
-	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthBig, Height: AvatarWidthBig})
-	out, err := os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + "_500px.webp")
+	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Height: AvatarHeightBig})
+	out, err := os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + AvatarBigPostfix)
 	if err != nil {
 		return "", err
 	}
@@ -289,8 +294,8 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 
-	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Width: AvatarWidthLittle, Height: AvatarWidthLittle})
-	out, err = os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + "_150px.webp")
+	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Height: AvatarHeightLittle})
+	out, err = os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + AvatarLittlePostfix)
 	if err != nil {
 		return "", err
 	}
@@ -306,17 +311,17 @@ func (File FileSystem) CreateImage(file *multipart.FileHeader) (string, error) {
 func (File FileSystem) DeleteImage(filename string) error {
 	// 1) Проверяем, что файл существует
 	doesFileExist := true
-	if _, err := os.Stat(filename + "_150px.webp"); os.IsNotExist(err) {
+	if _, err := os.Stat(filename + AvatarLittlePostfix); os.IsNotExist(err) {
 		doesFileExist = false
 	}
 
 	// 2) Удаляем файл со старой аватаркой
-	if filename != "placeholder" && doesFileExist {
-		err := os.Remove(filename + "_150px.webp")
+	if filename != AvatarDefaultFileName && doesFileExist {
+		err := os.Remove(filename + AvatarLittlePostfix)
 		if err != nil {
 			return err
 		}
-		err = os.Remove(filename + "_500px.webp")
+		err = os.Remove(filename + AvatarBigPostfix)
 		if err != nil {
 			return err
 		}

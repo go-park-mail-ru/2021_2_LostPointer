@@ -34,8 +34,6 @@ import (
 	usecaseUser "2021_2_LostPointer/internal/users/usecase"
 )
 
-const redisDB = 1
-
 type RequestHandlers struct {
 	userHandlers       deliveryUser.UserDelivery
 	artistHandlers     deliveryArtist.ArtistDelivery
@@ -112,7 +110,7 @@ func InitializeRedis() *redis.Client {
 	redisConnection := redis.NewClient(&redis.Options{
 		Addr:     AddrConfig,
 		Password: os.Getenv("REDIS_PASS"),
-		DB:       redisDB,
+		DB:       1,
 	})
 
 	return redisConnection

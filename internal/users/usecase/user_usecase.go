@@ -9,25 +9,26 @@ import (
 	"regexp"
 )
 
-const passwordRequiredLength = "8"
-const minNicknameLength = "3"
-const maxNicknameLength = "15"
 
-const PasswordValidationInvalidLengthMessage = "Password must contain at least " + passwordRequiredLength + " characters"
-const PasswordValidationNoDigitMessage = "Password must contain at least one digit"
-const PasswordValidationNoUppercaseMessage = "Password must contain at least one uppercase letter"
-const PasswordValidationNoLowerCaseMessage = "Password must contain at least one lowercase letter"
-const PasswordValidationNoSpecialSymbolMessage = "Password must contain as least one special character"
-const NickNameValidationInvalidLengthMessage = "The length of nickname must be from " + minNicknameLength + " to " + maxNicknameLength + " characters"
-const InvalidEmailMessage = "Invalid email"
-const NotUniqueEmailMessage = "Email is not unique"
-const NotUniqueNicknameMessage = "Nickname is not unique"
-const WrongCredentialsMessage = "Wrong email or password"
-const OldPasswordFieldIsEmptyMessage = "Old password field is empty"
-const NewPasswordFieldIsEmptyMessage = "New password field is empty"
-const WrongPasswordMessage = "Wrong password"
-
-const EmailRegexPattern = `[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`
+const (
+	passwordRequiredLength = "8"
+	minNicknameLength = "3"
+	maxNicknameLength = "15"
+	PasswordValidationInvalidLengthMessage = "Password must contain at least " + passwordRequiredLength + " characters"
+	PasswordValidationNoDigitMessage = "Password must contain at least one digit"
+	PasswordValidationNoUppercaseMessage = "Password must contain at least one uppercase letter"
+	PasswordValidationNoLowerCaseMessage = "Password must contain at least one lowercase letter"
+	PasswordValidationNoSpecialSymbolMessage = "Password must contain as least one special character"
+	NickNameValidationInvalidLengthMessage = "The length of nickname must be from " + minNicknameLength + " to " + maxNicknameLength + " characters"
+	InvalidEmailMessage = "Invalid email"
+	NotUniqueEmailMessage = "Email is not unique"
+	NotUniqueNicknameMessage = "Nickname is not unique"
+	WrongCredentialsMessage = "Wrong email or password"
+	OldPasswordFieldIsEmptyMessage = "Old password field is empty"
+	NewPasswordFieldIsEmptyMessage = "New password field is empty"
+	WrongPasswordMessage = "Wrong password"
+	EmailRegexPattern = `[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`
+)
 
 type UserUseCase struct {
 	userDB	   users.UserRepository

@@ -24,7 +24,6 @@ func TestArtistDelivery_GetProfile(t *testing.T) {
 	track := models.Track{
 		Id:          1,
 		Title:       "awa",
-		Artist:      "awa",
 		Explicit:    true,
 		Genre:       "awa",
 		Number:      1,

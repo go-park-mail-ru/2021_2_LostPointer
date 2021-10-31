@@ -71,6 +71,16 @@ func TestValidateRegisterCredentials(t *testing.T) {
 		expectedErrorMsg string
 	}{
 		{
+			name: "valid credentials",
+			userData: models.User{
+				Email:    "test@test.com",
+				Password: "Qwerty123$",
+				Nickname: "Kucheryavenko",
+			},
+			expectedValid: true,
+			expectedErrorMsg: "",
+		},
+		{
 			name: "name too short",
 			userData: models.User{
 				Email:    "test@test.com",

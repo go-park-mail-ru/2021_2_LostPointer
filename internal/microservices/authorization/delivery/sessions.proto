@@ -22,9 +22,11 @@ message SignUpData {
   string Nickname = 3;
 }
 
+message Empty {}
+
 service SessionChecker {
   rpc GetUserBySession(SessionData) returns(UserID) {}
-  rpc DeleteSession(SessionData) returns(UserID) {}
+  rpc DeleteSession(SessionData) returns(Empty) {}
   rpc SignIn(Auth) returns(SessionData) {}
   rpc Signup(SignUpData) returns(SessionData) {}
 }

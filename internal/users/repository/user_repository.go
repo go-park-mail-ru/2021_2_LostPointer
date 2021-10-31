@@ -11,7 +11,6 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/sunshineplan/imgconv"
 	"io"
-	"log"
 	"math/rand"
 	"mime/multipart"
 	"os"
@@ -53,16 +52,10 @@ func GetHash(str string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (Data UserRepository) CreateUser(userData *models.User, customSalt ...string) (int, error) {
+func (Data UserRepository) CreateUser(userData *models.User) (int, error) {
 	var id int
-	var salt string
 
-	if len(customSalt) != 0 {
-		salt = customSalt[0]
-	} else {
-		salt = GetRandomString(constants.SaltLength)
-	}
-
+	salt := GetRandomString(constants.SaltLength)
 	sanitizedData := sanitizeUserData(*userData)
 	err := Data.userDB.QueryRow(
 		`INSERT INTO users(email, password, nickname, salt, avatar) VALUES($1, $2, $3, $4, $5) RETURNING id`,
@@ -104,7 +97,6 @@ func (Data UserRepository) DoesUserExist(authData *models.Auth) (int, error) {
 func (Data UserRepository) IsEmailUnique(email string) (bool, error) {
 	rows, err := Data.userDB.Query(`SELECT id FROM users WHERE lower(email)=$1`, strings.ToLower(email))
 	if err != nil {
-		log.Println(err)
 		return false, err
 	}
 	defer func(rows *sql.Rows) {
@@ -217,8 +209,6 @@ func (Data UserRepository) UpdatePassword(userID int, password string, customSal
 }
 
 func (Data UserRepository) UpdateAvatar(userID int, fileName string) error {
-	log.Println(fileName)
-
 	err := Data.userDB.QueryRow(`UPDATE users SET avatar=$1 WHERE id=$2`, fileName, userID).Err()
 	if err != nil {
 		return err

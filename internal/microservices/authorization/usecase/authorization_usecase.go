@@ -33,12 +33,10 @@ func (authU AuthorizationUseCase) GetUserBySession(ctx context.Context, auth *se
 	}, nil
 }
 
-func (authU AuthorizationUseCase) DeleteSession(ctx context.Context, auth *session.SessionData) (*session.UserID, error) {
+func (authU AuthorizationUseCase) DeleteSession(ctx context.Context, auth *session.SessionData) (*session.Empty, error) {
 	err := authU.sessionsDB.DeleteSession(auth.Cookies)
 
-	return &session.UserID{
-		UserID: -1,
-	}, err
+	return &session.Empty{}, err
 }
 
 func (authU AuthorizationUseCase) SignIn(ctx context.Context, auth *session.Auth) (*session.SessionData, error) {
@@ -48,7 +46,7 @@ func (authU AuthorizationUseCase) SignIn(ctx context.Context, auth *session.Auth
 	}
 	userID, err := authU.userDB.DoesUserExist(authData)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if userID == 0 {
 		return nil, status.Error(codes.Aborted, constants.WrongCredentials)
@@ -61,7 +59,7 @@ func (authU AuthorizationUseCase) SignIn(ctx context.Context, auth *session.Auth
 
 	err = authU.sessionsDB.CreateSession(userID, currentSession.Cookies)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return currentSession, nil
@@ -70,7 +68,7 @@ func (authU AuthorizationUseCase) SignIn(ctx context.Context, auth *session.Auth
 func (authU AuthorizationUseCase) Signup(ctx context.Context, register *session.SignUpData) (*session.SessionData, error) {
 	isEmailUnique, err := authU.userDB.IsEmailUnique(register.Email)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isEmailUnique {
 		return nil, status.Error(codes.Aborted, constants.NotUniqueEmailMessage)
@@ -78,7 +76,7 @@ func (authU AuthorizationUseCase) Signup(ctx context.Context, register *session.
 
 	isNicknameUnique, err := authU.userDB.IsNicknameUnique(register.Nickname)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isNicknameUnique {
 		return nil, status.Error(codes.Aborted, constants.NotUniqueNicknameMessage)
@@ -91,7 +89,7 @@ func (authU AuthorizationUseCase) Signup(ctx context.Context, register *session.
 	}
 	isValidCredentials, message, err := validation.ValidateRegisterCredentials(userData)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isValidCredentials {
 		return nil, status.Error(codes.Aborted, message)
@@ -99,7 +97,7 @@ func (authU AuthorizationUseCase) Signup(ctx context.Context, register *session.
 
 	userID, err := authU.userDB.CreateUser(userData)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	cookieValue := uuid.NewV4()
@@ -109,7 +107,7 @@ func (authU AuthorizationUseCase) Signup(ctx context.Context, register *session.
 
 	err = authU.sessionsDB.CreateSession(userID, currentSession.Cookies)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return currentSession, nil

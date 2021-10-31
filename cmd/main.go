@@ -213,7 +213,7 @@ func main() {
 	api.queueHandlers.InitHandlers(server)
 	api.middlewareHandlers.InitMiddlewareHandlers(server)
 
-	server.Static("/tracks", "tracks")
+	server.Static("/tracks", os.Getenv("TRACKS_PATH"))
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

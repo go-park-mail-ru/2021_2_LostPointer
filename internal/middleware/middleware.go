@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo"
 	"github.com/satori/go.uuid"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -101,7 +100,6 @@ func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 
 			tokenReq := rwContext.Request().Header.Get("X-CSRF-Token")
-			log.Println(tokenReq)
 
 			isValidCsrf, err := csrf.Tokens.Check(cookie.Value, tokenReq)
 

@@ -7,7 +7,7 @@ import (
 
 //go:generate moq -out ../mock/user_repo_db_mock.go -pkg mock . UserRepository:MockUserRepository
 type UserRepository interface {
-	CreateUser(*models.User, ...string) (int, error)
+	CreateUser(*models.User) (int, error)
 	IsEmailUnique(string) (bool, error)
 	IsNicknameUnique(string) (bool, error)
 	DoesUserExist(*models.Auth) (int, error)

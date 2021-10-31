@@ -27,28 +27,22 @@ const (
 	SettingsUploadedMessage                  = "Settings were uploaded successfully"
 	UserCreatedMessage                       = "User was created successfully"
 	UserAuthorizedMessage                    = "User is authorized"
+	NoArtists                				 = "No artists"
+	InvalidParameter         				 = "Invalid parameter"
+	DatabaseNotResponding    				 = "Database not responding"
+	NoPlaylists              				 = "No playlists"
+	WrongCredentials  						 = "Wrong credentials"
 
-	SaltLength         = 8
-	BigAvatarHeight    = 500
-	LittleAvatarHeight = 150
+	SaltLength         						 = 8
+	BigAvatarHeight    						 = 500
+	LittleAvatarHeight 						 = 150
+	TracksDefaultAmountForArtist     		 = 20
+	AlbumsDefaultAmountForArtist     		 = 8
+	TracksCollectionLimit    				 = 10
+	AlbumCollectionLimit     				 = 4
+	PlaylistsCollectionLimit 				 = 4
+	ArtistsCollectionLimit  			     = 4
+	SiteID                					 = 0
+	CookieLifetime 							 = time.Hour * 24 * 30
 
-	NoArtists                = "No artists"
-	InvalidParameter         = "Invalid parameter"
-	DatabaseNotResponding    = "Database not responding"
-	TracksDefaultAmountForArtist     = 20
-	AlbumsDefaultAmountForArtist     = 8
-	NoMusic                  = "No music today"
-	TracksCollectionLimit    = 10
-	AlbumCollectionLimit     = 4
-	PlaylistsCollectionLimit = 4
-	ArtistsCollectionLimit   = 4
-	NoPlaylists              = "No playlists"
-
-	SiteID                = 0
-
-	CookieLifetime = time.Hour * 24 * 30
-
-	WrongCredentials  = "Wrong credentials"
-	NotUniqueEmail    = "Email is not unique"
-	NotUniqueNickname = "Nickname is not unique"
 )

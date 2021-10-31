@@ -20,7 +20,7 @@ const (
 	OldPasswordFieldIsEmptyMessage           = "Old password field is empty"
 	NewPasswordFieldIsEmptyMessage           = "New password field is empty"
 	BigAvatarPostfix                         = "_500px.webp"
-	LittleAvatarPostfix                      = "150px.webp"
+	LittleAvatarPostfix                      = "_150px.webp"
 	AvatarDefaultFileName                    = "default_avatar"
 	UserIsNotAuthorizedMessage               = "User is not authorized"
 	LoggedOutMessage                         = "Logged out"

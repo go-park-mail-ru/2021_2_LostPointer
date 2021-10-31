@@ -153,6 +153,12 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 func (userD UserDelivery) GetAvatarForMainPage(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
 	userID := ctx.Get("USER_ID").(int)
+	if userID == -1 {
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status: http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
+	}
 
 	avatarFilename, customError := userD.userLogic.GetAvatarFilename(userID)
 	if customError != nil {

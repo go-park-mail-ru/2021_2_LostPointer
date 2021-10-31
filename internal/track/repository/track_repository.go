@@ -15,7 +15,7 @@ func NewTrackRepository(db *sql.DB) TrackRepository {
 
 func (trackRepository TrackRepository) GetRandom(amount int, isAuthorized bool) ([]models.Track, error) {
 	rows, err := trackRepository.Database.Query("SELECT tracks.id, tracks.title, explicit, "+
-		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name, as cover FROM tracks "+
+		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks "+
 		"LEFT JOIN genres g ON tracks.genre = g.id "+
 		"LEFT JOIN albums alb ON tracks.album = alb.id "+
 		"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1", amount)

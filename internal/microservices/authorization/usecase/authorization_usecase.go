@@ -75,7 +75,7 @@ func (authU AuthorizationUseCase) Signup(ctx context.Context, register *session.
 		return nil, status.Error(codes.Internal, "")
 	}
 	if !isEmailUnique {
-		return nil, status.Error(codes.Aborted, constants.NotUniqueEmail)
+		return nil, status.Error(codes.Aborted, constants.NotUniqueEmailMessage)
 	}
 
 	isNicknameUnique, err := authU.userDB.IsNicknameUnique(register.Nickname)
@@ -83,7 +83,7 @@ func (authU AuthorizationUseCase) Signup(ctx context.Context, register *session.
 		return nil, status.Error(codes.Internal, "")
 	}
 	if !isNicknameUnique {
-		return nil, status.Error(codes.Aborted, constants.NotUniqueNickname)
+		return nil, status.Error(codes.Aborted, constants.NotUniqueNicknameMessage)
 	}
 
 	userData := &models.User{

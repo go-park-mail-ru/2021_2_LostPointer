@@ -2,8 +2,15 @@ package repository
 
 import (
 	"2021_2_LostPointer/internal/models"
+	"database/sql"
+	"database/sql/driver"
+	"errors"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"regexp"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestSanitizeUserData(t *testing.T) {
@@ -38,99 +45,84 @@ func TestSanitizeNickname(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
-//
-//import (
-//	"2021_2_LostPointer/internal/models"
-//	"database/sql"
-//	"database/sql/driver"
-//	"errors"
-//	"github.com/DATA-DOG/go-sqlmock"
-//	"github.com/go-redis/redis/v8"
-//	"github.com/go-redis/redismock/v8"
-//	"github.com/stretchr/testify/assert"
-//	"regexp"
-//	"strings"
-//	"testing"
-//	"time"
-//)
-//
-//func TestUserRepository_DoesUserExist(t *testing.T) {
-//	db, mock, err := sqlmock.New()
-//	if err != nil {
-//		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-//	}
-//	defer func(db *sql.DB) {
-//		_ = db.Close()
-//	}(db)
-//
-//	r := NewUserRepository(db)
-//
-//	tests := []struct {
-//		name 		string
-//		mock 		func()
-//		input 		models.Auth
-//		expected 	uint64
-//		expectedErr bool
-//	}{
-//		{
-//			name: "User was found in db",
-//			mock: func(){
-//				rows := sqlmock.NewRows([]string{"id", "password", "salt"}).
-//					AddRow("1", GetHash("alex1234" + "1234"), "1234")
-//				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
-//					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
-//			},
-//			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
-//			expected: 1,
-//		},
-//		{
-//			name: "User was not found in db, wrong email",
-//			mock: func(){
-//				rows := sqlmock.NewRows([]string{"id", "password", "salt"})
-//				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
-//					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
-//			},
-//			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
-//			expected: 0,
-//		},
-//		{
-//			name: "The password in the database did not match the received password",
-//			mock: func(){
-//				rows := sqlmock.NewRows([]string{"id", "password", "salt"}).
-//					AddRow("1", GetHash("alex123" + "1234"), "1234")
-//				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
-//					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
-//			},
-//			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
-//			expected: 0,
-//		},
-//		{
-//			name: "Error occurred during SELECT request",
-//			mock: func(){
-//				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
-//					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnError(errors.New("Error occurred during request "))
-//			},
-//			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
-//			expected: 0,
-//			expectedErr: true,
-//		},
-//	}
-//
-//	for _, testCase := range tests {
-//		t.Run(testCase.name, func(t *testing.T) {
-//			testCase.mock()
-//
-//			got, err := r.DoesUserExist(testCase.input)
-//			if testCase.expectedErr {
-//				assert.Error(t, err)
-//			} else {
-//				assert.NoError(t, err)
-//				assert.Equal(t, testCase.expected, got)
-//			}
-//		})
-//	}
-//}
-//
+
+func TestUserRepository_DoesUserExist(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
+
+	r := NewUserRepository(db)
+
+	tests := []struct {
+		name 		string
+		mock 		func()
+		input 		models.Auth
+		expected 	uint64
+		expectedErr bool
+	}{
+		{
+			name: "User was found in db",
+			mock: func(){
+				rows := sqlmock.NewRows([]string{"id", "password", "salt"}).
+					AddRow("1", GetHash("alex1234" + "1234"), "1234")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
+					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
+			},
+			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
+			expected: 1,
+		},
+		{
+			name: "User was not found in db, wrong email",
+			mock: func(){
+				rows := sqlmock.NewRows([]string{"id", "password", "salt"})
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
+					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
+			},
+			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
+			expected: 0,
+		},
+		{
+			name: "The password in the database did not match the received password",
+			mock: func(){
+				rows := sqlmock.NewRows([]string{"id", "password", "salt"}).
+					AddRow("1", GetHash("alex123" + "1234"), "1234")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
+					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnRows(rows)
+			},
+			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
+			expected: 0,
+		},
+		{
+			name: "Error occurred during SELECT request",
+			mock: func(){
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
+					WithArgs(driver.Value("alex1234@gmail.com")).WillReturnError(errors.New("Error occurred during request "))
+			},
+			input: models.Auth{Email: "alex1234@gmail.com", Password: "alex1234"},
+			expected: 0,
+			expectedErr: true,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			testCase.mock()
+
+			got, err := r.DoesUserExist(&testCase.input)
+			if testCase.expectedErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.expected, got)
+			}
+		})
+	}
+}
+
 //func TestUserRepository_IsEmailUnique(t *testing.T) {
 //	db, mock, err := sqlmock.New()
 //	if err != nil {

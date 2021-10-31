@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -125,7 +126,7 @@ func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
 func (middleware Middleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		c.Response().Header().Set("Access-Control-Allow-Origin", "http://lostpointer.site, http://localhost:3000") // TODO: убрать хардкод
+		c.Response().Header().Set("Access-Control-Allow-Origin", os.Getenv("CORS_ORIGIN"))
 		c.Response().Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS, PUT, DELETE, POST, PATCH")
 		c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, X-Login, Set-Cookie, Content-Type, Content-Length, Accept-Encoding, X-Csrf-Token, csrf-token, Authorization")
 		c.Response().Header().Set("Access-Control-Allow-Credentials", "true")

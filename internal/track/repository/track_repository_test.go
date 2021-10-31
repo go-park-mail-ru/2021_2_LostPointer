@@ -58,10 +58,10 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 4; i++ {
 					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
-					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name, as cover FROM tracks "+
-					"LEFT JOIN genres g ON tracks.genre = g.id "+
-					"LEFT JOIN albums alb ON tracks.album = alb.id "+
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
+					"LEFT JOIN genres g ON tracks.genre = g.id " +
+					"LEFT JOIN albums alb ON tracks.album = alb.id " +
 					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(4)).WillReturnRows(rows)
 			},
 			expected: func() []models.Track {
@@ -82,11 +82,11 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 10; i++ {
 					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
-		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name, as cover FROM tracks "+
-		"LEFT JOIN genres g ON tracks.genre = g.id "+
-		"LEFT JOIN albums alb ON tracks.album = alb.id "+
-		"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(10)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
+					"LEFT JOIN genres g ON tracks.genre = g.id " +
+					"LEFT JOIN albums alb ON tracks.album = alb.id " +
+					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(10)).WillReturnRows(rows)
 			},
 			expected: func() []models.Track {
 				var tracks []models.Track
@@ -106,11 +106,11 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 100; i++ {
 					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
-		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name, as cover FROM tracks "+
-		"LEFT JOIN genres g ON tracks.genre = g.id "+
-		"LEFT JOIN albums alb ON tracks.album = alb.id "+
-		"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(100)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
+					"LEFT JOIN genres g ON tracks.genre = g.id " +
+					"LEFT JOIN albums alb ON tracks.album = alb.id " +
+					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(100)).WillReturnRows(rows)
 			},
 			expected: func() []models.Track {
 				var tracks []models.Track
@@ -130,11 +130,11 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 1; i++ {
 					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
-		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name, as cover FROM tracks "+
-		"LEFT JOIN genres g ON tracks.genre = g.id "+
-		"LEFT JOIN albums alb ON tracks.album = alb.id "+
-		"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(1)).WillReturnError(errors.New("error"))
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
+					"LEFT JOIN genres g ON tracks.genre = g.id " +
+					"LEFT JOIN albums alb ON tracks.album = alb.id " +
+					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []models.Track {
 				var tracks []models.Track
@@ -155,11 +155,11 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 1; i++ {
 					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name, newArg)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
-		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name, as cover FROM tracks "+
-		"LEFT JOIN genres g ON tracks.genre = g.id "+
-		"LEFT JOIN albums alb ON tracks.album = alb.id "+
-		"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(1)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
+					"LEFT JOIN genres g ON tracks.genre = g.id " +
+					"LEFT JOIN albums alb ON tracks.album = alb.id " +
+					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(1)).WillReturnRows(rows)
 			},
 			expected: func() []models.Track {
 				var tracks []models.Track
@@ -179,11 +179,11 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 				for i := 0; i < 4; i++ {
 					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, "+
-		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name, as cover FROM tracks "+
-		"LEFT JOIN genres g ON tracks.genre = g.id "+
-		"LEFT JOIN albums alb ON tracks.album = alb.id "+
-		"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(4)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
+					"LEFT JOIN genres g ON tracks.genre = g.id " +
+					"LEFT JOIN albums alb ON tracks.album = alb.id " +
+					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(4)).WillReturnRows(rows)
 			},
 			expected: func() []models.Track {
 				var tracks []models.Track

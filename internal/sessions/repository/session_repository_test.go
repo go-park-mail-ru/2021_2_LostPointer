@@ -12,8 +12,10 @@ func TestSessionRepository_CreateSession(t *testing.T) {
 	db, mock := redismock.NewClientMock()
 	repository := NewSessionRepository(db)
 
-	var cookieValue = "awa"
-	var id = 12345
+	const (
+		cookieValue = "awa"
+		id          = 12345
+	)
 	tests := []struct {
 		name        string
 		mock        func()
@@ -21,14 +23,13 @@ func TestSessionRepository_CreateSession(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "successes",
+			name: "successful session creation",
 			mock: func() {
 				mock.ExpectSet(cookieValue, id, time.Hour).SetVal("")
 			},
-			expectedErr: false,
 		},
 		{
-			name: "error",
+			name: "failed session creation",
 			mock: func() {
 				mock.ExpectSet(cookieValue, id, time.Hour).SetErr(errors.New("awa"))
 			},
@@ -52,9 +53,11 @@ func TestSessionRepository_GetUserIdByCookie(t *testing.T) {
 	db, mock := redismock.NewClientMock()
 	repository := NewSessionRepository(db)
 
-	var cookieValue = "awa"
-	var id = 12345
-	var idStr = "12345"
+	const (
+		cookieValue = "awa"
+		id = 12345
+		idStr = "12345"
+	)
 	tests := []struct {
 		name        string
 		mock        func()
@@ -62,14 +65,13 @@ func TestSessionRepository_GetUserIdByCookie(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "successes",
+			name: "successful getting user",
 			mock: func() {
 				mock.ExpectGet(cookieValue).SetVal(idStr)
 			},
-			expectedErr: false,
 		},
 		{
-			name: "error",
+			name: "failed getting user",
 			mock: func() {
 				mock.ExpectGet(cookieValue).SetErr(errors.New("awa"))
 			},
@@ -94,7 +96,7 @@ func TestSessionRepository_DeleteSession(t *testing.T) {
 	db, mock := redismock.NewClientMock()
 	repository := NewSessionRepository(db)
 
-	var cookieValue = "awa"
+	const cookieValue = "awa"
 	tests := []struct {
 		name        string
 		mock        func()
@@ -102,14 +104,13 @@ func TestSessionRepository_DeleteSession(t *testing.T) {
 		expectedErr bool
 	}{
 		{
-			name: "successes",
+			name: "successful session deletion",
 			mock: func() {
 				mock.ExpectDel(cookieValue).SetVal(1)
 			},
-			expectedErr: false,
 		},
 		{
-			name: "error",
+			name: "failed session deletion",
 			mock: func() {
 				mock.ExpectDel(cookieValue).SetErr(errors.New("awa"))
 			},

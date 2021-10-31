@@ -12,8 +12,6 @@ func TestTrackUseCase_GetHome(t *testing.T) {
 	track := models.Track{
 		Id:          1,
 		Title:       "awa",
-		Artist:      "awa",
-		Album:       "awa",
 		Explicit:    true,
 		Genre:       "awa",
 		Number:      1,
@@ -21,7 +19,15 @@ func TestTrackUseCase_GetHome(t *testing.T) {
 		ListenCount: 1,
 		Duration:    1,
 		Lossless:    true,
-		Cover:       "awa",
+		Album: models.Album{
+			Id:      1,
+			Title:   "awa",
+			Artwork: "awa",
+		},
+		Artist: models.Artist{
+			Id:   1,
+			Name: "awa",
+		},
 	}
 
 	trackWithoutFile := track

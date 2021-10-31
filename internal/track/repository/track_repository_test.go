@@ -20,7 +20,6 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 	track := models.Track{
 		Id:          1,
 		Title:       "awa",
-		Artist:      "awa",
 		Explicit:    true,
 		Genre:       "awa",
 		Number:      1,
@@ -32,6 +31,10 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 			Id:      1,
 			Title:   "awa",
 			Artwork: "awa",
+		},
+		Artist: models.Artist{
+			Id:   1,
+			Name: "awa",
 		},
 	}
 
@@ -51,12 +54,12 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 			amount:       4,
 			isAuthorized: true,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "art.name", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork"})
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name"})
 				for i := 0; i < 4; i++ {
-					rows.AddRow(track.Id, track.Title, track.Artist, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork)
+					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, art.name, explicit, " +
-					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
 					"LEFT JOIN genres g ON tracks.genre = g.id " +
 					"LEFT JOIN albums alb ON tracks.album = alb.id " +
 					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(4)).WillReturnRows(rows)
@@ -75,12 +78,12 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 			amount:       10,
 			isAuthorized: true,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "art.name", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork"})
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name"})
 				for i := 0; i < 10; i++ {
-					rows.AddRow(track.Id, track.Title, track.Artist, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork)
+					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, art.name, explicit, " +
-					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
 					"LEFT JOIN genres g ON tracks.genre = g.id " +
 					"LEFT JOIN albums alb ON tracks.album = alb.id " +
 					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(10)).WillReturnRows(rows)
@@ -99,12 +102,12 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 			amount:       100,
 			isAuthorized: true,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "art.name", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork"})
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name"})
 				for i := 0; i < 100; i++ {
-					rows.AddRow(track.Id, track.Title, track.Artist, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork)
+					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, art.name, explicit, " +
-					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
 					"LEFT JOIN genres g ON tracks.genre = g.id " +
 					"LEFT JOIN albums alb ON tracks.album = alb.id " +
 					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(100)).WillReturnRows(rows)
@@ -123,12 +126,12 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 			amount:       1,
 			isAuthorized: true,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "art.name", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork"})
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name"})
 				for i := 0; i < 1; i++ {
-					rows.AddRow(track.Id, track.Title, track.Artist, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork)
+					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, art.name, explicit, " +
-					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
 					"LEFT JOIN genres g ON tracks.genre = g.id " +
 					"LEFT JOIN albums alb ON tracks.album = alb.id " +
 					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(1)).WillReturnError(errors.New("error"))
@@ -148,12 +151,12 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 			isAuthorized: true,
 			mock: func() {
 				var newArg = 1
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "art.name", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "newArg"})
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "newArg"})
 				for i := 0; i < 1; i++ {
-					rows.AddRow(track.Id, track.Title, track.Artist, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, newArg)
+					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name, newArg)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, art.name, explicit, " +
-					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
 					"LEFT JOIN genres g ON tracks.genre = g.id " +
 					"LEFT JOIN albums alb ON tracks.album = alb.id " +
 					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(1)).WillReturnRows(rows)
@@ -172,12 +175,12 @@ func TestTrackRepository_GetRandom(t *testing.T) {
 			amount:       4,
 			isAuthorized: false,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "art.name", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork"})
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "g.name", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name"})
 				for i := 0; i < 4; i++ {
-					rows.AddRow(track.Id, track.Title, track.Artist, track.Explicit, track.Genre, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork)
+					rows.AddRow(track.Id, track.Title, track.Explicit, track.Genre, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.Id, track.Album.Title, track.Album.Artwork, track.Artist.Id, track.Artist.Name)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, art.name, explicit, " +
-					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks " +
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT tracks.id, tracks.title, explicit, " +
+					"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name FROM tracks " +
 					"LEFT JOIN genres g ON tracks.genre = g.id " +
 					"LEFT JOIN albums alb ON tracks.album = alb.id " +
 					"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1")).WithArgs(driver.Value(4)).WillReturnRows(rows)

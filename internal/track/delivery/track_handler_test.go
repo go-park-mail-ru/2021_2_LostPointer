@@ -24,7 +24,6 @@ func TestTrackDelivery_Home(t *testing.T) {
 	track := models.Track{
 		Id:          1,
 		Title:       "awa",
-		Artist:      "awa",
 		Explicit:    true,
 		Genre:       "awa",
 		Number:      1,
@@ -36,6 +35,10 @@ func TestTrackDelivery_Home(t *testing.T) {
 			Id:      1,
 			Title:   "awa",
 			Artwork: "awa",
+		},
+		Artist: models.Artist{
+			Id:   1,
+			Name: "awa",
 		},
 	}
 	tests := []struct {

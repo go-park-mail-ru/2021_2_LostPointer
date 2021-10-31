@@ -10,13 +10,20 @@ import (
 
 func TestArtistUseCase_GetProfile(t *testing.T) {
 	track := models.Track{
-		Id:       1,
-		Title:    "awa",
-		Explicit: true,
-		File:     "awa",
-		Duration: 1,
-		Lossless: true,
-		Cover:    "awa",
+		Id:          1,
+		Title:       "awa",
+		Explicit:    true,
+		Genre:       "awa",
+		Number:      1,
+		File:        "awa",
+		ListenCount: 1,
+		Duration:    1,
+		Lossless:    true,
+		Album: models.Album{
+			Id:      1,
+			Title:   "awa",
+			Artwork: "awa",
+		},
 	}
 	tracksUnAuth := track
 	tracksUnAuth.File = ""

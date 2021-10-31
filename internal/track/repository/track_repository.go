@@ -14,8 +14,8 @@ func NewTrackRepository(db *sql.DB) TrackRepository {
 }
 
 func (trackRepository TrackRepository) GetRandom(amount int, isAuthorized bool) ([]models.Track, error) {
-	rows, err := trackRepository.Database.Query("SELECT tracks.id, tracks.title, art.name, explicit, "+
-		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork as cover FROM tracks "+
+	rows, err := trackRepository.Database.Query("SELECT tracks.id, tracks.title, explicit, "+
+		"g.name, number, file, listen_count, duration, lossless, alb.id, alb.title, alb.artwork, art.id, art.name, as cover FROM tracks "+
 		"LEFT JOIN genres g ON tracks.genre = g.id "+
 		"LEFT JOIN albums alb ON tracks.album = alb.id "+
 		"LEFT JOIN artists art ON tracks.artist = art.id ORDER BY RANDOM() LIMIT $1", amount)
@@ -29,9 +29,9 @@ func (trackRepository TrackRepository) GetRandom(amount int, isAuthorized bool) 
 	tracks := make([]models.Track, 0, 10)
 	var track models.Track
 	for rows.Next() {
-		if err := rows.Scan(&track.Id, &track.Title, &track.Artist, &track.Explicit, &track.Genre,
+		if err := rows.Scan(&track.Id, &track.Title, &track.Explicit, &track.Genre,
 			&track.Number, &track.File, &track.ListenCount, &track.Duration, &track.Lossless, &track.Album.Id,
-			&track.Album.Title, &track.Album.Artwork); err != nil {
+			&track.Album.Title, &track.Album.Artwork, &track.Artist.Id, &track.Artist.Name); err != nil {
 			return nil, err
 		}
 		if !isAuthorized {

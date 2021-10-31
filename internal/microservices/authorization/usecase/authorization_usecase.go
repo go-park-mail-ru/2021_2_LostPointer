@@ -11,7 +11,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
 )
 
 type AuthorizationUseCase struct {
@@ -24,7 +23,6 @@ func NewAuthorizationUseCase(userDB users.UserRepository, sessionsDB sessions.Se
 }
 
 func (authU AuthorizationUseCase) GetUserBySession(ctx context.Context, auth *session.SessionData) (*session.UserID, error) {
-	log.Println("Called by microservice")
 	userID, err := authU.sessionsDB.GetUserIdByCookie(auth.Cookies)
 	if userID == 0 || err != nil {
 		userID = -1

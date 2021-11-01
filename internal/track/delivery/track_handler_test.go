@@ -5,7 +5,7 @@ import (
 	"2021_2_LostPointer/internal/models"
 	"encoding/json"
 	"errors"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

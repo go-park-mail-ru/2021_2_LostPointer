@@ -9,7 +9,7 @@ require (
 	github.com/go-redis/redismock/v8 v8.0.6
 	github.com/google/uuid v1.3.0
 	github.com/kennygrant/sanitize v1.2.4
-	github.com/labstack/echo v3.3.10+incompatible
+	github.com/labstack/echo/v4 v4.6.1
 	github.com/lib/pq v1.10.3
 	github.com/pkg/errors v0.9.1
 	github.com/satori/go.uuid v1.2.0

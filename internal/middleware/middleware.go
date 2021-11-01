@@ -7,7 +7,7 @@ import (
 	"2021_2_LostPointer/internal/users"
 	"context"
 	"errors"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/satori/go.uuid"
 	"go.uber.org/zap"
 	"net/http"

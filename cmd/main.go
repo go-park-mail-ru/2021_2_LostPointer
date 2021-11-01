@@ -29,7 +29,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

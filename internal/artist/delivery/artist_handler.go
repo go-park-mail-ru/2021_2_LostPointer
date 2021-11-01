@@ -4,7 +4,7 @@ import (
 	"2021_2_LostPointer/internal/artist"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/utils/constants"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"

@@ -196,21 +196,3 @@ func (Data UserRepository) GetAvatarFilename(userID int) (string, error) {
 
 	return filename, nil
 }
-
-//func sanitizeUserData(userData models.User) models.User {
-//	var sanitizedData models.User
-//
-//	sanitizedData.Nickname = sanitize.HTML(userData.Nickname)
-//	sanitizedData.Email = sanitize.HTML(userData.Email)
-//	sanitizedData.Password = userData.Password
-//
-//	return sanitizedData
-//}
-//
-//func sanitizeEmail(email string) string {
-//	return sanitize.HTML(email)
-//}
-//
-//func sanitizeNickname(nickname string) string {
-//	return sanitize.HTML(nickname)
-//}

@@ -228,7 +228,7 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 					"JOIN tracks t on t.album = a.id "+
 					"WHERE a.artist = $1 "+
 					"GROUP BY a.id, a.title, a.artwork, a.year "+
-					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
+					"ORDER BY a.year DESC LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Album{album},
 			expectedError: false,
@@ -244,7 +244,7 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 					"JOIN tracks t on t.album = a.id "+
 					"WHERE a.artist = $1 "+
 					"GROUP BY a.id, a.title, a.artwork, a.year "+
-					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
+					"ORDER BY a.year DESC LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Album{album},
 			expectedError: true,
@@ -261,7 +261,7 @@ func TestArtistRepository_GetAlbums(t *testing.T) {
 					"JOIN tracks t on t.album = a.id "+
 					"WHERE a.artist = $1 "+
 					"GROUP BY a.id, a.title, a.artwork, a.year "+
-					"ORDER BY a.year DESC")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
+					"ORDER BY a.year DESC LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Album{album},
 			expectedError: true,

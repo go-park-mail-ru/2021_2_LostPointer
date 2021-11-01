@@ -163,8 +163,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 	}
 
 	if len(newSettings.AvatarFileName) != 0 {
-		file, _ := newSettings.Avatar.()
-		createdAvatarFilename, err := userR.images.CreateImage(file)
+		createdAvatarFilename, err := userR.images.CreateImage(newSettings.Avatar)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}

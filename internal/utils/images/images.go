@@ -16,7 +16,7 @@ type AvatarRepositoryIFace interface {
 	DeleteImage(string) error
 }
 
-type AvatarRepository struct {}
+type AvatarRepository struct{}
 
 func NewAvatarRepository() AvatarRepository {
 	return AvatarRepository{}
@@ -39,7 +39,7 @@ func (imageR AvatarRepository) CreateImage(file *multipart.FileHeader) (string, 
 	fileName := uuid.NewString()
 
 	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigAvatarHeight})
-	out, err := os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + constants.BigAvatarPostfix)
+	out, err := os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.BigAvatarPostfix)
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +50,7 @@ func (imageR AvatarRepository) CreateImage(file *multipart.FileHeader) (string, 
 	}
 
 	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittleAvatarHeight})
-	out, err = os.Create(os.Getenv("FULL_PATH_PREFIX") + fileName + constants.LittleAvatarPostfix)
+	out, err = os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.LittleAvatarPostfix)
 	if err != nil {
 		return "", err
 	}

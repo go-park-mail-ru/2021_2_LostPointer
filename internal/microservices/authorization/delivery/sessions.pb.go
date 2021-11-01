@@ -448,6 +448,8 @@ const _ = grpc.SupportPackageIsVersion6
 // SessionCheckerClient is the client API for SessionChecker service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+
+//go:generate moq -out ../../../mock/session_checker_mock.go -pkg mock . SessionCheckerClient:MockSessionCheckerClient
 type SessionCheckerClient interface {
 	GetUserBySession(ctx context.Context, in *SessionData, opts ...grpc.CallOption) (*UserID, error)
 	DeleteSession(ctx context.Context, in *SessionData, opts ...grpc.CallOption) (*Empty, error)

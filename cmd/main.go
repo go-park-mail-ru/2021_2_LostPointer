@@ -22,6 +22,8 @@ import (
 	repositoryUser "2021_2_LostPointer/internal/users/repository"
 	usecaseUser "2021_2_LostPointer/internal/users/usecase"
 
+	repositoryAvatar "2021_2_LostPointer/internal/utils/images"
+
 	authorizationMicro "2021_2_LostPointer/internal/microservices/authorization/delivery"
 
 	"database/sql"
@@ -48,7 +50,8 @@ type RequestHandlers struct {
 
 func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.SugaredLogger, sessionChecker authorizationMicro.SessionCheckerClient) *RequestHandlers {
 	userDB := repositoryUser.NewUserRepository(db)
-	userUseCase := usecaseUser.NewUserUserCase(userDB, sessionChecker)
+	images := repositoryAvatar.NewAvatarRepository()
+	userUseCase := usecaseUser.NewUserUserCase(userDB, sessionChecker, images)
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
 
 	artistRepo := repositoryArtist.NewArtistRepository(db)

@@ -37,7 +37,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 		})
 	}
 
-	cookieValue, customError := userD.userLogic.Register(userData)
+	cookieValue, customError := userD.userLogic.Register(&userData)
 	if customError != nil {
 		if customError.ErrorType == http.StatusInternalServerError {
 			userD.logger.Error(
@@ -104,7 +104,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 		})
 	}
 
-	cookieValue, customError := userD.userLogic.Login(authData)
+	cookieValue, customError := userD.userLogic.Login(&authData)
 	if customError != nil {
 		if customError.ErrorType == http.StatusInternalServerError {
 			userD.logger.Error(

@@ -20,7 +20,8 @@ func TestArtistRepository_Get(t *testing.T) {
 	artist := models.Artist{
 		Id:     1,
 		Name:   "awa",
-		Avatar: "awa.webp",
+		Avatar: "avatar.webp",
+		Video:  "video.mp4",
 	}
 
 	tests := []struct {
@@ -35,7 +36,7 @@ func TestArtistRepository_Get(t *testing.T) {
 			id:   135,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"art.id", "art.name", "art.avatar", "art.video"})
-				rows.AddRow(artist.Id, artist.Name, "awa", artist.Video)
+				rows.AddRow(artist.Id, artist.Name, "avatar", "video")
 				mock.ExpectQuery(regexp.QuoteMeta("SELECT art.id, art.name, art.avatar, art.video FROM artists art " +
 					"WHERE art.id = $1 " +
 					"GROUP BY art.id")).WithArgs(driver.Value(135)).WillReturnRows(rows)
@@ -47,8 +48,8 @@ func TestArtistRepository_Get(t *testing.T) {
 			name: "database error",
 			id:   135,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"art.id", "art.name", "art.avatar"})
-				rows.AddRow(artist.Id, artist.Name, artist.Avatar)
+				rows := sqlmock.NewRows([]string{"art.id", "art.name", "art.avatar", "art.video"})
+				rows.AddRow(artist.Id, artist.Name, "avatar", "video")
 				mock.ExpectQuery(regexp.QuoteMeta("SELECT art.id, art.name, art.avatar FROM artists art " +
 					"WHERE art.id = $1 " +
 					"GROUP BY art.id")).WithArgs(driver.Value(135)).WillReturnError(errors.New("error"))

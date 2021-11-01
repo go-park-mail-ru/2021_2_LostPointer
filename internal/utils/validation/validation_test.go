@@ -77,7 +77,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 				Password: "Qwerty123$",
 				Nickname: "Kucheryavenko",
 			},
-			expectedValid: true,
+			expectedValid:    true,
 			expectedErrorMsg: "",
 		},
 		{
@@ -134,7 +134,6 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			},
 			expectedErrorMsg: constants.InvalidEmailMessage,
 		},
-
 	}
 
 	for _, test := range tests {

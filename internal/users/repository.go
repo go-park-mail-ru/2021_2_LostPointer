@@ -2,7 +2,6 @@ package users
 
 import (
 	"2021_2_LostPointer/internal/models"
-	"mime/multipart"
 )
 
 //go:generate moq -out ../mock/user_repo_db_mock.go -pkg mock . UserRepository:MockUserRepository
@@ -16,12 +15,6 @@ type UserRepository interface {
 	GetAvatarFilename(int) (string, error)
 	UpdateEmail(int, string) error
 	UpdateNickname(int, string) error
-	UpdatePassword(int, string, ...string) error
+	UpdatePassword(int, string) error
 	UpdateAvatar(int, string) error
-}
-
-//go:generate moq -out ../mock/user_repo_filysystem_mock.go -pkg mock . FileSystem:MockFileSystem
-type FileSystem interface {
-	CreateImage(*multipart.FileHeader) (string, error)
-	DeleteImage(string) error
 }

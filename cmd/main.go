@@ -18,10 +18,6 @@ import (
 	repositoryPlaylist "2021_2_LostPointer/internal/playlist/repository"
 	usecasePlaylist "2021_2_LostPointer/internal/playlist/usecase"
 
-	deliveryQueue "2021_2_LostPointer/internal/queues/delivery"
-	repositoryQueue "2021_2_LostPointer/internal/queues/repository"
-	usecaseQueue "2021_2_LostPointer/internal/queues/usecase"
-
 	deliveryUser "2021_2_LostPointer/internal/users/delivery"
 	repositoryUser "2021_2_LostPointer/internal/users/repository"
 	usecaseUser "2021_2_LostPointer/internal/users/usecase"
@@ -48,14 +44,11 @@ type RequestHandlers struct {
 	albumHandlers      deliveryAlbum.AlbumDelivery
 	playlistHandlers   deliveryPlaylist.PlaylistDelivery
 	middlewareHandlers middleware.Middleware
-	queueHandlers      deliveryQueue.QueueDelivery
 }
 
-func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.SugaredLogger,	sessionChecker authorizationMicro.SessionCheckerClient) *RequestHandlers {
-
+func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.SugaredLogger, sessionChecker authorizationMicro.SessionCheckerClient) *RequestHandlers {
 	userDB := repositoryUser.NewUserRepository(db)
-	fileSystem := repositoryUser.NewFileSystem()
-	userUseCase := usecaseUser.NewUserUserCase(userDB, fileSystem, sessionChecker)
+	userUseCase := usecaseUser.NewUserUserCase(userDB, sessionChecker)
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
 
 	artistRepo := repositoryArtist.NewArtistRepository(db)
@@ -74,10 +67,6 @@ func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.Sug
 	playlistUseCase := usecasePlaylist.NewPlaylistUseCase(playlistRepo)
 	playlistHandlers := deliveryPlaylist.NewPlaylistDelivery(playlistUseCase, logger)
 
-	queueRepo := repositoryQueue.NewQueueRepository(db, redisConnQueue)
-	queueUseCase := usecaseQueue.NewQueueUseCase(queueRepo)
-	queueHandlers := deliveryQueue.NewQueueDelivery(queueUseCase, logger)
-
 	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase, sessionChecker)
 
 	api := &(RequestHandlers{
@@ -87,7 +76,6 @@ func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.Sug
 		albumHandlers:      albumHandlers,
 		playlistHandlers:   playlistHandlers,
 		middlewareHandlers: middlewareHandlers,
-		queueHandlers: queueHandlers,
 	})
 
 	return api
@@ -153,7 +141,7 @@ func LoadMicroservices(server *echo.Echo) (authorizationMicro.SessionCheckerClie
 	log.Println("AUTH_PORT", authPORT)
 
 	authConn, err := grpc.Dial(
-		"127.0.0.1" + authPORT,
+		"127.0.0.1"+authPORT,
 		grpc.WithInsecure(),
 	)
 	connections = append(connections, authConn)
@@ -210,7 +198,6 @@ func main() {
 	api.trackHandlers.InitHandlers(server)
 	api.albumHandlers.InitHandlers(server)
 	api.playlistHandlers.InitHandlers(server)
-	api.queueHandlers.InitHandlers(server)
 	api.middlewareHandlers.InitMiddlewareHandlers(server)
 
 	server.Static("/tracks", os.Getenv("TRACKS_PATH"))

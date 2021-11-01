@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"mime/multipart"
 	"net/http"
 	"testing"
 )
@@ -25,6 +26,7 @@ func TestUserUseCase_Login(t *testing.T) {
 		name 	  	  		 string
 		dbMock 	  	  		 *mock.MockUserRepository
 		sessionCheckerMock   *mock.MockSessionCheckerClient
+		imageMock			 *mock.MockAvatarRepositoryIFace
 		input 	  	  		 *models.Auth
 		expected  	  		 response
 		expectedErr   		 bool
@@ -88,7 +90,7 @@ func TestUserUseCase_Login(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock)
+			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock, testCase.imageMock)
 			got := response{}
 
 			got.cookieValue, got.err = r.Login(testCase.input)
@@ -110,8 +112,9 @@ func TestUserUseCase_Logout(t *testing.T) {
 			return &session.Empty{}, nil
 		},
 	}
+	imageMock := &mock.MockAvatarRepositoryIFace{}
 
-	r := NewUserUserCase(dbMock, sessionCheckerMock)
+	r := NewUserUserCase(dbMock, sessionCheckerMock, imageMock)
 	err := r.Logout("alexei_kosenkov")
 	assert.Nil(t, err)
 }
@@ -126,6 +129,7 @@ func TestUserUseCase_Register(t *testing.T) {
 		name 	  	  		 string
 		dbMock 	  	  		 *mock.MockUserRepository
 		sessionCheckerMock   *mock.MockSessionCheckerClient
+		imagesMock			 *mock.MockAvatarRepositoryIFace
 		input 	  	  		 *models.User
 		expected  	  		 response
 		expectedErr   		 bool
@@ -189,7 +193,7 @@ func TestUserUseCase_Register(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock)
+			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock, testCase.imagesMock)
 			got := response{}
 
 			got.cookieValue, got.err = r.Register(testCase.input)
@@ -215,6 +219,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 		name 	  	  		 string
 		dbMock 	  	  		 *mock.MockUserRepository
 		sessionCheckerMock   *mock.MockSessionCheckerClient
+		imagesMock			 *mock.MockAvatarRepositoryIFace
 		input 	  	  		 int
 		expected  	  		 response
 		expectedErr   		 bool
@@ -261,7 +266,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock)
+			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock, testCase.imagesMock)
 			got := response{}
 
 			got.settings, got.err = r.GetSettings(testCase.input)
@@ -287,6 +292,7 @@ func TestUserUseCase_GetAvatarFilename(t *testing.T) {
 		name 		  		 string
 		dbMock 	  	  		 *mock.MockUserRepository
 		sessionCheckerMock   *mock.MockSessionCheckerClient
+		imagesMock			 *mock.MockAvatarRepositoryIFace
 		input 		  		 int
 		expected 	  		 response
 		expectedErr   		 bool
@@ -323,7 +329,7 @@ func TestUserUseCase_GetAvatarFilename(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock)
+			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock, testCase.imagesMock)
 			got := response{}
 
 			got.filename, got.err = r.GetAvatarFilename(testCase.input)
@@ -350,6 +356,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 		name 	  	  		 string
 		dbMock 	  	  		 *mock.MockUserRepository
 		sessionCheckerMock   *mock.MockSessionCheckerClient
+		imagesMock			 *mock.MockAvatarRepositoryIFace
 		input 	  	  		 *inputStruct
 		expected  	  		 *models.CustomError
 		expectedErr   		 bool
@@ -390,6 +397,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
+				Message: constants.InvalidEmailMessage,
 			},
 			expectedErr: true,
 		},
@@ -411,6 +419,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
+				Message: constants.NotUniqueEmailMessage,
 			},
 			expectedErr: true,
 		},
@@ -418,7 +427,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			name: "Unsuccessfully update email, IsEmailUnique returns error",
 			dbMock: &mock.MockUserRepository{
 				IsEmailUniqueFunc: func(string) (bool, error) {
-					return false, errors.New("some_error")
+					return false, errors.New("error")
 				},
 			},
 			input: &inputStruct{
@@ -432,6 +441,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 500,
+				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
 		},
@@ -456,6 +466,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 500,
+				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
 		},
@@ -495,6 +506,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
+				Message: constants.InvalidNicknameMessage,
 			},
 			expectedErr: true,
 		},
@@ -516,6 +528,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
+				Message: constants.NotUniqueNicknameMessage,
 			},
 			expectedErr: true,
 		},
@@ -523,7 +536,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			name: "Unsuccessfully update nickname, IsNickNameUnique returns error",
 			dbMock: &mock.MockUserRepository{
 				IsNicknameUniqueFunc: func(string) (bool, error) {
-					return false, errors.New("some_error")
+					return false, errors.New("error")
 				},
 			},
 			input: &inputStruct{
@@ -537,6 +550,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 500,
+				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
 		},
@@ -561,6 +575,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 500,
+				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
 		},
@@ -602,6 +617,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
+				Message: constants.WrongPasswordMessage,
 			},
 			expectedErr: true,
 		},
@@ -622,6 +638,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 500,
+				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
 		},
@@ -642,6 +659,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
+				Message: constants.PasswordValidationNoSpecialSymbolMessage,
 			},
 			expectedErr: true,
 		},
@@ -665,6 +683,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 500,
+				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
 		},
@@ -681,6 +700,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
+				Message: constants.OldPasswordFieldIsEmptyMessage,
 			},
 			expectedErr: true,
 		},
@@ -697,6 +717,148 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
+				Message: constants.NewPasswordFieldIsEmptyMessage,
+			},
+			expectedErr: true,
+		},
+		{
+			name: "Successfully updated avatar",
+			dbMock: &mock.MockUserRepository{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "avatarimg", nil
+				},
+				UpdateAvatarFunc: func(int, string) error {
+					return nil
+				},
+			},
+			imagesMock: &mock.MockAvatarRepositoryIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "avatar", nil
+				},
+				DeleteImageFunc: func(string) error {
+					return nil
+				},
+			},
+			input: &inputStruct {
+				userId: 1,
+				oldSettings: &models.SettingsGet{
+					SmallAvatar: "old_avatar",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "avatar",
+				},
+			},
+		},
+		{
+			name: "CreateImage returned error",
+			dbMock: &mock.MockUserRepository{},
+			imagesMock: &mock.MockAvatarRepositoryIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "", errors.New("error")
+				},
+			},
+			input: &inputStruct {
+				userId: 1,
+				oldSettings: &models.SettingsGet{
+					SmallAvatar: "old_avatar",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "avatar",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+				OriginalError: errors.New("error"),
+			},
+			expectedErr: true,
+		},
+		{
+			name: "db.GetAvatarFilename returned error",
+			dbMock: &mock.MockUserRepository{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "", errors.New("error")
+				},
+			},
+			imagesMock: &mock.MockAvatarRepositoryIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "avatar", nil
+				},
+			},
+			input: &inputStruct {
+				userId: 1,
+				oldSettings: &models.SettingsGet{
+					SmallAvatar: "old_avatar",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "avatar",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+				OriginalError: errors.New("error"),
+			},
+			expectedErr: true,
+		},
+		{
+			name: "DeleteImage returned error",
+			dbMock: &mock.MockUserRepository{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "avatar", nil
+				},
+			},
+			imagesMock: &mock.MockAvatarRepositoryIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "avatar", nil
+				},
+				DeleteImageFunc: func(string) error {
+					return errors.New("error")
+				},
+			},
+			input: &inputStruct {
+				userId: 1,
+				oldSettings: &models.SettingsGet{
+					SmallAvatar: "old_avatar",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "avatar",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+				OriginalError: errors.New("error"),
+			},
+			expectedErr: true,
+		},
+		{
+			name: "db.UpdateAvatar returned error",
+			dbMock: &mock.MockUserRepository{
+				GetAvatarFilenameFunc: func(int) (string, error) {
+					return "avatar", nil
+				},
+				UpdateAvatarFunc: func(int,  string) error {
+					return errors.New("error")
+				},
+			},
+			imagesMock: &mock.MockAvatarRepositoryIFace{
+				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
+					return "avatar", nil
+				},
+				DeleteImageFunc: func(string) error {
+					return nil
+				},
+			},
+			input: &inputStruct {
+				userId: 1,
+				oldSettings: &models.SettingsGet{
+					SmallAvatar: "old_avatar",
+				},
+				newSettings: &models.SettingsUpload{
+					AvatarFileName: "avatar",
+				},
+			},
+			expected: &models.CustomError{
+				ErrorType: 500,
+				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
 		},
@@ -704,13 +866,13 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock)
+			r := NewUserUserCase(testCase.dbMock, testCase.sessionCheckerMock, testCase.imagesMock)
 
 			customError := r.UpdateSettings(testCase.input.userId, testCase.input.oldSettings, testCase.input.newSettings)
 
 			if testCase.expectedErr {
 				assert.NotNil(t, customError)
-				assert.Equal(t, testCase.expected.ErrorType, customError.ErrorType)
+				assert.Equal(t, testCase.expected, customError)
 			} else {
 				assert.Nil(t, customError)
 			}

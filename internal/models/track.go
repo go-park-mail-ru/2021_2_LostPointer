@@ -11,5 +11,5 @@ type Track struct {
 	Duration    int64  `json:"duration"`
 	Lossless    bool   `json:"lossless"`
 	Album  Album `json:"album"`
-	Artist Artist `json:"artist"`
+	Artist Artist `json:"artist,omitempty"`
 }

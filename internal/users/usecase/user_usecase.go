@@ -28,7 +28,7 @@ func NewUserUserCase(userDB users.UserRepository, sessionChecker session.Session
 	}
 }
 
-func (userR UserUseCase) Register(userData models.User) (string, *models.CustomError) {
+func (userR UserUseCase) Register(userData *models.User) (string, *models.CustomError) {
 	cookie, err := userR.sessionChecker.Signup(context.Background(), &session.SignUpData{
 		Email: userData.Email,
 		Password: userData.Password,
@@ -49,7 +49,7 @@ func (userR UserUseCase) Register(userData models.User) (string, *models.CustomE
 	return cookie.Cookies, nil
 }
 
-func (userR UserUseCase) Login(authData models.Auth) (string, *models.CustomError) {
+func (userR UserUseCase) Login(authData *models.Auth) (string, *models.CustomError) {
 	cookie, err := userR.sessionChecker.SignIn(context.Background(), &session.Auth{
 		Login: authData.Email,
 		Password: authData.Password,
@@ -86,9 +86,7 @@ func (userR UserUseCase) GetSettings(userID int) (*models.SettingsGet, *models.C
 }
 
 func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.SettingsGet, newSettings *models.SettingsUpload) *models.CustomError {
-	// 1) Проверяем, что изменился email
 	if newSettings.Email != oldSettings.Email && len(newSettings.Email) != 0 {
-		// 1.1) Валидация нового email
 		isEmailValid, err := regexp.MatchString(constants.EmailRegexPattern, newSettings.Email)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -97,7 +95,6 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.InvalidEmailMessage}
 		}
 
-		// 1.2) Проверка, что новый email уникален
 		isEmailUnique, err := userR.userDB.IsEmailUnique(newSettings.Email)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -106,16 +103,13 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NotUniqueEmailMessage}
 		}
 
-		// 1.3) Обновляем email в базе
 		err = userR.userDB.UpdateEmail(userID, newSettings.Email)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 	}
 
-	// 2) Проверяем, что изменился nickname
 	if newSettings.Nickname != oldSettings.Nickname && len(newSettings.Nickname) != 0 {
-		// 2.1) Валидация нового nickname
 		isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + constants.MinNicknameLength + `,` + constants.MaxNicknameLength + `}$`, newSettings.Nickname)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -124,7 +118,6 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NickNameValidationInvalidLengthMessage}
 		}
 
-		// 2.2) Проврека, что новый nickname уникален
 		isNicknameUnique, err := userR.userDB.IsNicknameUnique(newSettings.Nickname)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -133,16 +126,13 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NotUniqueNicknameMessage}
 		}
 
-		// 2.3) Обновляем nickname в базе
 		err = userR.userDB.UpdateNickname(userID, newSettings.Nickname)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 	}
 
-	// 3) Проверяем, что изменили пароль
 	if len(newSettings.OldPassword) != 0 && len(newSettings.NewPassword) != 0 {
-		// 3.1) Проверка, что старый пароль введен правильно
 		isOldPasswordCorrect, err := userR.userDB.CheckPasswordByUserID(userID, newSettings.OldPassword)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -151,7 +141,6 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.WrongPasswordMessage}
 		}
 
-		// 3.2) Валидация нового пароля
 		isNewPasswordValid, msg, err := validation.ValidatePassword(newSettings.NewPassword)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -160,7 +149,6 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: msg}
 		}
 
-		// 3.3) Обновляем пароль в базе
 		err = userR.userDB.UpdatePassword(userID, newSettings.NewPassword)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -171,15 +159,12 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 		return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NewPasswordFieldIsEmptyMessage}
 	}
 
-	// 4) Проверяем, что изменили аватарку
 	if len(newSettings.AvatarFileName) != 0 {
-		// 4.1) Создаем файл, получаем его название
 		createdAvatarFilename, err := images.CreateImage(newSettings.Avatar)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 
-		// 4.2) Удаляем старый файл
 		oldAvatarFilename, err := userR.userDB.GetAvatarFilename(userID)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
@@ -189,7 +174,6 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 
-		// 4.3) Обновляем аватарку в базе
 		err = userR.userDB.UpdateAvatar(userID, createdAvatarFilename)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}

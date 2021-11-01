@@ -65,6 +65,17 @@ func TestUserRepository_DoesUserExist(t *testing.T) {
 			expected: 0,
 		},
 		{
+			name: "Error occurred in rows.Scan",
+			mock: func(){
+				rows := sqlmock.NewRows([]string{"id", "password", "salt", "excessArg"}).
+					AddRow("1", hash.GetHash("JesusLoveMe" + "1337"), "1337", "excessValue")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
+					WithArgs(driver.Value("LaHaine@gmail.com")).WillReturnRows(rows)
+			},
+			input: &models.Auth{Email: "LaHaine@gmail.com", Password: "JesusLoveMe1488"},
+			expectedErr: true,
+		},
+		{
 			name: "Error occurred during SELECT request",
 			mock: func(){
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
@@ -298,7 +309,8 @@ func TestUserRepository_CheckPasswordByUserID(t *testing.T) {
 		{
 			name: "Received password was found in db",
 			mock: func(){
-				rows := sqlmock.NewRows([]string{"password", "salt"}).AddRow(hash.GetHash("JesusLovesMe" + "1337"), "1337")
+				rows := sqlmock.NewRows([]string{"password", "salt"}).
+					AddRow(hash.GetHash("JesusLovesMe" + "1337"), "1337")
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT password, salt FROM users WHERE id=$1`)).
 					WithArgs(driver.Value(1)).WillReturnRows(rows)
 			},
@@ -313,7 +325,27 @@ func TestUserRepository_CheckPasswordByUserID(t *testing.T) {
 					WithArgs(driver.Value(1)).WillReturnRows(rows)
 			},
 			input: inputStruct{ID: 1, Password: "JesusLovesMe"},
-			expected: false,
+		},
+		{
+			name: "Received password does not match password in db",
+			mock: func(){
+				rows := sqlmock.NewRows([]string{"password", "salt"}).
+					AddRow(hash.GetHash("JesusLovesMe" + "1337"), "1337")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT password, salt FROM users WHERE id=$1`)).
+					WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			input: inputStruct{ID: 1, Password: "JesusLovesMe1337"},
+		},
+		{
+			name: "Error occurred in rows.Scan",
+			mock: func(){
+				rows := sqlmock.NewRows([]string{"password", "salt", "excessArg"}).
+					AddRow(hash.GetHash("JesusLovesMe" + "1337"), "1337", "excessValue")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT password, salt FROM users WHERE id=$1`)).
+					WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			input: inputStruct{ID: 1, Password: "JesusLovesMe"},
+			expectedErr: true,
 		},
 		{
 			name: "Error occurred during SELECT request",
@@ -383,7 +415,17 @@ func TestUserRepository_GetSettings(t *testing.T) {
 					WithArgs(driver.Value(1)).WillReturnRows(rows)
 			},
 			input: 1,
-			expected: nil,
+ 		},
+		{
+			name: "Error occurred in rows.Scan",
+			mock: func(){
+				rows := sqlmock.NewRows([]string{"email", "avatar", "nickname", "excessArg"}).
+					AddRow("lahaine@gmail.com", "default", "LaHaine", "excessValue")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT email, avatar, nickname FROM users WHERE id=$1`)).
+					WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			input: 1,
+			expectedErr: true,
 		},
 		{
 			name: "Error occurred during SELECT request",
@@ -557,19 +599,6 @@ func TestUserRepository_UpdatePassword(t *testing.T) {
 		input		*inputStruct
 		expectedErr bool
 	}{
-		//{
-		//	name: "Password was updated successfully",
-		//	mock: func(){
-		//		rows := sqlmock.NewRows([]string{})
-		//		mock.ExpectQuery(regexp.QuoteMeta(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`)).
-		//			WithArgs(
-		//				driver.Value(hash.GetHash("JesusLovesMe" + "1337")),
-		//				driver.Value("1337"),
-		//				driver.Value(1),
-		//			).WillReturnRows(rows)
-		//	},
-		//	input: &inputStruct{userID: 1, password: "JesusLovesMe"},
-		//},
 		{
 			name: "Error occurred during UPDATE request",
 			mock: func(){

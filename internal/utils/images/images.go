@@ -6,13 +6,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/sunshineplan/imgconv"
 	"io"
-	"mime/multipart"
 	"os"
 )
 
 //go:generate moq -out ../../mock/avatar_repository_mock.go -pkg mock . AvatarRepositoryIFace:MockAvatarRepositoryIFace
 type AvatarRepositoryIFace interface {
-	CreateImage(*multipart.FileHeader) (string, error)
+	CreateImage(*os.File) (string, error)
 	DeleteImage(string) error
 }
 
@@ -22,14 +21,7 @@ func NewAvatarRepository() AvatarRepository {
 	return AvatarRepository{}
 }
 
-func (imageR AvatarRepository) CreateImage(file *multipart.FileHeader) (string, error) {
-	f, err := file.Open()
-	if err != nil {
-		return "", err
-	}
-	defer func(f multipart.File) {
-		_ = f.Close()
-	}(f)
+func (imageR AvatarRepository) CreateImage(f *os.File) (string, error) {
 	reader := io.Reader(f)
 	src, err := imgconv.Decode(reader)
 	if err != nil {

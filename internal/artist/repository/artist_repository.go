@@ -15,9 +15,9 @@ func NewArtistRepository(db *sql.DB) ArtistRepository {
 
 func (artistRepository ArtistRepository) Get(id int) (*models.Artist, error) {
 	artist := new(models.Artist)
-	err := artistRepository.Database.QueryRow("SELECT art.id, art.name, art.avatar FROM artists art "+
+	err := artistRepository.Database.QueryRow("SELECT art.id, art.name, art.avatar, art.video FROM artists art "+
 		"WHERE art.id = $1 "+
-		"GROUP BY art.id", id).Scan(&artist.Id, &artist.Name, &artist.Avatar)
+		"GROUP BY art.id", id).Scan(&artist.Id, &artist.Name, &artist.Avatar, &artist.Video)
 	if err != nil {
 		return nil, err
 	}

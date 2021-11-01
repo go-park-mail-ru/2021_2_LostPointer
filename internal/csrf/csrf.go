@@ -60,7 +60,6 @@ func (tk *HashToken) Check(cookie string, inputToken string) (bool, error) {
 	expectedMAC := h.Sum(nil)
 	messageMAC, err := hex.DecodeString(tokenData[0])
 	if err != nil {
-		fmt.Print("Error csrf in hex decode")
 		return false, fmt.Errorf("can't hex decode token")
 	}
 

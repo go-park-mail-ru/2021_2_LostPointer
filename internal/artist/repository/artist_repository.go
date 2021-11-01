@@ -2,7 +2,9 @@ package repository
 
 import (
 	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/internal/utils/constants"
 	"database/sql"
+	"os"
 )
 
 type ArtistRepository struct {
@@ -18,6 +20,10 @@ func (artistRepository ArtistRepository) Get(id int) (*models.Artist, error) {
 	err := artistRepository.Database.QueryRow("SELECT art.id, art.name, art.avatar, art.video FROM artists art "+
 		"WHERE art.id = $1 "+
 		"GROUP BY art.id", id).Scan(&artist.Id, &artist.Name, &artist.Avatar, &artist.Video)
+	artist.Avatar = os.Getenv("ARTISTS_ROOT_PREFIX") + artist.Avatar + constants.BigArtistPostfix
+	if artist.Video != "" {
+		artist.Video = os.Getenv("MOV_ROOT_PREFIX") + artist.Video + constants.VideoPostfix
+	}
 	if err != nil {
 		return nil, err
 	}

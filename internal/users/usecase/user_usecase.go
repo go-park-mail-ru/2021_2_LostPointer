@@ -5,6 +5,7 @@ import (
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
 	"2021_2_LostPointer/internal/utils/constants"
+	"2021_2_LostPointer/internal/utils/images"
 	"2021_2_LostPointer/internal/utils/validation"
 	"context"
 	"google.golang.org/grpc/codes"
@@ -18,13 +19,11 @@ import (
 type UserUseCase struct {
 	userDB	   	   users.UserRepository
 	sessionChecker session.SessionCheckerClient
-	fileSystem users.FileSystem
 }
 
-func NewUserUserCase(userDB users.UserRepository, fileSystem users.FileSystem, sessionChecker session.SessionCheckerClient) UserUseCase {
+func NewUserUserCase(userDB users.UserRepository, sessionChecker session.SessionCheckerClient) UserUseCase {
 	return UserUseCase{
 		userDB: userDB,
-		fileSystem: fileSystem,
 		sessionChecker: sessionChecker,
 	}
 }
@@ -175,7 +174,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 	// 4) Проверяем, что изменили аватарку
 	if len(newSettings.AvatarFileName) != 0 {
 		// 4.1) Создаем файл, получаем его название
-		createdAvatarFilename, err := userR.fileSystem.CreateImage(newSettings.Avatar)
+		createdAvatarFilename, err := images.CreateImage(newSettings.Avatar)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
@@ -185,7 +184,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
-		err = userR.fileSystem.DeleteImage(oldAvatarFilename)
+		err = images.DeleteImage(oldAvatarFilename)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}

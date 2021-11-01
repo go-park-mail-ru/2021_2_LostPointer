@@ -13,7 +13,7 @@ const (
 	PasswordValidationNoSpecialSymbolMessage = "Password must contain as least one special character"
 	NickNameValidationInvalidLengthMessage   = "The length of nickname must be from " + MinNicknameLength + " to " + MaxNicknameLength + " characters"
 	InvalidEmailMessage                      = "Invalid email"
-	EmailRegexPattern                        = `[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+`
+	EmailRegexPattern                        = `^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+$`
 	NotUniqueEmailMessage                    = "Email is not unique"
 	NotUniqueNicknameMessage                 = "Nickname is not unique"
 	WrongPasswordMessage                     = "Old password is wrong"

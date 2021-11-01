@@ -24,6 +24,11 @@ func TestHashToken_Check(t *testing.T) {
 			expectedValid: true,
 		},
 		{
+			name:          "bad token",
+			inputToken:    "11",
+			expectedError: true,
+		},
+		{
 			name:          "expired token",
 			inputToken:    "1:1",
 			expectedError: true,

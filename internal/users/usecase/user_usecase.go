@@ -19,12 +19,15 @@ import (
 type UserUseCase struct {
 	userDB	   	   users.UserRepository
 	sessionChecker session.SessionCheckerClient
+	images 		   images.AvatarRepositoryIFace
 }
 
-func NewUserUserCase(userDB users.UserRepository, sessionChecker session.SessionCheckerClient) UserUseCase {
+func NewUserUserCase(userDB users.UserRepository, sessionChecker session.SessionCheckerClient,
+	images images.AvatarRepositoryIFace) UserUseCase {
 	return UserUseCase{
 		userDB: userDB,
 		sessionChecker: sessionChecker,
+		images: images,
 	}
 }
 
@@ -115,7 +118,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
 		if !isNicknameValid {
-			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NickNameValidationInvalidLengthMessage}
+			return &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.InvalidNicknameMessage}
 		}
 
 		isNicknameUnique, err := userR.userDB.IsNicknameUnique(newSettings.Nickname)
@@ -160,7 +163,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 	}
 
 	if len(newSettings.AvatarFileName) != 0 {
-		createdAvatarFilename, err := images.CreateImage(newSettings.Avatar)
+		createdAvatarFilename, err := userR.images.CreateImage(newSettings.Avatar)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
@@ -169,7 +172,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
-		err = images.DeleteImage(oldAvatarFilename)
+		err = userR.images.DeleteImage(oldAvatarFilename)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}

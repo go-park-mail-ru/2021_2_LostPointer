@@ -87,7 +87,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 				Password: "Qwerty123$",
 				Nickname: "fa",
 			},
-			expectedErrorMsg: constants.NickNameValidationInvalidLengthMessage,
+			expectedErrorMsg: constants.InvalidNicknameMessage,
 		},
 		{
 			name: "name too long",
@@ -96,7 +96,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 				Password: "Qwerty123$",
 				Nickname: "faawdaaecsdefvsrvsfvsfgbdfbg",
 			},
-			expectedErrorMsg: constants.NickNameValidationInvalidLengthMessage,
+			expectedErrorMsg: constants.InvalidNicknameMessage,
 		},
 		{
 			name: "no @ in email",

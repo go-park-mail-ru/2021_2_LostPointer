@@ -36,7 +36,7 @@ func ValidateRegisterCredentials(userData *models.User) (bool, string, error) {
 		return false, "", err
 	}
 	if !isNicknameValid {
-		return false, constants.NickNameValidationInvalidLengthMessage, nil
+		return false, constants.InvalidNicknameMessage, nil
 	}
 
 	isEmailValid, err := regexp.MatchString(constants.EmailRegexPattern, userData.Email)

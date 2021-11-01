@@ -47,10 +47,8 @@ type RequestHandlers struct {
 }
 
 func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.SugaredLogger, sessionChecker authorizationMicro.SessionCheckerClient) *RequestHandlers {
-
 	userDB := repositoryUser.NewUserRepository(db)
-	fileSystem := repositoryUser.NewFileSystem()
-	userUseCase := usecaseUser.NewUserUserCase(userDB, fileSystem, sessionChecker)
+	userUseCase := usecaseUser.NewUserUserCase(userDB, sessionChecker)
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
 
 	artistRepo := repositoryArtist.NewArtistRepository(db)

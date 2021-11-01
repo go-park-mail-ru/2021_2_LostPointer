@@ -36,7 +36,7 @@ func (Data UserRepository) CreateUser(userData *models.User) (int, error) {
 
 func (Data UserRepository) DoesUserExist(authData *models.Auth) (int, error) {
 	var (
-		id int
+		id             int
 		password, salt string
 	)
 
@@ -108,8 +108,8 @@ func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) 
 	if err = rows.Scan(&settings.Email, &avatarFilename, &settings.Nickname); err != nil {
 		return nil, err
 	}
-	settings.BigAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + constants.BigAvatarPostfix
-	settings.SmallAvatar = os.Getenv("ROOT_PATH_PREFIX") + avatarFilename + constants.LittleAvatarPostfix
+	settings.BigAvatar = os.Getenv("USERS_ROOT_PREFIX") + avatarFilename + constants.BigAvatarPostfix
+	settings.SmallAvatar = os.Getenv("USERS_ROOT_PREFIX") + avatarFilename + constants.LittleAvatarPostfix
 
 	return &settings, nil
 }

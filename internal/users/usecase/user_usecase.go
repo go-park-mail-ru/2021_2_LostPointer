@@ -15,25 +15,24 @@ import (
 	"regexp"
 )
 
-
 type UserUseCase struct {
-	userDB	   	   users.UserRepository
+	userDB         users.UserRepository
 	sessionChecker session.SessionCheckerClient
-	images 		   images.AvatarRepositoryIFace
+	images         images.AvatarRepositoryIFace
 }
 
 func NewUserUserCase(userDB users.UserRepository, sessionChecker session.SessionCheckerClient,
 	images images.AvatarRepositoryIFace) UserUseCase {
 	return UserUseCase{
-		userDB: userDB,
+		userDB:         userDB,
 		sessionChecker: sessionChecker,
-		images: images,
+		images:         images,
 	}
 }
 
 func (userR UserUseCase) Register(userData *models.User) (string, *models.CustomError) {
 	cookie, err := userR.sessionChecker.Signup(context.Background(), &session.SignUpData{
-		Email: userData.Email,
+		Email:    userData.Email,
 		Password: userData.Password,
 		Nickname: userData.Nickname,
 	})
@@ -54,7 +53,7 @@ func (userR UserUseCase) Register(userData *models.User) (string, *models.Custom
 
 func (userR UserUseCase) Login(authData *models.Auth) (string, *models.CustomError) {
 	cookie, err := userR.sessionChecker.SignIn(context.Background(), &session.Auth{
-		Login: authData.Email,
+		Login:    authData.Email,
 		Password: authData.Password,
 	})
 	if err != nil {
@@ -82,7 +81,7 @@ func (userR UserUseCase) Logout(cookieValue string) error {
 func (userR UserUseCase) GetSettings(userID int) (*models.SettingsGet, *models.CustomError) {
 	settings, err := userR.userDB.GetSettings(userID)
 	if err != nil {
-		return nil,  &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
+		return nil, &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 	}
 
 	return settings, nil
@@ -113,7 +112,7 @@ func (userR UserUseCase) UpdateSettings(userID int, oldSettings *models.Settings
 	}
 
 	if newSettings.Nickname != oldSettings.Nickname && len(newSettings.Nickname) != 0 {
-		isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + constants.MinNicknameLength + `,` + constants.MaxNicknameLength + `}$`, newSettings.Nickname)
+		isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{`+constants.MinNicknameLength+`,`+constants.MaxNicknameLength+`}$`, newSettings.Nickname)
 		if err != nil {
 			return &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 		}
@@ -191,5 +190,5 @@ func (userR UserUseCase) GetAvatarFilename(userID int) (string, *models.CustomEr
 	if err != nil {
 		return "", &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: err}
 	}
-	return os.Getenv("ROOT_PATH_PREFIX") + filename + constants.LittleAvatarPostfix, nil
+	return os.Getenv("USERS_ROOT_PREFIX") + filename + constants.LittleAvatarPostfix, nil
 }

@@ -31,10 +31,7 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 			zap.String("ERROR", err.Error()),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status:  http.StatusInternalServerError,
-			Message: err.Error(),
-		})
+		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
 	cookieValue, customError := userD.userLogic.Register(&userData)
@@ -45,18 +42,13 @@ func (userD UserDelivery) Register(ctx echo.Context) error {
 				zap.String("ERROR", customError.OriginalError.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 			)
-
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: customError.OriginalError.Error(),
-			})
+			return ctx.NoContent(http.StatusInternalServerError)
 		} else if customError.ErrorType == http.StatusBadRequest {
 			userD.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", customError.Message),
 				zap.Int("ANSWER STATUS", http.StatusBadRequest),
 			)
-
 			return ctx.JSON(http.StatusOK, &models.Response{
 				Status:  http.StatusBadRequest,
 				Message: customError.Message,
@@ -97,11 +89,7 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 			zap.String("ERROR", err.Error()),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-
-		return ctx.JSON(http.StatusInternalServerError, &models.Response{
-			Status:  http.StatusInternalServerError,
-			Message: err.Error(),
-		})
+		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
 	cookieValue, customError := userD.userLogic.Login(&authData)
@@ -112,7 +100,6 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 				zap.String("ERROR", customError.OriginalError.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 			)
-
 			return ctx.NoContent(http.StatusInternalServerError)
 		} else if customError.ErrorType == http.StatusBadRequest {
 			userD.logger.Info(
@@ -120,7 +107,6 @@ func (userD UserDelivery) Login(ctx echo.Context) error {
 				zap.String("ERROR", customError.Message),
 				zap.Int("ANSWER STATUS", http.StatusBadRequest),
 			)
-
 			return ctx.JSON(http.StatusOK, &models.Response{
 				Status:  http.StatusBadRequest,
 				Message: customError.Message,
@@ -169,10 +155,7 @@ func (userD UserDelivery) GetAvatarForMainPage(ctx echo.Context) error {
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 			)
 
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: customError.OriginalError.Error(),
-			})
+			return ctx.NoContent(http.StatusInternalServerError)
 		}
 	}
 
@@ -253,11 +236,7 @@ func (userD UserDelivery) GetSettings(ctx echo.Context) error {
 				zap.String("ERROR", customError.OriginalError.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 			)
-
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: customError.OriginalError.Error(),
-			})
+			return ctx.NoContent(http.StatusInternalServerError)
 		}
 	}
 
@@ -293,11 +272,7 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 				zap.String("ERROR", customError.OriginalError.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 			)
-
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: customError.OriginalError.Error(),
-			})
+			return ctx.NoContent(http.StatusInternalServerError)
 		}
 	}
 
@@ -331,18 +306,13 @@ func (userD UserDelivery) UpdateSettings(ctx echo.Context) error {
 				zap.String("ERROR", customError.OriginalError.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 			)
-
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: customError.OriginalError.Error(),
-			})
+			return ctx.NoContent(http.StatusInternalServerError)
 		} else if customError.ErrorType == 400 {
 			userD.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", customError.Message),
 				zap.Int("ANSWER STATUS", http.StatusBadRequest),
 			)
-
 			return ctx.JSON(http.StatusOK, &models.Response{
 				Status:  http.StatusBadRequest,
 				Message: customError.Message,
@@ -391,6 +361,6 @@ func (userD UserDelivery) InitHandlers(server *echo.Echo) {
 	server.POST("/api/v1/user/logout", userD.Logout)
 	server.GET("/api/v1/auth", userD.GetAvatarForMainPage)
 	server.GET("/api/v1/user/settings", userD.GetSettings)
-	server.GET("api/v1/csrf", userD.GetCsrf)
+	server.GET("/api/v1/csrf", userD.GetCsrf)
 	server.PATCH("/api/v1/user/settings", userD.UpdateSettings)
 }

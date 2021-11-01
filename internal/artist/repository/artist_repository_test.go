@@ -20,7 +20,7 @@ func TestArtistRepository_Get(t *testing.T) {
 	artist := models.Artist{
 		Id:     1,
 		Name:   "awa",
-		Avatar: "awa",
+		Avatar: "awa.webp",
 	}
 
 	tests := []struct {
@@ -34,9 +34,9 @@ func TestArtistRepository_Get(t *testing.T) {
 			name: "get artist id 135",
 			id:   135,
 			mock: func() {
-				rows := sqlmock.NewRows([]string{"art.id", "art.name", "art.avatar"})
-				rows.AddRow(artist.Id, artist.Name, artist.Avatar)
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT art.id, art.name, art.avatar FROM artists art " +
+				rows := sqlmock.NewRows([]string{"art.id", "art.name", "art.avatar", "art.video"})
+				rows.AddRow(artist.Id, artist.Name, "awa", artist.Video)
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT art.id, art.name, art.avatar, art.video FROM artists art " +
 					"WHERE art.id = $1 " +
 					"GROUP BY art.id")).WithArgs(driver.Value(135)).WillReturnRows(rows)
 			},

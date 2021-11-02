@@ -39,7 +39,7 @@ func (artistRepository ArtistRepository) GetTracks(id int, isAuthorized bool, am
 		"LEFT JOIN albums alb ON tracks.album = alb.id "+
 		"LEFT JOIN artists art ON tracks.artist = art.id "+
 		"WHERE tracks.artist = $1 "+
-		"ORDER BY tracks.listen_count LIMIT $2 DESC", id, amount)
+		"ORDER BY tracks.listen_count DESC LIMIT $2", id, amount)
 	if err != nil {
 		return nil, err
 	}

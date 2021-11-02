@@ -42,3 +42,12 @@ func (trackRepository TrackRepository) GetRandom(amount int, isAuthorized bool) 
 
 	return tracks, nil
 }
+
+func (TrackRepository TrackRepository) Ruchka(id int64) error {
+	err := TrackRepository.Database.QueryRow(`UPDATE tracks SET listen_count = listen_count + 1 WHERE id=$1`, id).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

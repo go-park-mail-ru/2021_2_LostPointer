@@ -38,7 +38,7 @@ const (
 	SaltLength                   = 8
 	BigAvatarHeight              = 500
 	LittleAvatarHeight           = 150
-	TracksDefaultAmountForArtist = 20
+	TracksDefaultAmountForArtist = 10
 	AlbumsDefaultAmountForArtist = 8
 	TracksCollectionLimit        = 10
 	AlbumCollectionLimit         = 4

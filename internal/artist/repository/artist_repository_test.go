@@ -156,7 +156,7 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 					"LEFT JOIN albums alb ON tracks.album = alb.id "+
 					"LEFT JOIN artists art ON tracks.artist = art.id "+
 					"WHERE tracks.artist = $1 "+
-					"ORDER BY tracks.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
+					"ORDER BY tracks.listen_count DESC LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnError(errors.New("error"))
 			},
 			expected:      []models.Track{tracksUnAuth},
 			expectedError: true,
@@ -175,7 +175,7 @@ func TestArtistRepository_GetTracks(t *testing.T) {
 					"LEFT JOIN albums alb ON tracks.album = alb.id "+
 					"LEFT JOIN artists art ON tracks.artist = art.id "+
 					"WHERE tracks.artist = $1 "+
-					"ORDER BY tracks.listen_count LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
+					"ORDER BY tracks.listen_count DESC LIMIT $2")).WithArgs(driver.Value(135), driver.Value(1)).WillReturnRows(rows)
 			},
 			expected:      []models.Track{tracksUnAuth},
 			expectedError: true,

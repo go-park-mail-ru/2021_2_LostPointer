@@ -27,3 +27,14 @@ func (trackUseCase TrackUseCase) GetHome(amount int, isAuthorized bool) ([]model
 
 	return tracks, nil
 }
+
+func (trackUseCase TrackUseCase) Ruchka(id int64) *models.CustomError {
+	err := trackUseCase.TrackRepository.Ruchka(id)
+	if err != nil {
+		return &models.CustomError{
+			ErrorType: http.StatusInternalServerError,
+			OriginalError: err,
+		}
+	}
+	return nil
+}

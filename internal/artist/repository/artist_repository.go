@@ -17,12 +17,13 @@ func NewArtistRepository(db *sql.DB) ArtistRepository {
 
 func (artistRepository ArtistRepository) Get(id int) (*models.Artist, error) {
 	artist := new(models.Artist)
+	var video string
 	err := artistRepository.Database.QueryRow("SELECT art.id, art.name, art.avatar, art.video FROM artists art "+
 		"WHERE art.id = $1 "+
-		"GROUP BY art.id", id).Scan(&artist.Id, &artist.Name, &artist.Avatar, &artist.Video)
+		"GROUP BY art.id", id).Scan(&artist.Id, &artist.Name, &artist.Avatar, &video)
 	artist.Avatar = os.Getenv("ARTISTS_ROOT_PREFIX") + artist.Avatar + constants.BigArtistPostfix
-	if artist.Video != "" {
-		artist.Video = os.Getenv("MOV_ROOT_PREFIX") + artist.Video + constants.VideoPostfix
+	if len(video) != 1 {
+		artist.Video = os.Getenv("MOV_ROOT_PREFIX") + video + constants.VideoPostfix
 	}
 	if err != nil {
 		return nil, err

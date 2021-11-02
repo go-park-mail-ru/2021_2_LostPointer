@@ -48,7 +48,7 @@ func (trackDelivery TrackDelivery) Home(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, artists)
 }
 
-func (trackDelivery TrackDelivery) SdelalRuchku(ctx echo.Context) error {
+func (trackDelivery TrackDelivery) IncrementListenCount(ctx echo.Context) error {
 	var trackID models.TrackID
 	requestID := ctx.Get("REQUEST_ID").(string)
 
@@ -62,7 +62,7 @@ func (trackDelivery TrackDelivery) SdelalRuchku(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	customError := trackDelivery.TrackUseCase.Ruchka(trackID.Id)
+	customError := trackDelivery.TrackUseCase.IncrementListenCount(trackID.Id)
 	if customError != nil {
 		trackDelivery.Logger.Error(
 			zap.String("ID", requestID),
@@ -80,5 +80,5 @@ func (trackDelivery TrackDelivery) SdelalRuchku(ctx echo.Context) error {
 
 func (trackDelivery TrackDelivery) InitHandlers(server *echo.Echo) {
 	server.GET("api/v1/home/tracks", trackDelivery.Home)
-	server.POST("/api/v1/ruchka", trackDelivery.SdelalRuchku)
+	server.POST("/api/v1/inc_listencount", trackDelivery.IncrementListenCount)
 }

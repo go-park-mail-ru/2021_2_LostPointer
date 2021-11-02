@@ -9,8 +9,6 @@ import (
 	"net/http"
 )
 
-
-
 type TrackDelivery struct {
 	TrackUseCase track.TrackUseCase
 	Logger       *zap.SugaredLogger

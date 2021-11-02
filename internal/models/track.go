@@ -13,3 +13,7 @@ type Track struct {
 	Album  Album `json:"album"`
 	Artist Artist `json:"artist,omitempty"`
 }
+
+type TrackID struct {
+	Id int64 `json:"id,omitempty" form:"id" query:"id"`
+}

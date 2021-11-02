@@ -5,7 +5,6 @@ import (
 	repositoryArtist "2021_2_LostPointer/internal/artist/repository"
 	usecaseArtist "2021_2_LostPointer/internal/artist/usecase"
 	"2021_2_LostPointer/internal/middleware"
-
 	deliveryTrack "2021_2_LostPointer/internal/track/delivery"
 	repositoryTrack "2021_2_LostPointer/internal/track/repository"
 	usecaseTrack "2021_2_LostPointer/internal/track/usecase"

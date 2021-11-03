@@ -1,7 +1,7 @@
 package images
 
 import (
-	"2021_2_LostPointer/internal/utils/constants"
+	"2021_2_LostPointer/internal/constants"
 	"bytes"
 	"github.com/chai2010/webp"
 	"github.com/stretchr/testify/assert"

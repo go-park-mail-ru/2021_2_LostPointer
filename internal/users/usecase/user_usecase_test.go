@@ -1,10 +1,10 @@
 package usecase
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
 	"2021_2_LostPointer/internal/mock"
 	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/utils/constants"
 	"context"
 	"errors"
 	"github.com/stretchr/testify/assert"
@@ -397,7 +397,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
-				Message: constants.InvalidEmailMessage,
+				Message:   constants.InvalidEmailMessage,
 			},
 			expectedErr: true,
 		},
@@ -419,7 +419,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
-				Message: constants.NotUniqueEmailMessage,
+				Message:   constants.NotUniqueEmailMessage,
 			},
 			expectedErr: true,
 		},
@@ -506,7 +506,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
-				Message: constants.InvalidNicknameMessage,
+				Message:   constants.InvalidNicknameMessage,
 			},
 			expectedErr: true,
 		},
@@ -528,7 +528,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
-				Message: constants.NotUniqueNicknameMessage,
+				Message:   constants.NotUniqueNicknameMessage,
 			},
 			expectedErr: true,
 		},
@@ -617,7 +617,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
-				Message: constants.WrongPasswordMessage,
+				Message:   constants.WrongPasswordMessage,
 			},
 			expectedErr: true,
 		},
@@ -659,7 +659,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
-				Message: constants.PasswordValidationNoSpecialSymbolMessage,
+				Message:   constants.PasswordValidationNoSpecialSymbolMessage,
 			},
 			expectedErr: true,
 		},
@@ -700,7 +700,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
-				Message: constants.OldPasswordFieldIsEmptyMessage,
+				Message:   constants.OldPasswordFieldIsEmptyMessage,
 			},
 			expectedErr: true,
 		},
@@ -717,7 +717,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 			expected: &models.CustomError{
 				ErrorType: 400,
-				Message: constants.NewPasswordFieldIsEmptyMessage,
+				Message:   constants.NewPasswordFieldIsEmptyMessage,
 			},
 			expectedErr: true,
 		},

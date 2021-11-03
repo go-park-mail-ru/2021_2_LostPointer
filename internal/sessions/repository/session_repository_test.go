@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"2021_2_LostPointer/internal/utils/constants"
+	"2021_2_LostPointer/internal/constants"
 	"errors"
 	"github.com/go-redis/redismock/v8"
 	"github.com/stretchr/testify/assert"

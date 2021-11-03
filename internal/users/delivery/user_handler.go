@@ -1,10 +1,10 @@
 package delivery
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
-	"2021_2_LostPointer/internal/utils/constants"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
@@ -141,7 +141,7 @@ func (userD UserDelivery) GetAvatarForMainPage(ctx echo.Context) error {
 	userID := ctx.Get("USER_ID").(int)
 	if userID == -1 {
 		return ctx.JSON(http.StatusOK, &models.Response{
-			Status: http.StatusUnauthorized,
+			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
 		})
 	}

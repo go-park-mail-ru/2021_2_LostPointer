@@ -1,12 +1,12 @@
 package usecase
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
-	"2021_2_LostPointer/internal/utils/constants"
-	"2021_2_LostPointer/internal/utils/images"
-	"2021_2_LostPointer/internal/utils/validation"
+	"2021_2_LostPointer/pkg/images"
+	"2021_2_LostPointer/pkg/validation"
 	"context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

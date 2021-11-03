@@ -1,10 +1,10 @@
 package repository
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/utils/constants"
-	"2021_2_LostPointer/internal/utils/hash"
-	sanitizer "2021_2_LostPointer/internal/utils/sanitize"
+	"2021_2_LostPointer/pkg/hash"
+	sanitizer "2021_2_LostPointer/pkg/sanitize"
 	"database/sql"
 	"os"
 	"strings"

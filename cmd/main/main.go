@@ -21,7 +21,7 @@ import (
 	repositoryUser "2021_2_LostPointer/internal/users/repository"
 	usecaseUser "2021_2_LostPointer/internal/users/usecase"
 
-	repositoryAvatar "2021_2_LostPointer/internal/utils/images"
+	repositoryAvatar "2021_2_LostPointer/pkg/images"
 
 	authorizationMicro "2021_2_LostPointer/internal/microservices/authorization/delivery"
 

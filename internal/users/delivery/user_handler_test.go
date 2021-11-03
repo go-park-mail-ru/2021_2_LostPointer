@@ -1,9 +1,9 @@
 package delivery
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/mock"
 	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/utils/constants"
 	"errors"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"

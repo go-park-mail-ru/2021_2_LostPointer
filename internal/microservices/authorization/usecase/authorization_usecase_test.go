@@ -1,10 +1,10 @@
 package usecase
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
 	"2021_2_LostPointer/internal/mock"
 	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/utils/constants"
 	"context"
 	"errors"
 	"github.com/stretchr/testify/assert"

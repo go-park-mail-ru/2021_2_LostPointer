@@ -1,8 +1,8 @@
 package validation
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/utils/constants"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

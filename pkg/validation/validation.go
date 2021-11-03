@@ -1,8 +1,8 @@
 package validation
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/utils/constants"
 	"regexp"
 )
 
@@ -31,7 +31,7 @@ func ValidatePassword(password string) (bool, string, error) {
 }
 
 func ValidateRegisterCredentials(userData *models.User) (bool, string, error) {
-	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` + constants.MinNicknameLength+ `,` + constants.MaxNicknameLength+ `}$`, userData.Nickname)
+	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` +constants.MinNicknameLength+ `,` +constants.MaxNicknameLength+ `}$`, userData.Nickname)
 	if err != nil {
 		return false, "", err
 	}

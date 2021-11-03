@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"2021_2_LostPointer/internal/utils/constants"
+	"2021_2_LostPointer/internal/constants"
 	"context"
 	"github.com/go-redis/redis/v8"
 	"strconv"

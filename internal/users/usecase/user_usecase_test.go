@@ -19,17 +19,17 @@ import (
 func TestUserUseCase_Login(t *testing.T) {
 	type response struct {
 		cookieValue string
-		err 		*models.CustomError
+		err         *models.CustomError
 	}
 
 	tests := []struct {
-		name 	  	  		 string
-		dbMock 	  	  		 *mock.MockUserRepository
-		sessionCheckerMock   *mock.MockSessionCheckerClient
-		imageMock			 *mock.MockAvatarRepositoryIFace
-		input 	  	  		 *models.Auth
-		expected  	  		 response
-		expectedErr   		 bool
+		name               string
+		dbMock             *mock.MockUserRepository
+		sessionCheckerMock *mock.MockSessionCheckerClient
+		imageMock          *mock.MockAvatarRepository
+		input              *models.Auth
+		expected           response
+		expectedErr        bool
 	}{
 		{
 			name: "Successful login",
@@ -41,12 +41,12 @@ func TestUserUseCase_Login(t *testing.T) {
 				},
 			},
 			input: &models.Auth{
-				Email: "LaHaine@gmail.com",
+				Email:    "LaHaine@gmail.com",
 				Password: "JesusLovesMe",
 			},
 			expected: response{
 				cookieValue: "cookieValue",
-				err: nil,
+				err:         nil,
 			},
 		},
 		{
@@ -57,12 +57,12 @@ func TestUserUseCase_Login(t *testing.T) {
 				},
 			},
 			input: &models.Auth{
-				Email: "LaHaine@gmail.com",
+				Email:    "LaHaine@gmail.com",
 				Password: "JesusLovesMe",
 			},
 			expected: response{
 				cookieValue: "",
-				err: &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.WrongCredentials},
+				err:         &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.WrongCredentials},
 			},
 			expectedErr: true,
 		},
@@ -74,13 +74,13 @@ func TestUserUseCase_Login(t *testing.T) {
 				},
 			},
 			input: &models.Auth{
-				Email: "LaHaine@gmail.com",
+				Email:    "LaHaine@gmail.com",
 				Password: "JesusLovesMe",
 			},
 			expected: response{
 				cookieValue: "",
 				err: &models.CustomError{
-					ErrorType: http.StatusInternalServerError,
+					ErrorType:     http.StatusInternalServerError,
 					OriginalError: status.Error(codes.Internal, "error"),
 				},
 			},
@@ -112,7 +112,7 @@ func TestUserUseCase_Logout(t *testing.T) {
 			return &session.Empty{}, nil
 		},
 	}
-	imageMock := &mock.MockAvatarRepositoryIFace{}
+	imageMock := &mock.MockAvatarRepository{}
 
 	r := NewUserUserCase(dbMock, sessionCheckerMock, imageMock)
 	err := r.Logout("alexei_kosenkov")
@@ -121,18 +121,18 @@ func TestUserUseCase_Logout(t *testing.T) {
 
 func TestUserUseCase_Register(t *testing.T) {
 	type response struct {
-		cookieValue  string
-		err 		 *models.CustomError
+		cookieValue string
+		err         *models.CustomError
 	}
 
 	tests := []struct {
-		name 	  	  		 string
-		dbMock 	  	  		 *mock.MockUserRepository
-		sessionCheckerMock   *mock.MockSessionCheckerClient
-		imagesMock			 *mock.MockAvatarRepositoryIFace
-		input 	  	  		 *models.User
-		expected  	  		 response
-		expectedErr   		 bool
+		name               string
+		dbMock             *mock.MockUserRepository
+		sessionCheckerMock *mock.MockSessionCheckerClient
+		imagesMock         *mock.MockAvatarRepository
+		input              *models.User
+		expected           response
+		expectedErr        bool
 	}{
 		{
 			name: "Successfully signed up",
@@ -144,13 +144,13 @@ func TestUserUseCase_Register(t *testing.T) {
 				},
 			},
 			input: &models.User{
-				Email: "LaHaine@gmail.com",
+				Email:    "LaHaine@gmail.com",
 				Password: "JesusLovesMe1337",
 				Nickname: "LaHaine",
 			},
 			expected: response{
 				cookieValue: "cookieValue",
-				err: nil,
+				err:         nil,
 			},
 		},
 		{
@@ -161,13 +161,13 @@ func TestUserUseCase_Register(t *testing.T) {
 				},
 			},
 			input: &models.User{
-				Email: "LaHaine@gmail.com",
+				Email:    "LaHaine@gmail.com",
 				Password: "JesusLovesMe1337",
 				Nickname: "LaHaine",
 			},
 			expected: response{
 				cookieValue: "",
-				err: &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NotUniqueNicknameMessage},
+				err:         &models.CustomError{ErrorType: http.StatusBadRequest, Message: constants.NotUniqueNicknameMessage},
 			},
 			expectedErr: true,
 		},
@@ -179,13 +179,13 @@ func TestUserUseCase_Register(t *testing.T) {
 				},
 			},
 			input: &models.User{
-				Email: "LaHaine@gmail.com",
+				Email:    "LaHaine@gmail.com",
 				Password: "JesusLovesMe1337",
 				Nickname: "LaHaine",
 			},
 			expected: response{
 				cookieValue: "",
-				err: &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: status.Error(codes.Internal, "error")},
+				err:         &models.CustomError{ErrorType: http.StatusInternalServerError, OriginalError: status.Error(codes.Internal, "error")},
 			},
 			expectedErr: true,
 		},
@@ -212,25 +212,25 @@ func TestUserUseCase_Register(t *testing.T) {
 func TestUserUseCase_GetSettings(t *testing.T) {
 	type response struct {
 		settings *models.SettingsGet
-		err 	 *models.CustomError
+		err      *models.CustomError
 	}
 
 	tests := []struct {
-		name 	  	  		 string
-		dbMock 	  	  		 *mock.MockUserRepository
-		sessionCheckerMock   *mock.MockSessionCheckerClient
-		imagesMock			 *mock.MockAvatarRepositoryIFace
-		input 	  	  		 int
-		expected  	  		 response
-		expectedErr   		 bool
+		name               string
+		dbMock             *mock.MockUserRepository
+		sessionCheckerMock *mock.MockSessionCheckerClient
+		imagesMock         *mock.MockAvatarRepository
+		input              int
+		expected           response
+		expectedErr        bool
 	}{
 		{
 			name: "Successfully got settings",
 			dbMock: &mock.MockUserRepository{
 				GetSettingsFunc: func(int) (*models.SettingsGet, error) {
 					return &models.SettingsGet{
-						Email: "LaHaine@gmail.com",
-						Nickname: "LaHaine",
+						Email:       "LaHaine@gmail.com",
+						Nickname:    "LaHaine",
 						SmallAvatar: "small",
 					}, nil
 				},
@@ -238,8 +238,8 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 			input: 1,
 			expected: response{
 				settings: &models.SettingsGet{
-					Email: "LaHaine@gmail.com",
-					Nickname: "LaHaine",
+					Email:       "LaHaine@gmail.com",
+					Nickname:    "LaHaine",
 					SmallAvatar: "small",
 				},
 				err: nil,
@@ -256,7 +256,7 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 			expected: response{
 				settings: nil,
 				err: &models.CustomError{
-					ErrorType: 500,
+					ErrorType:     500,
 					OriginalError: errors.New("error"),
 				},
 			},
@@ -285,17 +285,17 @@ func TestUserUseCase_GetSettings(t *testing.T) {
 func TestUserUseCase_GetAvatarFilename(t *testing.T) {
 	type response struct {
 		filename string
-		err 	 *models.CustomError
+		err      *models.CustomError
 	}
 
 	tests := []struct {
-		name 		  		 string
-		dbMock 	  	  		 *mock.MockUserRepository
-		sessionCheckerMock   *mock.MockSessionCheckerClient
-		imagesMock			 *mock.MockAvatarRepositoryIFace
-		input 		  		 int
-		expected 	  		 response
-		expectedErr   		 bool
+		name               string
+		dbMock             *mock.MockUserRepository
+		sessionCheckerMock *mock.MockSessionCheckerClient
+		imagesMock         *mock.MockAvatarRepository
+		input              int
+		expected           response
+		expectedErr        bool
 	}{
 		{
 			name: "Successfully got avatar filename",
@@ -319,7 +319,7 @@ func TestUserUseCase_GetAvatarFilename(t *testing.T) {
 			input: 1,
 			expected: response{
 				err: &models.CustomError{
-					ErrorType: http.StatusInternalServerError,
+					ErrorType:     http.StatusInternalServerError,
 					OriginalError: errors.New("error"),
 				},
 			},
@@ -347,19 +347,19 @@ func TestUserUseCase_GetAvatarFilename(t *testing.T) {
 
 func TestUserUseCase_UpdateSettings(t *testing.T) {
 	type inputStruct struct {
-		userId int
+		userId      int
 		oldSettings *models.SettingsGet
 		newSettings *models.SettingsUpload
 	}
 
 	tests := []struct {
-		name 	  	  		 string
-		dbMock 	  	  		 *mock.MockUserRepository
-		sessionCheckerMock   *mock.MockSessionCheckerClient
-		imagesMock			 *mock.MockAvatarRepositoryIFace
-		input 	  	  		 *inputStruct
-		expected  	  		 *models.CustomError
-		expectedErr   		 bool
+		name               string
+		dbMock             *mock.MockUserRepository
+		sessionCheckerMock *mock.MockSessionCheckerClient
+		imagesMock         *mock.MockAvatarRepository
+		input              *inputStruct
+		expected           *models.CustomError
+		expectedErr        bool
 	}{
 		// ----------EMAIL----------
 		{
@@ -384,7 +384,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 		},
 		{
-			name: "Unsuccessfully update email, email is not valid",
+			name:   "Unsuccessfully update email, email is not valid",
 			dbMock: &mock.MockUserRepository{},
 			input: &inputStruct{
 				userId: 1,
@@ -440,7 +440,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -465,7 +465,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -493,7 +493,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 		},
 		{
-			name: "Unsuccessfully update nickname, nickname is not valid",
+			name:   "Unsuccessfully update nickname, nickname is not valid",
 			dbMock: &mock.MockUserRepository{},
 			input: &inputStruct{
 				userId: 1,
@@ -549,7 +549,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -574,7 +574,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -592,7 +592,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				userId: 1,
+				userId:      1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "JesusLovesMe",
@@ -608,7 +608,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				userId: 1,
+				userId:      1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "JesusLovesMe",
@@ -629,7 +629,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				userId: 1,
+				userId:      1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "JesusLovesMe",
@@ -637,7 +637,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -650,7 +650,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				userId: 1,
+				userId:      1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "JesusLovesMe",
@@ -674,7 +674,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &inputStruct{
-				userId: 1,
+				userId:      1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "JesusLovesMe",
@@ -682,16 +682,16 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
 		},
 		{
-			name: "Unsuccessfully update password, old password field is empty",
-			dbMock: &mock.MockUserRepository{ },
+			name:   "Unsuccessfully update password, old password field is empty",
+			dbMock: &mock.MockUserRepository{},
 			input: &inputStruct{
-				userId: 1,
+				userId:      1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "",
@@ -705,10 +705,10 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name: "Unsuccessfully update password, new password field is empty",
-			dbMock: &mock.MockUserRepository{ },
+			name:   "Unsuccessfully update password, new password field is empty",
+			dbMock: &mock.MockUserRepository{},
 			input: &inputStruct{
-				userId: 1,
+				userId:      1,
 				oldSettings: &models.SettingsGet{},
 				newSettings: &models.SettingsUpload{
 					OldPassword: "JesusLovesMe",
@@ -731,7 +731,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 					return nil
 				},
 			},
-			imagesMock: &mock.MockAvatarRepositoryIFace{
+			imagesMock: &mock.MockAvatarRepository{
 				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
 					return "avatar", nil
 				},
@@ -739,7 +739,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 					return nil
 				},
 			},
-			input: &inputStruct {
+			input: &inputStruct{
 				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_avatar",
@@ -750,14 +750,14 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 			},
 		},
 		{
-			name: "CreateImage returned error",
+			name:   "CreateImage returned error",
 			dbMock: &mock.MockUserRepository{},
-			imagesMock: &mock.MockAvatarRepositoryIFace{
+			imagesMock: &mock.MockAvatarRepository{
 				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
 					return "", errors.New("error")
 				},
 			},
-			input: &inputStruct {
+			input: &inputStruct{
 				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_avatar",
@@ -767,7 +767,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -779,12 +779,12 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 					return "", errors.New("error")
 				},
 			},
-			imagesMock: &mock.MockAvatarRepositoryIFace{
+			imagesMock: &mock.MockAvatarRepository{
 				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
 					return "avatar", nil
 				},
 			},
-			input: &inputStruct {
+			input: &inputStruct{
 				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_avatar",
@@ -794,7 +794,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -806,7 +806,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 					return "avatar", nil
 				},
 			},
-			imagesMock: &mock.MockAvatarRepositoryIFace{
+			imagesMock: &mock.MockAvatarRepository{
 				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
 					return "avatar", nil
 				},
@@ -814,7 +814,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 					return errors.New("error")
 				},
 			},
-			input: &inputStruct {
+			input: &inputStruct{
 				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_avatar",
@@ -824,7 +824,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -835,11 +835,11 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				GetAvatarFilenameFunc: func(int) (string, error) {
 					return "avatar", nil
 				},
-				UpdateAvatarFunc: func(int,  string) error {
+				UpdateAvatarFunc: func(int, string) error {
 					return errors.New("error")
 				},
 			},
-			imagesMock: &mock.MockAvatarRepositoryIFace{
+			imagesMock: &mock.MockAvatarRepository{
 				CreateImageFunc: func(*multipart.FileHeader) (string, error) {
 					return "avatar", nil
 				},
@@ -847,7 +847,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 					return nil
 				},
 			},
-			input: &inputStruct {
+			input: &inputStruct{
 				userId: 1,
 				oldSettings: &models.SettingsGet{
 					SmallAvatar: "old_avatar",
@@ -857,7 +857,7 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 				},
 			},
 			expected: &models.CustomError{
-				ErrorType: 500,
+				ErrorType:     500,
 				OriginalError: errors.New("error"),
 			},
 			expectedErr: true,
@@ -879,5 +879,3 @@ func TestUserUseCase_UpdateSettings(t *testing.T) {
 		})
 	}
 }
-
-

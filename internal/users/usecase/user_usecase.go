@@ -1,11 +1,11 @@
 package usecase
 
 import (
+	"2021_2_LostPointer/internal/avatars"
 	"2021_2_LostPointer/internal/constants"
 	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/users"
-	"2021_2_LostPointer/pkg/images"
 	"2021_2_LostPointer/pkg/validation"
 	"context"
 	"google.golang.org/grpc/codes"
@@ -18,11 +18,11 @@ import (
 type UserUseCase struct {
 	userDB         users.UserRepository
 	sessionChecker session.SessionCheckerClient
-	images         images.AvatarRepositoryIFace
+	images         avatars.AvatarRepository
 }
 
 func NewUserUserCase(userDB users.UserRepository, sessionChecker session.SessionCheckerClient,
-	images images.AvatarRepositoryIFace) UserUseCase {
+	images avatars.AvatarRepository) UserUseCase {
 	return UserUseCase{
 		userDB:         userDB,
 		sessionChecker: sessionChecker,

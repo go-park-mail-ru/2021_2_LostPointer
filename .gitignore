@@ -18,5 +18,5 @@
 .idea
 .idea/
 *.DS_Store
-**/mock
 /log.txt
+*cover.out*

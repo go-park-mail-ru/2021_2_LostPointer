@@ -11,5 +11,5 @@ go generate moq -out ./mock/track_repo_db_mock.go -pkg mock 2021_2_LostPointer/i
 go generate moq -out ./mock/track_usecase_mock.go -pkg mock 2021_2_LostPointer/internal/track TrackUseCase:MockTrackUseCase
 go generate moq -out ./mock/user_repo_db_mock.go -pkg mock 2021_2_LostPointer/internal/users UserRepository:MockUserRepository
 go generate moq -out ./mock/user_usecase_mock.go -pkg mock 2021_2_LostPointer/internal/users UserUseCase:MockUserUseCase
-go generate moq -out ./mock/avatar_repository_mock.go -pkg mock 2021_2_LostPointer/internal/utils/images AvatarRepositoryIFace:MockAvatarRepositoryIFace
+go generate moq -out ./mock/avatar_repository_mock.go -pkg mock 2021_2_LostPointer/internal/avatars AvatarRepository:MockAvatarRepository
 go generate moq -out ./mock/session_checker_mock.go -pkg mock 2021_2_LostPointer/internal/microservices/authorization/delivery SessionCheckerClient:MockSessionCheckerClient

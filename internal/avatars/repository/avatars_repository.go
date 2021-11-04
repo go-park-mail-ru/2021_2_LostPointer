@@ -10,12 +10,6 @@ import (
 	"os"
 )
 
-//go:generate moq -out ../../mock/avatar_repository_mock.go -pkg mock . AvatarRepositoryIFace:MockAvatarRepositoryIFace
-type AvatarRepositoryIFace interface {
-	CreateImage(*multipart.FileHeader) (string, error)
-	DeleteImage(string) error
-}
-
 type AvatarRepository struct{}
 
 func NewAvatarRepository() AvatarRepository {

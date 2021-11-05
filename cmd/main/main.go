@@ -21,6 +21,10 @@ import (
 	repositoryUser "2021_2_LostPointer/internal/users/repository"
 	usecaseUser "2021_2_LostPointer/internal/users/usecase"
 
+	deliverySearch "2021_2_LostPointer/internal/search/delivery"
+	repositorySearch "2021_2_LostPointer/internal/search/repository"
+	usecaseSearch "2021_2_LostPointer/internal/search/usecase"
+
 	repositoryAvatar "2021_2_LostPointer/internal/avatars/repository"
 
 	authorizationMicro "2021_2_LostPointer/internal/microservices/authorization/delivery"
@@ -44,6 +48,7 @@ type RequestHandlers struct {
 	trackHandlers      deliveryTrack.TrackDelivery
 	albumHandlers      deliveryAlbum.AlbumDelivery
 	playlistHandlers   deliveryPlaylist.PlaylistDelivery
+	searchHandlers     deliverySearch.SearchDelivery
 	middlewareHandlers middleware.Middleware
 }
 
@@ -69,6 +74,10 @@ func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.Sug
 	playlistUseCase := usecasePlaylist.NewPlaylistUseCase(playlistRepo)
 	playlistHandlers := deliveryPlaylist.NewPlaylistDelivery(playlistUseCase, logger)
 
+	searchRepo := repositorySearch.NewSearchRepository(db)
+	searchUsecase := usecaseSearch.NewSearchUsecase(searchRepo)
+	searchHandlers := deliverySearch.NewSearchDelivery(searchUsecase, logger)
+
 	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase, sessionChecker)
 
 	api := &(RequestHandlers{
@@ -77,6 +86,7 @@ func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.Sug
 		trackHandlers:      trackHandlers,
 		albumHandlers:      albumHandlers,
 		playlistHandlers:   playlistHandlers,
+		searchHandlers:     searchHandlers,
 		middlewareHandlers: middlewareHandlers,
 	})
 
@@ -200,6 +210,7 @@ func main() {
 	api.trackHandlers.InitHandlers(server)
 	api.albumHandlers.InitHandlers(server)
 	api.playlistHandlers.InitHandlers(server)
+	api.searchHandlers.InitHandlers(server)
 	api.middlewareHandlers.InitMiddlewareHandlers(server)
 
 	server.Static("/tracks", os.Getenv("TRACKS_PATH"))

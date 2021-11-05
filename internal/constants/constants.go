@@ -46,4 +46,6 @@ const (
 	ArtistsCollectionLimit       = 4
 	SiteID                       = 0
 	CookieLifetime               = time.Hour * 24 * 30
+	TracksSearchAmount           = 10
+	ArtistsSearchAmount          = 5
 )

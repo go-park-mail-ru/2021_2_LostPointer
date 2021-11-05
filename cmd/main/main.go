@@ -48,7 +48,7 @@ type RequestHandlers struct {
 	trackHandlers      deliveryTrack.TrackDelivery
 	albumHandlers      deliveryAlbum.AlbumDelivery
 	playlistHandlers   deliveryPlaylist.PlaylistDelivery
-	searchHandlers     deliverySearch.SearchDelivery
+	searchHandlers     deliverySearch.Handler
 	middlewareHandlers middleware.Middleware
 }
 
@@ -75,8 +75,8 @@ func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.Sug
 	playlistHandlers := deliveryPlaylist.NewPlaylistDelivery(playlistUseCase, logger)
 
 	searchRepo := repositorySearch.NewSearchRepository(db)
-	searchUsecase := usecaseSearch.NewSearchUsecase(searchRepo)
-	searchHandlers := deliverySearch.NewSearchDelivery(searchUsecase, logger)
+	searchUsecase := usecaseSearch.NewSearchUsecase(&searchRepo)
+	searchHandlers := deliverySearch.NewHandler(&searchUsecase, logger)
 
 	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase, sessionChecker)
 

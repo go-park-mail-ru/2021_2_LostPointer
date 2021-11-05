@@ -8,4 +8,5 @@ type Album struct {
 	Artwork        string `json:"artwork,omitempty"`
 	TracksCount    int64  `json:"tracksCount,omitempty"`
 	TracksDuration int64  `json:"tracksDuration,omitempty"`
+	ArtWorkColor   string `json:"artwork_color,omitempty"`
 }

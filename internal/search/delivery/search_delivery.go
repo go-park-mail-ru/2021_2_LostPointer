@@ -7,27 +7,27 @@ import (
 	"net/http"
 )
 
-type SearchDelivery struct {
-	searchLogic search.SearchUsecase
+type Handler struct {
+	searcher search.Searcher
 	logger      *zap.SugaredLogger
 }
 
-func NewSearchDelivery(searchLogic search.SearchUsecase, logger *zap.SugaredLogger) SearchDelivery {
-	return SearchDelivery{
-		searchLogic: searchLogic,
-		logger:      logger,
+func NewHandler(searcher search.Searcher, logger *zap.SugaredLogger) Handler {
+	return Handler{
+		searcher:	searcher,
+		logger:     logger,
 	}
 }
 
-func (searchD SearchDelivery) Search(ctx echo.Context) error {
+func (h *Handler) Search(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
 
 	searchText := ctx.FormValue("text")
 
-	searchResponseData, customError := searchD.searchLogic.SearchByText(searchText)
+	SearchPayload, customError := h.searcher.ByText(searchText)
 	if customError != nil {
 		if customError.ErrorType == http.StatusInternalServerError {
-			searchD.logger.Error(
+			h.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", customError.OriginalError.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -36,9 +36,9 @@ func (searchD SearchDelivery) Search(ctx echo.Context) error {
 		}
 	}
 
-	return ctx.JSON(http.StatusOK, searchResponseData)
+	return ctx.JSON(http.StatusOK, SearchPayload)
 }
 
-func (searchD SearchDelivery) InitHandlers(server *echo.Echo) {
-	server.GET("/api/v1/search", searchD.Search)
+func (h Handler) InitHandlers(server *echo.Echo) {
+	server.GET("/api/v1/search", h.Search)
 }

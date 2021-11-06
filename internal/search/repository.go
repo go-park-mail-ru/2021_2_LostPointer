@@ -2,8 +2,8 @@ package search
 
 import "2021_2_LostPointer/internal/models"
 
-type SearchRepository interface {
-	SearchRelevantTracksByFullWord(string) ([]models.Track, error)
-	SearchRelevantTracksByPartial(string) ([]models.Track, error)
-	SearchRelevantArtists(string) ([]models.ArtistShort, error)
+type MusicInfoStorage interface {
+	TracksByFullWord(string) ([]models.Track, error)
+	TracksByPartial(string) ([]models.Track, error)
+	Artists(string) ([]models.ArtistShort, error)
 }

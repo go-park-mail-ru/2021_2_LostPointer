@@ -60,17 +60,17 @@ func (imageR AvatarRepository) CreateImage(file *multipart.FileHeader) (string, 
 func (imageR AvatarRepository) DeleteImage(filename string) error {
 	// 1) Проверяем, что файл существует
 	doesFileExist := true
-	if _, err := os.Stat(filename + constants.LittleAvatarPostfix); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("USERS_PATH_FROM_BACKEND") + filename + constants.LittleAvatarPostfix); os.IsNotExist(err) {
 		doesFileExist = false
 	}
 
 	// 2) Удаляем файл со старой аватаркой
 	if filename != constants.AvatarDefaultFileName && doesFileExist {
-		err := os.Remove(filename + constants.LittleAvatarPostfix)
+		err := os.Remove(os.Getenv("USERS_PATH_FROM_BACKEND") + filename + constants.LittleAvatarPostfix)
 		if err != nil {
 			return err
 		}
-		err = os.Remove(filename + constants.BigAvatarPostfix)
+		err = os.Remove(os.Getenv("USERS_PATH_FROM_BACKEND") + filename + constants.BigAvatarPostfix)
 		if err != nil {
 			return err
 		}

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package session;
+option go_package = "microservices/authorization/proto";
+
+message Cookie {
+  string Cookies = 1;
+}
+
+message SessionData {
+  int64 ID = 1;
+  string Cookies = 2;
+}
+
+message AuthData {
+  string Login = 1;
+  string Password = 2;
+}
+
+message Empty {}
+
+service Authorization {
+  rpc CreateSession(SessionData) returns(Empty) {}
+  rpc Login(AuthData) returns(Cookie) {}
+}

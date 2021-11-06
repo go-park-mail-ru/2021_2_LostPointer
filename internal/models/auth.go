@@ -1,6 +1,6 @@
 package models
 
-type Auth struct {
-	Email    string `json:"email" form:"email" query:"email"`
-	Password string `json:"password" form:"password" query:"password"`
+type AuthData struct {
+	Email    string `json:"email,omitempty" form:"email" query:"email"`
+	Password string `json:"password,omitempty" form:"password" query:"password"`
 }

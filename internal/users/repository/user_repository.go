@@ -6,6 +6,7 @@ import (
 	"2021_2_LostPointer/pkg/hash"
 	sanitizer "2021_2_LostPointer/pkg/sanitize"
 	"database/sql"
+	"golang.org/x/crypto/bcrypt"
 	"os"
 	"strings"
 )
@@ -23,10 +24,15 @@ func (Data UserRepository) CreateUser(userData *models.User) (int, error) {
 
 	salt := hash.GetRandomString(constants.SaltLength)
 	sanitizedData := sanitizer.SanitizeUserData(*userData)
-	err := Data.userDB.QueryRow(
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(sanitizedData.Password + salt), bcrypt.DefaultCost)
+	if err != nil {
+		return 0, err
+	}
+	err = Data.userDB.QueryRow(
 		`INSERT INTO users(email, password, nickname, salt, avatar) VALUES($1, $2, $3, $4, $5) RETURNING id`,
-		strings.ToLower(sanitizedData.Email), hash.GetHash(sanitizedData.Password+salt), sanitizedData.Nickname, salt, constants.AvatarDefaultFileName,
+		strings.ToLower(sanitizedData.Email), hashedPassword, sanitizedData.Nickname, salt, constants.AvatarDefaultFileName,
 	).Scan(&id)
+
 	if err != nil {
 		return 0, err
 	}
@@ -53,7 +59,7 @@ func (Data UserRepository) DoesUserExist(authData *models.Auth) (int, error) {
 	if err := rows.Scan(&id, &password, &salt); err != nil {
 		return 0, err
 	}
-	if hash.GetHash(authData.Password+salt) != password {
+	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(authData.Password + salt)); err != nil {
 		return 0, nil
 	}
 
@@ -128,12 +134,10 @@ func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string)
 	if !rows.Next() {
 		return false, nil
 	}
-
 	if err := rows.Scan(&password, &salt); err != nil {
 		return false, err
 	}
-	// Не совпадает пароль
-	if hash.GetHash(oldPassword+salt) != password {
+	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(oldPassword + salt)); err != nil {
 		return false, nil
 	}
 
@@ -160,8 +164,12 @@ func (Data UserRepository) UpdateNickname(userID int, nickname string) error {
 
 func (Data UserRepository) UpdatePassword(userID int, password string) error {
 	salt := hash.GetRandomString(constants.SaltLength)
-
-	err := Data.userDB.QueryRow(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`, hash.GetHash(password+salt), salt, userID).Err()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password + salt), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	err = Data.userDB.QueryRow(`UPDATE users SET password=$1, salt=$2 WHERE id=$3`,
+		hashedPassword, salt, userID).Err()
 	if err != nil {
 		return err
 	}

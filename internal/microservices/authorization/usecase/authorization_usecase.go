@@ -2,49 +2,32 @@ package usecase
 
 import (
 	"2021_2_LostPointer/internal/constants"
-	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
-	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/sessions"
-	"2021_2_LostPointer/internal/users"
-	"2021_2_LostPointer/pkg/validation"
+	"2021_2_LostPointer/internal/microservices/authorization/proto"
+	"2021_2_LostPointer/internal/microservices/authorization/repository"
 	"context"
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type AuthorizationUseCase struct {
-	userDB     users.UserRepository
-	sessionsDB sessions.SessionRepository
+type AuthService struct {
+	storage repository.AuthStorage
 }
 
-func NewAuthorizationUseCase(userDB users.UserRepository, sessionsDB sessions.SessionRepository) AuthorizationUseCase {
-	return AuthorizationUseCase{userDB: userDB, sessionsDB: sessionsDB}
+func NewAuthService(storage repository.AuthStorage) AuthService {
+	return AuthService{storage: storage}
 }
 
-func (authU AuthorizationUseCase) GetUserBySession(ctx context.Context, auth *session.SessionData) (*session.UserID, error) {
-	userID, err := authU.sessionsDB.GetUserIdByCookie(auth.Cookies)
-	if userID == 0 || err != nil {
-		userID = -1
+func (service AuthService) CreateSession(ctx context.Context, data *proto.SessionData) (*proto.Empty, error) {
+	err := service.storage.CreateSession(data.ID, data.Cookies)
+	if err != nil {
+		return nil, err
 	}
-
-	return &session.UserID{
-		UserID: int32(userID),
-	}, nil
+	return &proto.Empty{}, nil
 }
 
-func (authU AuthorizationUseCase) DeleteSession(ctx context.Context, auth *session.SessionData) (*session.Empty, error) {
-	err := authU.sessionsDB.DeleteSession(auth.Cookies)
-
-	return &session.Empty{}, err
-}
-
-func (authU AuthorizationUseCase) SignIn(ctx context.Context, auth *session.Auth) (*session.SessionData, error) {
-	authData := &models.Auth{
-		Email:    auth.Login,
-		Password: auth.Password,
-	}
-	userID, err := authU.userDB.DoesUserExist(authData)
+func (service AuthService) Login(ctx context.Context, authData *proto.AuthData) (*proto.Cookie, error) {
+	userID, err := service.storage.GetUserByPassword(authData.Login, authData.Password)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -53,62 +36,13 @@ func (authU AuthorizationUseCase) SignIn(ctx context.Context, auth *session.Auth
 	}
 
 	cookieValue := uuid.NewV4()
-	currentSession := &session.SessionData{
+	sessionData := &proto.Cookie{
 		Cookies: cookieValue.String(),
 	}
-
-	err = authU.sessionsDB.CreateSession(userID, currentSession.Cookies)
+	_, err = service.CreateSession(context.Background(), &proto.SessionData{ID: userID, Cookies: cookieValue.String()})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return currentSession, nil
-}
-
-func (authU AuthorizationUseCase) Signup(ctx context.Context, register *session.SignUpData) (*session.SessionData, error) {
-	isEmailUnique, err := authU.userDB.IsEmailUnique(register.Email)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	if !isEmailUnique {
-		return nil, status.Error(codes.Aborted, constants.NotUniqueEmailMessage)
-	}
-
-	isNicknameUnique, err := authU.userDB.IsNicknameUnique(register.Nickname)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	if !isNicknameUnique {
-		return nil, status.Error(codes.Aborted, constants.NotUniqueNicknameMessage)
-	}
-
-	userData := &models.User{
-		Email:    register.Email,
-		Password: register.Password,
-		Nickname: register.Nickname,
-	}
-	isValidCredentials, message, err := validation.ValidateRegisterCredentials(userData)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	if !isValidCredentials {
-		return nil, status.Error(codes.Aborted, message)
-	}
-
-	userID, err := authU.userDB.CreateUser(userData)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	cookieValue := uuid.NewV4()
-	currentSession := &session.SessionData{
-		Cookies: cookieValue.String(),
-	}
-
-	err = authU.sessionsDB.CreateSession(userID, currentSession.Cookies)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return currentSession, nil
+	return sessionData, nil
 }

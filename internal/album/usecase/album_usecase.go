@@ -16,8 +16,21 @@ func NewAlbumUseCase(albumRepository album.AlbumRepository) AlbumUseCase {
 	return AlbumUseCase{AlbumRepository: albumRepository}
 }
 
-func (albumUseCase AlbumUseCase) GetHome(amount int) ([]models.Album, *models.CustomError) {
+func (albumUseCase *AlbumUseCase) GetHome(amount int) ([]models.Album, *models.CustomError) {
 	albums, err := albumUseCase.AlbumRepository.GetRandom(amount)
+	if err != nil {
+		return nil, &models.CustomError{
+			ErrorType:     http.StatusInternalServerError,
+			OriginalError: err,
+			Message:       constants.DatabaseNotResponding,
+		}
+	}
+
+	return albums, nil
+}
+
+func (albumUseCase AlbumUseCase) GetByArtist(id, amount int) ([]models.Album, *models.CustomError) {
+	albums, err := albumUseCase.AlbumRepository.GetByArtistID(id, amount)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,

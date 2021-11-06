@@ -19,6 +19,9 @@ var _ album.AlbumRepository = &MockAlbumRepository{}
 //
 // 		// make and configure a mocked album.AlbumRepository
 // 		mockedAlbumRepository := &MockAlbumRepository{
+// 			GetByArtistIDFunc: func(id int, amount int) ([]models.Album, error) {
+// 				panic("mock out the GetByArtistID method")
+// 			},
 // 			GetRandomFunc: func(amount int) ([]models.Album, error) {
 // 				panic("mock out the GetRandom method")
 // 			},
@@ -29,18 +32,64 @@ var _ album.AlbumRepository = &MockAlbumRepository{}
 //
 // 	}
 type MockAlbumRepository struct {
+	// GetByArtistIDFunc mocks the GetByArtistID method.
+	GetByArtistIDFunc func(id int, amount int) ([]models.Album, error)
+
 	// GetRandomFunc mocks the GetRandom method.
 	GetRandomFunc func(amount int) ([]models.Album, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// GetByArtistID holds details about calls to the GetByArtistID method.
+		GetByArtistID []struct {
+			// ID is the id argument value.
+			ID int
+			// Amount is the amount argument value.
+			Amount int
+		}
 		// GetRandom holds details about calls to the GetRandom method.
 		GetRandom []struct {
 			// Amount is the amount argument value.
 			Amount int
 		}
 	}
-	lockGetRandom sync.RWMutex
+	lockGetByArtistID sync.RWMutex
+	lockGetRandom     sync.RWMutex
+}
+
+// GetByArtistID calls GetByArtistIDFunc.
+func (mock *MockAlbumRepository) GetByArtistID(id int, amount int) ([]models.Album, error) {
+	if mock.GetByArtistIDFunc == nil {
+		panic("MockAlbumRepository.GetByArtistIDFunc: method is nil but AlbumRepository.GetByArtistID was just called")
+	}
+	callInfo := struct {
+		ID     int
+		Amount int
+	}{
+		ID:     id,
+		Amount: amount,
+	}
+	mock.lockGetByArtistID.Lock()
+	mock.calls.GetByArtistID = append(mock.calls.GetByArtistID, callInfo)
+	mock.lockGetByArtistID.Unlock()
+	return mock.GetByArtistIDFunc(id, amount)
+}
+
+// GetByArtistIDCalls gets all the calls that were made to GetByArtistID.
+// Check the length with:
+//     len(mockedAlbumRepository.GetByArtistIDCalls())
+func (mock *MockAlbumRepository) GetByArtistIDCalls() []struct {
+	ID     int
+	Amount int
+} {
+	var calls []struct {
+		ID     int
+		Amount int
+	}
+	mock.lockGetByArtistID.RLock()
+	calls = mock.calls.GetByArtistID
+	mock.lockGetByArtistID.RUnlock()
+	return calls
 }
 
 // GetRandom calls GetRandomFunc.

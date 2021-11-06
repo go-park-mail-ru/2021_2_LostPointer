@@ -19,6 +19,12 @@ var _ track.TrackUseCase = &MockTrackUseCase{}
 //
 // 		// make and configure a mocked track.TrackUseCase
 // 		mockedTrackUseCase := &MockTrackUseCase{
+// 			GetByAlbumFunc: func(id int, isAuthorized bool) ([]models.Track, *models.CustomError) {
+// 				panic("mock out the GetByAlbum method")
+// 			},
+// 			GetByArtistFunc: func(id int, amount int, isAuthorized bool) ([]models.Track, *models.CustomError) {
+// 				panic("mock out the GetByArtist method")
+// 			},
 // 			GetHomeFunc: func(amount int, isAuthorized bool) ([]models.Track, *models.CustomError) {
 // 				panic("mock out the GetHome method")
 // 			},
@@ -32,6 +38,12 @@ var _ track.TrackUseCase = &MockTrackUseCase{}
 //
 // 	}
 type MockTrackUseCase struct {
+	// GetByAlbumFunc mocks the GetByAlbum method.
+	GetByAlbumFunc func(id int, isAuthorized bool) ([]models.Track, *models.CustomError)
+
+	// GetByArtistFunc mocks the GetByArtist method.
+	GetByArtistFunc func(id int, amount int, isAuthorized bool) ([]models.Track, *models.CustomError)
+
 	// GetHomeFunc mocks the GetHome method.
 	GetHomeFunc func(amount int, isAuthorized bool) ([]models.Track, *models.CustomError)
 
@@ -40,6 +52,22 @@ type MockTrackUseCase struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// GetByAlbum holds details about calls to the GetByAlbum method.
+		GetByAlbum []struct {
+			// ID is the id argument value.
+			ID int
+			// IsAuthorized is the isAuthorized argument value.
+			IsAuthorized bool
+		}
+		// GetByArtist holds details about calls to the GetByArtist method.
+		GetByArtist []struct {
+			// ID is the id argument value.
+			ID int
+			// Amount is the amount argument value.
+			Amount int
+			// IsAuthorized is the isAuthorized argument value.
+			IsAuthorized bool
+		}
 		// GetHome holds details about calls to the GetHome method.
 		GetHome []struct {
 			// Amount is the amount argument value.
@@ -53,8 +81,84 @@ type MockTrackUseCase struct {
 			N int64
 		}
 	}
+	lockGetByAlbum           sync.RWMutex
+	lockGetByArtist          sync.RWMutex
 	lockGetHome              sync.RWMutex
 	lockIncrementListenCount sync.RWMutex
+}
+
+// GetByAlbum calls GetByAlbumFunc.
+func (mock *MockTrackUseCase) GetByAlbum(id int, isAuthorized bool) ([]models.Track, *models.CustomError) {
+	if mock.GetByAlbumFunc == nil {
+		panic("MockTrackUseCase.GetByAlbumFunc: method is nil but TrackUseCase.GetByAlbum was just called")
+	}
+	callInfo := struct {
+		ID           int
+		IsAuthorized bool
+	}{
+		ID:           id,
+		IsAuthorized: isAuthorized,
+	}
+	mock.lockGetByAlbum.Lock()
+	mock.calls.GetByAlbum = append(mock.calls.GetByAlbum, callInfo)
+	mock.lockGetByAlbum.Unlock()
+	return mock.GetByAlbumFunc(id, isAuthorized)
+}
+
+// GetByAlbumCalls gets all the calls that were made to GetByAlbum.
+// Check the length with:
+//     len(mockedTrackUseCase.GetByAlbumCalls())
+func (mock *MockTrackUseCase) GetByAlbumCalls() []struct {
+	ID           int
+	IsAuthorized bool
+} {
+	var calls []struct {
+		ID           int
+		IsAuthorized bool
+	}
+	mock.lockGetByAlbum.RLock()
+	calls = mock.calls.GetByAlbum
+	mock.lockGetByAlbum.RUnlock()
+	return calls
+}
+
+// GetByArtist calls GetByArtistFunc.
+func (mock *MockTrackUseCase) GetByArtist(id int, amount int, isAuthorized bool) ([]models.Track, *models.CustomError) {
+	if mock.GetByArtistFunc == nil {
+		panic("MockTrackUseCase.GetByArtistFunc: method is nil but TrackUseCase.GetByArtist was just called")
+	}
+	callInfo := struct {
+		ID           int
+		Amount       int
+		IsAuthorized bool
+	}{
+		ID:           id,
+		Amount:       amount,
+		IsAuthorized: isAuthorized,
+	}
+	mock.lockGetByArtist.Lock()
+	mock.calls.GetByArtist = append(mock.calls.GetByArtist, callInfo)
+	mock.lockGetByArtist.Unlock()
+	return mock.GetByArtistFunc(id, amount, isAuthorized)
+}
+
+// GetByArtistCalls gets all the calls that were made to GetByArtist.
+// Check the length with:
+//     len(mockedTrackUseCase.GetByArtistCalls())
+func (mock *MockTrackUseCase) GetByArtistCalls() []struct {
+	ID           int
+	Amount       int
+	IsAuthorized bool
+} {
+	var calls []struct {
+		ID           int
+		Amount       int
+		IsAuthorized bool
+	}
+	mock.lockGetByArtist.RLock()
+	calls = mock.calls.GetByArtist
+	mock.lockGetByArtist.RUnlock()
+	return calls
 }
 
 // GetHome calls GetHomeFunc.

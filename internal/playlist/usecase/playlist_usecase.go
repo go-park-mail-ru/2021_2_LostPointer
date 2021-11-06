@@ -17,7 +17,7 @@ func NewPlaylistUseCase(playlistRepository playlist.PlaylistRepository) Playlist
 	return PlaylistUseCase{PlaylistRepository: playlistRepository}
 }
 
-func (playlistUseCase PlaylistUseCase) GetHome(amount int) ([]models.Playlist, *models.CustomError) {
+func (playlistUseCase *PlaylistUseCase) GetHome(amount int) ([]models.Playlist, *models.CustomError) {
 	playlists, err := playlistUseCase.PlaylistRepository.Get(amount, constants.SiteID)
 	if err != nil {
 		return nil, &models.CustomError{

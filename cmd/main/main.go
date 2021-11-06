@@ -59,20 +59,20 @@ func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.Sug
 	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
 
 	artistRepo := repositoryArtist.NewArtistRepository(db)
-	artistUseCase := usecaseArtist.NewArtistUseCase(artistRepo)
-	artistHandlers := deliveryArtist.NewArtistDelivery(artistUseCase, logger)
+	artistUseCase := usecaseArtist.NewArtistUseCase(&artistRepo)
+	artistHandlers := deliveryArtist.NewArtistDelivery(&artistUseCase, logger)
 
 	trackRepo := repositoryTrack.NewTrackRepository(db)
-	trackUseCase := usecaseTrack.NewTrackUseCase(trackRepo)
-	trackHandlers := deliveryTrack.NewTrackDelivery(trackUseCase, logger)
+	trackUseCase := usecaseTrack.NewTrackUseCase(&trackRepo)
+	trackHandlers := deliveryTrack.NewTrackDelivery(&trackUseCase, logger)
 
 	albumRepo := repositoryAlbum.NewAlbumRepository(db)
-	albumUseCase := usecaseAlbum.NewAlbumUseCase(albumRepo)
-	albumHandlers := deliveryAlbum.NewAlbumDelivery(albumUseCase, logger)
+	albumUseCase := usecaseAlbum.NewAlbumUseCase(&albumRepo)
+	albumHandlers := deliveryAlbum.NewAlbumDelivery(&albumUseCase, logger)
 
 	playlistRepo := repositoryPlaylist.NewPlaylistRepository(db)
-	playlistUseCase := usecasePlaylist.NewPlaylistUseCase(playlistRepo)
-	playlistHandlers := deliveryPlaylist.NewPlaylistDelivery(playlistUseCase, logger)
+	playlistUseCase := usecasePlaylist.NewPlaylistUseCase(&playlistRepo)
+	playlistHandlers := deliveryPlaylist.NewPlaylistDelivery(&playlistUseCase, logger)
 
 	searchRepo := repositorySearch.NewSearchRepository(db)
 	searchUsecase := usecaseSearch.NewSearchUsecase(searchRepo)

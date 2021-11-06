@@ -22,7 +22,7 @@ var _ artist.ArtistUseCase = &MockArtistUseCase{}
 // 			GetHomeFunc: func(amount int) ([]models.Artist, *models.CustomError) {
 // 				panic("mock out the GetHome method")
 // 			},
-// 			GetProfileFunc: func(id int, isAuthorized bool) (*models.Artist, *models.CustomError) {
+// 			GetProfileFunc: func(id int) (*models.Artist, *models.CustomError) {
 // 				panic("mock out the GetProfile method")
 // 			},
 // 		}
@@ -36,7 +36,7 @@ type MockArtistUseCase struct {
 	GetHomeFunc func(amount int) ([]models.Artist, *models.CustomError)
 
 	// GetProfileFunc mocks the GetProfile method.
-	GetProfileFunc func(id int, isAuthorized bool) (*models.Artist, *models.CustomError)
+	GetProfileFunc func(id int) (*models.Artist, *models.CustomError)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -49,8 +49,6 @@ type MockArtistUseCase struct {
 		GetProfile []struct {
 			// ID is the id argument value.
 			ID int
-			// IsAuthorized is the isAuthorized argument value.
-			IsAuthorized bool
 		}
 	}
 	lockGetHome    sync.RWMutex
@@ -89,33 +87,29 @@ func (mock *MockArtistUseCase) GetHomeCalls() []struct {
 }
 
 // GetProfile calls GetProfileFunc.
-func (mock *MockArtistUseCase) GetProfile(id int, isAuthorized bool) (*models.Artist, *models.CustomError) {
+func (mock *MockArtistUseCase) GetProfile(id int) (*models.Artist, *models.CustomError) {
 	if mock.GetProfileFunc == nil {
 		panic("MockArtistUseCase.GetProfileFunc: method is nil but ArtistUseCase.GetProfile was just called")
 	}
 	callInfo := struct {
-		ID           int
-		IsAuthorized bool
+		ID int
 	}{
-		ID:           id,
-		IsAuthorized: isAuthorized,
+		ID: id,
 	}
 	mock.lockGetProfile.Lock()
 	mock.calls.GetProfile = append(mock.calls.GetProfile, callInfo)
 	mock.lockGetProfile.Unlock()
-	return mock.GetProfileFunc(id, isAuthorized)
+	return mock.GetProfileFunc(id)
 }
 
 // GetProfileCalls gets all the calls that were made to GetProfile.
 // Check the length with:
 //     len(mockedArtistUseCase.GetProfileCalls())
 func (mock *MockArtistUseCase) GetProfileCalls() []struct {
-	ID           int
-	IsAuthorized bool
+	ID int
 } {
 	var calls []struct {
-		ID           int
-		IsAuthorized bool
+		ID int
 	}
 	mock.lockGetProfile.RLock()
 	calls = mock.calls.GetProfile

@@ -6,4 +6,6 @@ import "2021_2_LostPointer/internal/models"
 type TrackUseCase interface {
 	GetHome(amount int, isAuthorized bool) ([]models.Track, *models.CustomError)
 	IncrementListenCount(int64) *models.CustomError
+	GetByArtist(id, amount int, isAuthorized bool) ([]models.Track, *models.CustomError)
+	GetByAlbum(id int, isAuthorized bool) ([]models.Track, *models.CustomError)
 }

@@ -181,6 +181,163 @@ func (x *AuthData) GetPassword() string {
 	return ""
 }
 
+type RegisterData struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Login    string `protobuf:"bytes,1,opt,name=Login,proto3" json:"Login,omitempty"`
+	Password string `protobuf:"bytes,2,opt,name=Password,proto3" json:"Password,omitempty"`
+	Nickname string `protobuf:"bytes,3,opt,name=Nickname,proto3" json:"Nickname,omitempty"`
+}
+
+func (x *RegisterData) Reset() {
+	*x = RegisterData{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authorization_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RegisterData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterData) ProtoMessage() {}
+
+func (x *RegisterData) ProtoReflect() protoreflect.Message {
+	mi := &file_authorization_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterData.ProtoReflect.Descriptor instead.
+func (*RegisterData) Descriptor() ([]byte, []int) {
+	return file_authorization_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RegisterData) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
+func (x *RegisterData) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *RegisterData) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+type UserID struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ID int64 `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
+}
+
+func (x *UserID) Reset() {
+	*x = UserID{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authorization_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UserID) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserID) ProtoMessage() {}
+
+func (x *UserID) ProtoReflect() protoreflect.Message {
+	mi := &file_authorization_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserID.ProtoReflect.Descriptor instead.
+func (*UserID) Descriptor() ([]byte, []int) {
+	return file_authorization_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UserID) GetID() int64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+type Avatar struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Filename string `protobuf:"bytes,1,opt,name=Filename,proto3" json:"Filename,omitempty"`
+}
+
+func (x *Avatar) Reset() {
+	*x = Avatar{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authorization_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Avatar) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Avatar) ProtoMessage() {}
+
+func (x *Avatar) ProtoReflect() protoreflect.Message {
+	mi := &file_authorization_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Avatar.ProtoReflect.Descriptor instead.
+func (*Avatar) Descriptor() ([]byte, []int) {
+	return file_authorization_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Avatar) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
 type Empty struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -190,7 +347,7 @@ type Empty struct {
 func (x *Empty) Reset() {
 	*x = Empty{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_authorization_proto_msgTypes[3]
+		mi := &file_authorization_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -203,7 +360,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_authorization_proto_msgTypes[3]
+	mi := &file_authorization_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -216,7 +373,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_authorization_proto_rawDescGZIP(), []int{3}
+	return file_authorization_proto_rawDescGZIP(), []int{6}
 }
 
 var File_authorization_proto protoreflect.FileDescriptor
@@ -233,18 +390,38 @@ var file_authorization_proto_rawDesc = []byte{
 	0x75, 0x74, 0x68, 0x44, 0x61, 0x74, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x4c, 0x6f, 0x67, 0x69, 0x6e,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x12, 0x1a, 0x0a,
 	0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x32, 0x77, 0x0a, 0x0d, 0x41, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x12, 0x37, 0x0a, 0x0d, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x65, 0x73,
-	0x73, 0x69, 0x6f, 0x6e, 0x12, 0x14, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x53,
-	0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61, 0x1a, 0x0e, 0x2e, 0x73, 0x65, 0x73,
-	0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x2d, 0x0a, 0x05,
-	0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x12, 0x11, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e,
-	0x41, 0x75, 0x74, 0x68, 0x44, 0x61, 0x74, 0x61, 0x1a, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69,
-	0x6f, 0x6e, 0x2e, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x22, 0x00, 0x42, 0x23, 0x5a, 0x21, 0x6d,
-	0x69, 0x63, 0x72, 0x6f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2f, 0x61, 0x75, 0x74,
-	0x68, 0x6f, 0x72, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x5c, 0x0a, 0x0c, 0x52, 0x65, 0x67,
+	0x69, 0x73, 0x74, 0x65, 0x72, 0x44, 0x61, 0x74, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x4c, 0x6f, 0x67,
+	0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x12,
+	0x1a, 0x0a, 0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x4e,
+	0x69, 0x63, 0x6b, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x4e,
+	0x69, 0x63, 0x6b, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x18, 0x0a, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49,
+	0x44, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x02, 0x49,
+	0x44, 0x22, 0x24, 0x0a, 0x06, 0x41, 0x76, 0x61, 0x74, 0x61, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x46,
+	0x69, 0x6c, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x46,
+	0x69, 0x6c, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79,
+	0x32, 0x95, 0x02, 0x0a, 0x0d, 0x41, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x12, 0x37, 0x0a, 0x0d, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x65, 0x73, 0x73,
+	0x69, 0x6f, 0x6e, 0x12, 0x14, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x53, 0x65,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61, 0x1a, 0x0e, 0x2e, 0x73, 0x65, 0x73, 0x73,
+	0x69, 0x6f, 0x6e, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x35, 0x0a, 0x0f, 0x47,
+	0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x42, 0x79, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x12, 0x0f,
+	0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x1a,
+	0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44,
+	0x22, 0x00, 0x12, 0x2f, 0x0a, 0x09, 0x47, 0x65, 0x74, 0x41, 0x76, 0x61, 0x74, 0x61, 0x72, 0x12,
+	0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44,
+	0x1a, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x41, 0x76, 0x61, 0x74, 0x61,
+	0x72, 0x22, 0x00, 0x12, 0x2d, 0x0a, 0x05, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x12, 0x11, 0x2e, 0x73,
+	0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x41, 0x75, 0x74, 0x68, 0x44, 0x61, 0x74, 0x61, 0x1a,
+	0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65,
+	0x22, 0x00, 0x12, 0x34, 0x0a, 0x08, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x12, 0x15,
+	0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65,
+	0x72, 0x44, 0x61, 0x74, 0x61, 0x1a, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e,
+	0x43, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x22, 0x00, 0x42, 0x23, 0x5a, 0x21, 0x6d, 0x69, 0x63, 0x72,
+	0x6f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2f, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72,
+	0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -259,20 +436,29 @@ func file_authorization_proto_rawDescGZIP() []byte {
 	return file_authorization_proto_rawDescData
 }
 
-var file_authorization_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_authorization_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_authorization_proto_goTypes = []interface{}{
-	(*Cookie)(nil),      // 0: session.Cookie
-	(*SessionData)(nil), // 1: session.SessionData
-	(*AuthData)(nil),    // 2: session.AuthData
-	(*Empty)(nil),       // 3: session.Empty
+	(*Cookie)(nil),       // 0: session.Cookie
+	(*SessionData)(nil),  // 1: session.SessionData
+	(*AuthData)(nil),     // 2: session.AuthData
+	(*RegisterData)(nil), // 3: session.RegisterData
+	(*UserID)(nil),       // 4: session.UserID
+	(*Avatar)(nil),       // 5: session.Avatar
+	(*Empty)(nil),        // 6: session.Empty
 }
 var file_authorization_proto_depIdxs = []int32{
 	1, // 0: session.Authorization.CreateSession:input_type -> session.SessionData
-	2, // 1: session.Authorization.Login:input_type -> session.AuthData
-	3, // 2: session.Authorization.CreateSession:output_type -> session.Empty
-	0, // 3: session.Authorization.Login:output_type -> session.Cookie
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	0, // 1: session.Authorization.GetUserByCookie:input_type -> session.Cookie
+	4, // 2: session.Authorization.GetAvatar:input_type -> session.UserID
+	2, // 3: session.Authorization.Login:input_type -> session.AuthData
+	3, // 4: session.Authorization.Register:input_type -> session.RegisterData
+	6, // 5: session.Authorization.CreateSession:output_type -> session.Empty
+	4, // 6: session.Authorization.GetUserByCookie:output_type -> session.UserID
+	5, // 7: session.Authorization.GetAvatar:output_type -> session.Avatar
+	0, // 8: session.Authorization.Login:output_type -> session.Cookie
+	0, // 9: session.Authorization.Register:output_type -> session.Cookie
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -321,6 +507,42 @@ func file_authorization_proto_init() {
 			}
 		}
 		file_authorization_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegisterData); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authorization_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UserID); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authorization_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Avatar); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authorization_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Empty); i {
 			case 0:
 				return &v.state
@@ -339,7 +561,7 @@ func file_authorization_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_authorization_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -366,7 +588,10 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AuthorizationClient interface {
 	CreateSession(ctx context.Context, in *SessionData, opts ...grpc.CallOption) (*Empty, error)
+	GetUserByCookie(ctx context.Context, in *Cookie, opts ...grpc.CallOption) (*UserID, error)
+	GetAvatar(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Avatar, error)
 	Login(ctx context.Context, in *AuthData, opts ...grpc.CallOption) (*Cookie, error)
+	Register(ctx context.Context, in *RegisterData, opts ...grpc.CallOption) (*Cookie, error)
 }
 
 type authorizationClient struct {
@@ -386,6 +611,24 @@ func (c *authorizationClient) CreateSession(ctx context.Context, in *SessionData
 	return out, nil
 }
 
+func (c *authorizationClient) GetUserByCookie(ctx context.Context, in *Cookie, opts ...grpc.CallOption) (*UserID, error) {
+	out := new(UserID)
+	err := c.cc.Invoke(ctx, "/session.Authorization/GetUserByCookie", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authorizationClient) GetAvatar(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Avatar, error) {
+	out := new(Avatar)
+	err := c.cc.Invoke(ctx, "/session.Authorization/GetAvatar", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authorizationClient) Login(ctx context.Context, in *AuthData, opts ...grpc.CallOption) (*Cookie, error) {
 	out := new(Cookie)
 	err := c.cc.Invoke(ctx, "/session.Authorization/Login", in, out, opts...)
@@ -395,10 +638,22 @@ func (c *authorizationClient) Login(ctx context.Context, in *AuthData, opts ...g
 	return out, nil
 }
 
+func (c *authorizationClient) Register(ctx context.Context, in *RegisterData, opts ...grpc.CallOption) (*Cookie, error) {
+	out := new(Cookie)
+	err := c.cc.Invoke(ctx, "/session.Authorization/Register", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthorizationServer is the server API for Authorization service.
 type AuthorizationServer interface {
 	CreateSession(context.Context, *SessionData) (*Empty, error)
+	GetUserByCookie(context.Context, *Cookie) (*UserID, error)
+	GetAvatar(context.Context, *UserID) (*Avatar, error)
 	Login(context.Context, *AuthData) (*Cookie, error)
+	Register(context.Context, *RegisterData) (*Cookie, error)
 }
 
 // UnimplementedAuthorizationServer can be embedded to have forward compatible implementations.
@@ -408,8 +663,17 @@ type UnimplementedAuthorizationServer struct {
 func (*UnimplementedAuthorizationServer) CreateSession(context.Context, *SessionData) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSession not implemented")
 }
+func (*UnimplementedAuthorizationServer) GetUserByCookie(context.Context, *Cookie) (*UserID, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByCookie not implemented")
+}
+func (*UnimplementedAuthorizationServer) GetAvatar(context.Context, *UserID) (*Avatar, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAvatar not implemented")
+}
 func (*UnimplementedAuthorizationServer) Login(context.Context, *AuthData) (*Cookie, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+}
+func (*UnimplementedAuthorizationServer) Register(context.Context, *RegisterData) (*Cookie, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
 
 func RegisterAuthorizationServer(s *grpc.Server, srv AuthorizationServer) {
@@ -434,6 +698,42 @@ func _Authorization_CreateSession_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Authorization_GetUserByCookie_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Cookie)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorizationServer).GetUserByCookie(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/session.Authorization/GetUserByCookie",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorizationServer).GetUserByCookie(ctx, req.(*Cookie))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Authorization_GetAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorizationServer).GetAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/session.Authorization/GetAvatar",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorizationServer).GetAvatar(ctx, req.(*UserID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Authorization_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthData)
 	if err := dec(in); err != nil {
@@ -452,6 +752,24 @@ func _Authorization_Login_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Authorization_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorizationServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/session.Authorization/Register",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorizationServer).Register(ctx, req.(*RegisterData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Authorization_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "session.Authorization",
 	HandlerType: (*AuthorizationServer)(nil),
@@ -461,8 +779,20 @@ var _Authorization_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Authorization_CreateSession_Handler,
 		},
 		{
+			MethodName: "GetUserByCookie",
+			Handler:    _Authorization_GetUserByCookie_Handler,
+		},
+		{
+			MethodName: "GetAvatar",
+			Handler:    _Authorization_GetAvatar_Handler,
+		},
+		{
 			MethodName: "Login",
 			Handler:    _Authorization_Login_Handler,
+		},
+		{
+			MethodName: "Register",
+			Handler:    _Authorization_Register_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,6 +7,7 @@ import (
 	sanitizer "2021_2_LostPointer/pkg/sanitize"
 	"database/sql"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"os"
 	"strings"
 )
@@ -45,6 +46,8 @@ func (Data UserRepository) DoesUserExist(authData *models.Auth) (int, error) {
 		id             int
 		password, salt string
 	)
+
+	log.Println()
 
 	rows, err := Data.userDB.Query(`SELECT id, password, salt FROM users WHERE email=$1`, authData.Email)
 	if err != nil {

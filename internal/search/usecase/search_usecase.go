@@ -7,12 +7,12 @@ import (
 	"net/http"
 )
 
-type SearchUsecase struct {
-	searchDB search.SearchRepository
+type SearcherService struct {
+	storage search.MusicInfoStorage
 }
 
-func NewSearchUsecase(searchDB search.SearchRepository) SearchUsecase {
-	return SearchUsecase{searchDB: searchDB}
+func NewSearchUsecase(storage search.MusicInfoStorage) SearcherService {
+	return SearcherService{storage: storage}
 }
 
 func contains(tracks []models.Track, trackID int64) bool {
@@ -24,8 +24,8 @@ func contains(tracks []models.Track, trackID int64) bool {
 	return false
 }
 
-func (searchU SearchUsecase) SearchByText(text string) (*models.SearchResponseData, *models.CustomError) {
-	relevantTracks, err := searchU.searchDB.SearchRelevantTracksByFullWord(text)
+func (searcher *SearcherService) ByText(text string) (*models.SearchPayload, *models.CustomError) {
+	relevantTracks, err := searcher.storage.TracksByFullWord(text)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
@@ -36,7 +36,7 @@ func (searchU SearchUsecase) SearchByText(text string) (*models.SearchResponseDa
 
 	var relevantTracksByPartial []models.Track
 	if amountRelevantTracksByFullWord < constants.TracksSearchAmount {
-		relevantTracksByPartial, err = searchU.searchDB.SearchRelevantTracksByPartial(text)
+		relevantTracksByPartial, err = searcher.storage.TracksByPartial(text)
 		if err != nil {
 			return nil, &models.CustomError{
 				ErrorType:     http.StatusInternalServerError,
@@ -50,7 +50,7 @@ func (searchU SearchUsecase) SearchByText(text string) (*models.SearchResponseDa
 		}
 	}
 
-	relevantArtists, err := searchU.searchDB.SearchRelevantArtists(text)
+	relevantArtists, err := searcher.storage.Artists(text)
 	if err != nil {
 		return nil, &models.CustomError{
 			ErrorType:     http.StatusInternalServerError,
@@ -58,7 +58,7 @@ func (searchU SearchUsecase) SearchByText(text string) (*models.SearchResponseDa
 		}
 	}
 
-	searchData := &models.SearchResponseData{
+	searchData := &models.SearchPayload{
 		Tracks:  relevantTracks,
 		Artists: relevantArtists,
 	}

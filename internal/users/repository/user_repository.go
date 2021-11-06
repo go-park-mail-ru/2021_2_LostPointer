@@ -25,7 +25,7 @@ func (Data UserRepository) CreateUser(userData *models.User) (int, error) {
 
 	salt := hash.GetRandomString(constants.SaltLength)
 	sanitizedData := sanitizer.SanitizeUserData(*userData)
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(sanitizedData.Password + salt), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(sanitizedData.Password+salt), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, err
 	}
@@ -54,7 +54,10 @@ func (Data UserRepository) DoesUserExist(authData *models.Auth) (int, error) {
 		return 0, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 	if !rows.Next() {
 		return 0, nil
@@ -62,7 +65,7 @@ func (Data UserRepository) DoesUserExist(authData *models.Auth) (int, error) {
 	if err := rows.Scan(&id, &password, &salt); err != nil {
 		return 0, err
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(authData.Password + salt)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(authData.Password+salt)); err != nil {
 		return 0, nil
 	}
 
@@ -75,7 +78,10 @@ func (Data UserRepository) IsEmailUnique(email string) (bool, error) {
 		return false, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 	if rows.Next() {
 		return false, nil
@@ -89,7 +95,10 @@ func (Data UserRepository) IsNicknameUnique(nickname string) (bool, error) {
 		return false, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 	if rows.Next() {
 		return false, nil
@@ -106,7 +115,10 @@ func (Data UserRepository) GetSettings(userID int) (*models.SettingsGet, error) 
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 
 	if !rows.Next() {
@@ -131,7 +143,10 @@ func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string)
 		return false, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 
 	if !rows.Next() {
@@ -140,7 +155,7 @@ func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string)
 	if err := rows.Scan(&password, &salt); err != nil {
 		return false, err
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(oldPassword + salt)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(oldPassword+salt)); err != nil {
 		return false, nil
 	}
 
@@ -150,6 +165,7 @@ func (Data UserRepository) CheckPasswordByUserID(userID int, oldPassword string)
 func (Data UserRepository) UpdateEmail(userID int, email string) error {
 	sanitizedEmail := sanitizer.SanitizeEmail(email)
 	err := Data.userDB.QueryRow(`UPDATE users SET email=$1 WHERE id=$2`, strings.ToLower(sanitizedEmail), userID).Err()
+
 	if err != nil {
 		return err
 	}
@@ -167,7 +183,7 @@ func (Data UserRepository) UpdateNickname(userID int, nickname string) error {
 
 func (Data UserRepository) UpdatePassword(userID int, password string) error {
 	salt := hash.GetRandomString(constants.SaltLength)
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password + salt), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password+salt), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
@@ -193,7 +209,10 @@ func (Data UserRepository) GetAvatarFilename(userID int) (string, error) {
 		return "", err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 
 	if !rows.Next() {

@@ -3,6 +3,7 @@ package repository
 import (
 	"2021_2_LostPointer/internal/models"
 	"database/sql"
+	"log"
 )
 
 type TrackRepository struct {
@@ -23,7 +24,10 @@ func (trackRepository TrackRepository) GetRandom(amount int, isAuthorized bool) 
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 
 	tracks := make([]models.Track, 0, 10)

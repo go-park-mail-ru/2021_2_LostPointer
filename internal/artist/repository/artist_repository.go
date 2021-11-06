@@ -4,6 +4,7 @@ import (
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/models"
 	"database/sql"
+	"log"
 	"os"
 )
 
@@ -45,7 +46,10 @@ func (artistRepository ArtistRepository) GetTracks(id int, isAuthorized bool, am
 		return nil, err
 	}
 	defer func(trackRows *sql.Rows) {
-		_ = trackRows.Close()
+		err = trackRows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(trackRows)
 
 	var track models.Track
@@ -76,7 +80,10 @@ func (artistRepository ArtistRepository) GetAlbums(id int, amount int) ([]models
 		return nil, err
 	}
 	defer func(albumRows *sql.Rows) {
-		_ = albumRows.Close()
+		err = albumRows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(albumRows)
 
 	var album models.Album
@@ -96,7 +103,10 @@ func (artistRepository ArtistRepository) GetRandom(amount int) ([]models.Artist,
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 
 	artists := make([]models.Artist, 0, 10)

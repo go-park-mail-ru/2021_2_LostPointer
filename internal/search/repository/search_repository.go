@@ -17,7 +17,6 @@ func NewSearchRepository(db *sql.DB) MusicInfoStorage {
 	return MusicInfoStorage{db: db}
 }
 
-
 func (storage *MusicInfoStorage) TracksByFullWord(text string) ([]models.Track, error) {
 	log.Println(wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t"))
 	query := `SELECT ` +
@@ -41,9 +40,15 @@ func (storage *MusicInfoStorage) TracksByFullWord(text string) ([]models.Track, 
 
 	rows, err := storage.db.Query(query, text, constants.TracksSearchAmount)
 	if err != nil {
-		log.Println("FIRST")
 		return nil, err
 	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(rows)
 
 	tracks := make([]models.Track, 0, constants.TracksSearchAmount)
 	var track models.Track
@@ -79,9 +84,15 @@ func (storage *MusicInfoStorage) TracksByPartial(text string) ([]models.Track, e
 
 	rows, err := storage.db.Query(query, "%"+text+"%", constants.TracksSearchAmount)
 	if err != nil {
-		log.Println("SECOND")
 		return nil, err
 	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(rows)
 
 	tracks := make([]models.Track, 0, constants.TracksSearchAmount)
 	var track models.Track
@@ -102,10 +113,16 @@ func (storage *MusicInfoStorage) Artists(text string) ([]models.ArtistShort, err
 		SELECT id, name, avatar
 		FROM artists
 		WHERE name ILIKE $1
-	`, "%" + text + "%")
+	`, "%"+text+"%")
 	if err != nil {
 		return nil, err
 	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(rows)
 
 	artists := make([]models.ArtistShort, 0, constants.ArtistsSearchAmount)
 	var artist models.ArtistShort

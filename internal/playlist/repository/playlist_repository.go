@@ -3,6 +3,7 @@ package repository
 import (
 	"2021_2_LostPointer/internal/models"
 	"database/sql"
+	"log"
 )
 
 type PlaylistRepository struct {
@@ -20,7 +21,10 @@ func (playlistRepository PlaylistRepository) Get(amount int, id int) ([]models.P
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 
 	playlists := make([]models.Playlist, 0, 10)

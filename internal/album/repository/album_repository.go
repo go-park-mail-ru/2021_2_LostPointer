@@ -3,6 +3,7 @@ package repository
 import (
 	"2021_2_LostPointer/internal/models"
 	"database/sql"
+	"log"
 )
 
 type AlbumRepository struct {
@@ -26,7 +27,10 @@ func (albumRepository AlbumRepository) GetRandom(amount int) ([]models.Album, er
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		_ = rows.Close()
+		err = rows.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}(rows)
 
 	albums := make([]models.Album, 0, 10)

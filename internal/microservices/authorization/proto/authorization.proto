@@ -17,9 +17,27 @@ message AuthData {
   string Password = 2;
 }
 
+message RegisterData {
+  string Login = 1;
+  string Password = 2;
+  string Nickname = 3;
+}
+
+message UserID {
+  int64 ID = 1;
+}
+
+message Avatar {
+  string Filename = 1;
+}
+
 message Empty {}
 
 service Authorization {
   rpc CreateSession(SessionData) returns(Empty) {}
+  rpc GetUserByCookie(Cookie) returns(UserID) {}
+
+  rpc GetAvatar(UserID) returns(Avatar) {}
   rpc Login(AuthData) returns(Cookie) {}
+  rpc Register(RegisterData) returns(Cookie) {}
 }

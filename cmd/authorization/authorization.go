@@ -1,18 +1,20 @@
 package main
 
 import (
-	proto "2021_2_LostPointer/internal/microservices/authorization/proto"
-	repository "2021_2_LostPointer/internal/microservices/authorization/repository"
-	usecase "2021_2_LostPointer/internal/microservices/authorization/usecase"
 	"database/sql"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	_ "github.com/lib/pq"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
+
+	"2021_2_LostPointer/internal/microservices/authorization/proto"
+	"2021_2_LostPointer/internal/microservices/authorization/repository"
+	"2021_2_LostPointer/internal/microservices/authorization/usecase"
 )
 
 func InitializeRedis() *redis.Client {

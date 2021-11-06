@@ -33,6 +33,8 @@ const (
 	InvalidParameter                         = "Invalid parameter"
 	DatabaseNotResponding                    = "Database not responding"
 	NoPlaylists                              = "No playlists"
+	NoTracks                                 = "No Tracks"
+	NoAlbums                                 = "No Albums"
 	WrongCredentials                         = "Wrong credentials"
 
 	SaltLength                   = 8

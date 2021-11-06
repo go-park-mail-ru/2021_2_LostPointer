@@ -6,4 +6,6 @@ import "2021_2_LostPointer/internal/models"
 type TrackRepository interface {
 	GetRandom(amount int, isAuthorized bool) ([]models.Track, error)
 	IncrementListenCount(int64) error
+	GetByArtistID(artistID, amount int, isAuthorized bool) ([]models.Track, error)
+	GetByAlbumID(albumID int, isAuthorized bool) ([]models.Track, error)
 }

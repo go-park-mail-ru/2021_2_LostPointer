@@ -19,6 +19,9 @@ var _ album.AlbumUseCase = &MockAlbumUseCase{}
 //
 // 		// make and configure a mocked album.AlbumUseCase
 // 		mockedAlbumUseCase := &MockAlbumUseCase{
+// 			GetByArtistFunc: func(id int, amount int) ([]models.Album, *models.CustomError) {
+// 				panic("mock out the GetByArtist method")
+// 			},
 // 			GetHomeFunc: func(amount int) ([]models.Album, *models.CustomError) {
 // 				panic("mock out the GetHome method")
 // 			},
@@ -29,18 +32,64 @@ var _ album.AlbumUseCase = &MockAlbumUseCase{}
 //
 // 	}
 type MockAlbumUseCase struct {
+	// GetByArtistFunc mocks the GetByArtist method.
+	GetByArtistFunc func(id int, amount int) ([]models.Album, *models.CustomError)
+
 	// GetHomeFunc mocks the GetHome method.
 	GetHomeFunc func(amount int) ([]models.Album, *models.CustomError)
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// GetByArtist holds details about calls to the GetByArtist method.
+		GetByArtist []struct {
+			// ID is the id argument value.
+			ID int
+			// Amount is the amount argument value.
+			Amount int
+		}
 		// GetHome holds details about calls to the GetHome method.
 		GetHome []struct {
 			// Amount is the amount argument value.
 			Amount int
 		}
 	}
-	lockGetHome sync.RWMutex
+	lockGetByArtist sync.RWMutex
+	lockGetHome     sync.RWMutex
+}
+
+// GetByArtist calls GetByArtistFunc.
+func (mock *MockAlbumUseCase) GetByArtist(id int, amount int) ([]models.Album, *models.CustomError) {
+	if mock.GetByArtistFunc == nil {
+		panic("MockAlbumUseCase.GetByArtistFunc: method is nil but AlbumUseCase.GetByArtist was just called")
+	}
+	callInfo := struct {
+		ID     int
+		Amount int
+	}{
+		ID:     id,
+		Amount: amount,
+	}
+	mock.lockGetByArtist.Lock()
+	mock.calls.GetByArtist = append(mock.calls.GetByArtist, callInfo)
+	mock.lockGetByArtist.Unlock()
+	return mock.GetByArtistFunc(id, amount)
+}
+
+// GetByArtistCalls gets all the calls that were made to GetByArtist.
+// Check the length with:
+//     len(mockedAlbumUseCase.GetByArtistCalls())
+func (mock *MockAlbumUseCase) GetByArtistCalls() []struct {
+	ID     int
+	Amount int
+} {
+	var calls []struct {
+		ID     int
+		Amount int
+	}
+	mock.lockGetByArtist.RLock()
+	calls = mock.calls.GetByArtist
+	mock.lockGetByArtist.RUnlock()
+	return calls
 }
 
 // GetHome calls GetHomeFunc.

@@ -19,6 +19,12 @@ var _ track.TrackRepository = &MockTrackRepository{}
 //
 // 		// make and configure a mocked track.TrackRepository
 // 		mockedTrackRepository := &MockTrackRepository{
+// 			GetByAlbumIDFunc: func(albumID int, isAuthorized bool) ([]models.Track, error) {
+// 				panic("mock out the GetByAlbumID method")
+// 			},
+// 			GetByArtistIDFunc: func(artistID int, amount int, isAuthorized bool) ([]models.Track, error) {
+// 				panic("mock out the GetByArtistID method")
+// 			},
 // 			GetRandomFunc: func(amount int, isAuthorized bool) ([]models.Track, error) {
 // 				panic("mock out the GetRandom method")
 // 			},
@@ -32,6 +38,12 @@ var _ track.TrackRepository = &MockTrackRepository{}
 //
 // 	}
 type MockTrackRepository struct {
+	// GetByAlbumIDFunc mocks the GetByAlbumID method.
+	GetByAlbumIDFunc func(albumID int, isAuthorized bool) ([]models.Track, error)
+
+	// GetByArtistIDFunc mocks the GetByArtistID method.
+	GetByArtistIDFunc func(artistID int, amount int, isAuthorized bool) ([]models.Track, error)
+
 	// GetRandomFunc mocks the GetRandom method.
 	GetRandomFunc func(amount int, isAuthorized bool) ([]models.Track, error)
 
@@ -40,6 +52,22 @@ type MockTrackRepository struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// GetByAlbumID holds details about calls to the GetByAlbumID method.
+		GetByAlbumID []struct {
+			// AlbumID is the albumID argument value.
+			AlbumID int
+			// IsAuthorized is the isAuthorized argument value.
+			IsAuthorized bool
+		}
+		// GetByArtistID holds details about calls to the GetByArtistID method.
+		GetByArtistID []struct {
+			// ArtistID is the artistID argument value.
+			ArtistID int
+			// Amount is the amount argument value.
+			Amount int
+			// IsAuthorized is the isAuthorized argument value.
+			IsAuthorized bool
+		}
 		// GetRandom holds details about calls to the GetRandom method.
 		GetRandom []struct {
 			// Amount is the amount argument value.
@@ -53,8 +81,84 @@ type MockTrackRepository struct {
 			N int64
 		}
 	}
+	lockGetByAlbumID         sync.RWMutex
+	lockGetByArtistID        sync.RWMutex
 	lockGetRandom            sync.RWMutex
 	lockIncrementListenCount sync.RWMutex
+}
+
+// GetByAlbumID calls GetByAlbumIDFunc.
+func (mock *MockTrackRepository) GetByAlbumID(albumID int, isAuthorized bool) ([]models.Track, error) {
+	if mock.GetByAlbumIDFunc == nil {
+		panic("MockTrackRepository.GetByAlbumIDFunc: method is nil but TrackRepository.GetByAlbumID was just called")
+	}
+	callInfo := struct {
+		AlbumID      int
+		IsAuthorized bool
+	}{
+		AlbumID:      albumID,
+		IsAuthorized: isAuthorized,
+	}
+	mock.lockGetByAlbumID.Lock()
+	mock.calls.GetByAlbumID = append(mock.calls.GetByAlbumID, callInfo)
+	mock.lockGetByAlbumID.Unlock()
+	return mock.GetByAlbumIDFunc(albumID, isAuthorized)
+}
+
+// GetByAlbumIDCalls gets all the calls that were made to GetByAlbumID.
+// Check the length with:
+//     len(mockedTrackRepository.GetByAlbumIDCalls())
+func (mock *MockTrackRepository) GetByAlbumIDCalls() []struct {
+	AlbumID      int
+	IsAuthorized bool
+} {
+	var calls []struct {
+		AlbumID      int
+		IsAuthorized bool
+	}
+	mock.lockGetByAlbumID.RLock()
+	calls = mock.calls.GetByAlbumID
+	mock.lockGetByAlbumID.RUnlock()
+	return calls
+}
+
+// GetByArtistID calls GetByArtistIDFunc.
+func (mock *MockTrackRepository) GetByArtistID(artistID int, amount int, isAuthorized bool) ([]models.Track, error) {
+	if mock.GetByArtistIDFunc == nil {
+		panic("MockTrackRepository.GetByArtistIDFunc: method is nil but TrackRepository.GetByArtistID was just called")
+	}
+	callInfo := struct {
+		ArtistID     int
+		Amount       int
+		IsAuthorized bool
+	}{
+		ArtistID:     artistID,
+		Amount:       amount,
+		IsAuthorized: isAuthorized,
+	}
+	mock.lockGetByArtistID.Lock()
+	mock.calls.GetByArtistID = append(mock.calls.GetByArtistID, callInfo)
+	mock.lockGetByArtistID.Unlock()
+	return mock.GetByArtistIDFunc(artistID, amount, isAuthorized)
+}
+
+// GetByArtistIDCalls gets all the calls that were made to GetByArtistID.
+// Check the length with:
+//     len(mockedTrackRepository.GetByArtistIDCalls())
+func (mock *MockTrackRepository) GetByArtistIDCalls() []struct {
+	ArtistID     int
+	Amount       int
+	IsAuthorized bool
+} {
+	var calls []struct {
+		ArtistID     int
+		Amount       int
+		IsAuthorized bool
+	}
+	mock.lockGetByArtistID.RLock()
+	calls = mock.calls.GetByArtistID
+	mock.lockGetByArtistID.RUnlock()
+	return calls
 }
 
 // GetRandom calls GetRandomFunc.

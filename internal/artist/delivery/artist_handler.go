@@ -19,13 +19,9 @@ func NewArtistDelivery(artistUseCase artist.ArtistUseCase, logger *zap.SugaredLo
 	return ArtistDelivery{ArtistUseCase: artistUseCase, Logger: logger}
 }
 
-func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
+func (artistDelivery *ArtistDelivery) GetProfile(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
-	userID := ctx.Get("USER_ID").(int)
-	var isAuthorized bool
-	if userID != -1 {
-		isAuthorized = true
-	}
+
 	artistID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		artistDelivery.Logger.Error(
@@ -39,7 +35,7 @@ func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 		)
 	}
 
-	art, customErr := artistDelivery.ArtistUseCase.GetProfile(artistID, isAuthorized)
+	art, customErr := artistDelivery.ArtistUseCase.GetProfile(artistID)
 	if customErr != nil {
 		artistDelivery.Logger.Error(
 			zap.String("ID", requestID),
@@ -59,7 +55,7 @@ func (artistDelivery ArtistDelivery) GetProfile(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, art)
 }
 
-func (artistDelivery ArtistDelivery) Home(ctx echo.Context) error {
+func (artistDelivery *ArtistDelivery) Home(ctx echo.Context) error {
 	requestID := ctx.Get("REQUEST_ID").(string)
 
 	artists, err := artistDelivery.ArtistUseCase.GetHome(constants.ArtistsCollectionLimit)
@@ -82,7 +78,7 @@ func (artistDelivery ArtistDelivery) Home(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, artists)
 }
 
-func (artistDelivery ArtistDelivery) InitHandlers(server *echo.Echo) {
+func (artistDelivery *ArtistDelivery) InitHandlers(server *echo.Echo) {
 	server.GET("api/v1/artist/:id", artistDelivery.GetProfile)
 	server.GET("api/v1/home/artists", artistDelivery.Home)
 }

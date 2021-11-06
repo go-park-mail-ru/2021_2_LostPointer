@@ -22,6 +22,7 @@ func RandInt(min int, max int) int {
 }
 
 func GetHash(str string) string {
+
 	hasher := sha256.New()
 	hasher.Write([]byte(str))
 	return hex.EncodeToString(hasher.Sum(nil))

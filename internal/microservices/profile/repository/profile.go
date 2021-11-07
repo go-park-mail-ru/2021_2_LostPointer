@@ -30,12 +30,12 @@ func (storage *UserSettingsStorage) GetSettings(userID int64) (*models.UserSetti
 	if err != nil {
 		return nil, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 	defer func() {
 		err = rows.Close()
-		if err != nil {
-			log.Fatal("Error occurred during closing rows")
-		}
-		err = rows.Err()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}
@@ -115,12 +115,12 @@ func (storage *UserSettingsStorage) IsEmailUnique(email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return false, err
+	}
 	defer func() {
 		err = rows.Close()
-		if err != nil {
-			log.Fatal("Error occurred during closing rows")
-		}
-		err = rows.Err()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}
@@ -138,12 +138,12 @@ func (storage *UserSettingsStorage) IsNicknameUnique(nickname string) (bool, err
 	if err != nil {
 		return false, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return false, err
+	}
 	defer func() {
 		err = rows.Close()
-		if err != nil {
-			log.Fatal("Error occurred during closing rows")
-		}
-		err = rows.Err()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}
@@ -162,12 +162,12 @@ func (storage *UserSettingsStorage) CheckPasswordByUserID(userID int64, oldPassw
 	if err != nil {
 		return false, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return false, err
+	}
 	defer func() {
 		err = rows.Close()
-		if err != nil {
-			log.Fatal("Error occurred during closing rows")
-		}
-		err = rows.Err()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}
@@ -177,11 +177,11 @@ func (storage *UserSettingsStorage) CheckPasswordByUserID(userID int64, oldPassw
 	}
 
 	var password, salt string
-	if err := rows.Scan(&password, &salt); err != nil {
+	if err = rows.Scan(&password, &salt); err != nil {
 		return false, err
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(oldPassword + salt)); err != nil {
-		return false, nil
+	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(oldPassword+salt)); err != nil {
+		return false, customErrors.ErrWrongCredentials
 	}
 
 	return true, nil

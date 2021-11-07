@@ -1,19 +1,21 @@
 package usecase
 
 import (
+	"context"
+	"errors"
+	"log"
+	"regexp"
+	"strings"
+
+	"github.com/asaskevich/govalidator"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"2021_2_LostPointer/internal/constants"
 	customErrors "2021_2_LostPointer/internal/errors"
 	"2021_2_LostPointer/internal/microservices/profile/proto"
 	"2021_2_LostPointer/internal/microservices/profile/repository"
 	"2021_2_LostPointer/pkg/validation"
-	"context"
-	"errors"
-	"github.com/asaskevich/govalidator"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"log"
-	"regexp"
-	"strings"
 )
 
 type ProfileService struct {
@@ -32,12 +34,12 @@ func (service ProfileService) GetSettings(ctx context.Context, user *proto.Profi
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	
+
 	return &proto.UserSettings{
-		 Email: settings.Email,
-		 Nickname: settings.Nickname,
-		 SmallAvatar: settings.SmallAvatar,
-		 BigAvatar: settings.BigAvatar,
+		Email:       settings.Email,
+		Nickname:    settings.Nickname,
+		SmallAvatar: settings.SmallAvatar,
+		BigAvatar:   settings.BigAvatar,
 	}, nil
 }
 
@@ -86,9 +88,20 @@ func (service ProfileService) UpdateSettings(ctx context.Context, settings *prot
 		}
 	}
 
-	if len(settings.OldPassword) != 0 && len(settings.NewPassword) != 0 {
+	switch isEmpty := len(settings.OldPassword) == 0; isEmpty {
+	case true:
+		if len(settings.NewPassword) != 0 {
+			return nil, status.Error(codes.InvalidArgument, constants.OldPasswordFieldIsEmptyMessage)
+		}
+	default:
+		if len(settings.NewPassword) == 0 {
+			return nil, status.Error(codes.InvalidArgument, constants.NewPasswordFieldIsEmptyMessage)
+		}
 		isOldPasswordCorrect, err := service.storage.CheckPasswordByUserID(settings.UserID, settings.OldPassword)
 		if err != nil {
+			if errors.Is(err, customErrors.ErrWrongCredentials) {
+				return nil, status.Error(codes.InvalidArgument, constants.WrongPasswordMessage)
+			}
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 		if !isOldPasswordCorrect {
@@ -107,10 +120,6 @@ func (service ProfileService) UpdateSettings(ctx context.Context, settings *prot
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
-	} else if len(settings.OldPassword) == 0 && len(settings.NewPassword) != 0 {
-		return nil, status.Error(codes.InvalidArgument, constants.OldPasswordFieldIsEmptyMessage)
-	} else if len(settings.OldPassword) != 0 && len(settings.NewPassword) == 0 {
-		return nil, status.Error(codes.InvalidArgument, constants.NewPasswordFieldIsEmptyMessage)
 	}
 
 	if len(settings.AvatarFilename) != 0 {

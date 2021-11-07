@@ -3,6 +3,8 @@ package validation
 import (
 	"regexp"
 
+	"github.com/asaskevich/govalidator"
+
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/models"
 )
@@ -30,20 +32,16 @@ func ValidatePassword(password string) (bool, string, error) {
 }
 
 func ValidateRegisterCredentials(registerData *models.RegisterData) (bool, string, error) {
+	isEmailValid := govalidator.IsEmail(registerData.Email)
+	if !isEmailValid {
+		return false, constants.InvalidEmailMessage, nil
+	}
 	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{`+constants.MinNicknameLength+`,`+constants.MaxNicknameLength+`}$`, registerData.Nickname)
 	if err != nil {
 		return false, "", err
 	}
 	if !isNicknameValid {
 		return false, constants.InvalidNicknameMessage, nil
-	}
-
-	isEmailValid, err := regexp.MatchString(constants.EmailRegexPattern, registerData.Email)
-	if err != nil {
-		return false, "", err
-	}
-	if !isEmailValid {
-		return false, constants.InvalidEmailMessage, nil
 	}
 
 	passwordValid, message, err := ValidatePassword(registerData.Password)

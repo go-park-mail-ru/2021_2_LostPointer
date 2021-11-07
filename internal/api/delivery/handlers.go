@@ -27,6 +27,9 @@ func NewAPIMicroservices(logger *zap.SugaredLogger, auth authorization.Authoriza
 	}
 }
 
+type MyStringType string
+type MyIntType int
+
 func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string, err error) error {
 	if e, temp := status.FromError(err); temp {
 		if e.Code() == codes.Internal {
@@ -156,9 +159,45 @@ func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
 		}{http.StatusOK, avatar.Filename})
 }
 
+func (api *APIMicroservices) Logout(ctx echo.Context) error {
+	requestID, _ := ctx.Get("REQUEST_ID").(string)
+	cookie, err := ctx.Cookie("Session_cookie")
+	if err != nil {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
+	}
+
+	_, err = api.authMicroservice.Logout(context.Background(), &authorization.Cookie{Cookies: cookie.Value})
+	if err != nil {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusConflict))
+		return ctx.NoContent(http.StatusConflict)
+	}
+	cookie.Expires = time.Now().AddDate(0, 0, -1)
+
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, &models.Response{
+		Status:  http.StatusOK,
+		Message: constants.LoggedOutMessage,
+	})
+}
+
 func (api *APIMicroservices) Init(server *echo.Echo) {
 	// Authorization
 	server.POST("/api/v1/user/signin", api.Login)
 	server.POST("/api/v1/user/signup", api.Register)
 	server.GET("/api/v1/auth", api.GetUserAvatar)
+	server.POST("/api/v1/user/logout", api.Logout)
 }

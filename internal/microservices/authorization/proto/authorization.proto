@@ -36,7 +36,9 @@ message Empty {}
 service Authorization {
   rpc CreateSession(SessionData) returns(Empty) {}
   rpc GetUserByCookie(Cookie) returns(UserID) {}
+  rpc DeleteSession(Cookie) returns(Empty) {}
 
+  rpc Logout(Cookie) returns(Empty) {}
   rpc GetAvatar(UserID) returns(Avatar) {}
   rpc Login(AuthData) returns(Cookie) {}
   rpc Register(RegisterData) returns(Cookie) {}

@@ -34,7 +34,7 @@ func InitializeDatabase() *sql.DB {
 	return db
 }
 
-func InitializeStorages() repository.UserSettingsStorage {
+func InitializeStorages() *repository.UserSettingsStorage {
 	dbConnection := InitializeDatabase()
 
 	userSettingsStorage := repository.NewUserSettingsStorage(dbConnection)
@@ -50,7 +50,7 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	proto.RegisterProfileServer(server, usecase.NewProfileService(storage))
+	proto.RegisterProfileServer(server, usecase.NewProfileService(*storage))
 	log.Printf("STARTED PROFILE MICROSERVICE ON %s", port)
 	err = server.Serve(listen)
 	if err != nil {

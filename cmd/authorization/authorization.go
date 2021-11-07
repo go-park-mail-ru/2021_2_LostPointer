@@ -51,7 +51,7 @@ func InitializeDatabase() *sql.DB {
 	return db
 }
 
-func InitializeStorages() repository.AuthStorage {
+func InitializeStorages() *repository.AuthStorage {
 	redisConnection := InitializeRedis()
 	dbConnection := InitializeDatabase()
 
@@ -68,7 +68,7 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	proto.RegisterAuthorizationServer(server, usecase.NewAuthService(storage))
+	proto.RegisterAuthorizationServer(server, usecase.NewAuthService(*storage))
 	log.Printf("STARTED AUTHORIZATION MICROSERVICE ON %s", port)
 	err = server.Serve(listen)
 	if err != nil {

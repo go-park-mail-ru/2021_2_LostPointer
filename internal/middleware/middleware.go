@@ -25,13 +25,13 @@ func NewMiddlewareHandler(authMicroservice authorization.AuthorizationClient, lo
 	}
 }
 
-func (middleware Middleware) InitMiddlewareHandlers(server *echo.Echo) {
+func (middleware *Middleware) InitMiddlewareHandlers(server *echo.Echo) {
 	server.Use(middleware.CheckAuthorization)
 	server.Use(middleware.AccessLog)
 	server.Use(middleware.CORS)
 }
 
-func (middleware Middleware) CheckAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
+func (middleware *Middleware) CheckAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("Session_cookie")
 		userID := &authorization.UserID{
@@ -54,7 +54,7 @@ func (middleware Middleware) CheckAuthorization(next echo.HandlerFunc) echo.Hand
 	}
 }
 
-func (middleware Middleware) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
+func (middleware *Middleware) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		uniqueID := uuid.NewV4()
 		start := time.Now()
@@ -78,7 +78,7 @@ func (middleware Middleware) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (middleware Middleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
+func (middleware *Middleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		c.Response().Header().Set("Access-Control-Allow-Origin", os.Getenv("CORS_ORIGIN"))

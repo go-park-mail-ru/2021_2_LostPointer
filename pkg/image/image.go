@@ -1,13 +1,15 @@
 package image
 
 import (
-	"2021_2_LostPointer/internal/constants"
-	"github.com/chai2010/webp"
-	uuid "github.com/satori/go.uuid"
-	"github.com/sunshineplan/imgconv"
 	"io"
 	"mime/multipart"
 	"os"
+
+	"github.com/chai2010/webp"
+	uuid "github.com/satori/go.uuid"
+	"github.com/sunshineplan/imgconv"
+
+	"2021_2_LostPointer/internal/constants"
 )
 
 type Service interface {
@@ -15,7 +17,7 @@ type Service interface {
 	DeleteImage(string) error
 }
 
-type AvatarsService struct {}
+type AvatarsService struct{}
 
 func NewAvatarsService() AvatarsService {
 	return AvatarsService{}

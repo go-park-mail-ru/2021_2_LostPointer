@@ -265,7 +265,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 	}
 
 	if len(newAvatarFilename) != 0 {
-		createdAvatarFilename, err := api.avatarsService.CreateImage(file)
+		newAvatarFilename, err = api.avatarsService.CreateImage(file)
 		if err != nil {
 			api.logger.Error(
 				zap.String("ID", requestID),
@@ -273,7 +273,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
-		oldAvatarFilename := oldSettings.BigAvatar[0:len(oldSettings.BigAvatar) - 11]
+		oldAvatarFilename := oldSettings.BigAvatar[0 : len(oldSettings.BigAvatar)-11]
 		err = api.avatarsService.DeleteImage(oldAvatarFilename)
 		if err != nil {
 			api.logger.Error(
@@ -282,7 +282,6 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
-		newAvatarFilename = createdAvatarFilename
 	}
 
 	_, err = api.profileMicroservice.UpdateSettings(context.Background(), &profile.UploadSettings{

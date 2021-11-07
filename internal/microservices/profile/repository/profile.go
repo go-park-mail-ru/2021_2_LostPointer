@@ -19,8 +19,8 @@ type UserSettingsStorage struct {
 	db *sql.DB
 }
 
-func NewUserSettingsStorage(db *sql.DB) UserSettingsStorage {
-	return UserSettingsStorage{db: db}
+func NewUserSettingsStorage(db *sql.DB) *UserSettingsStorage {
+	return &UserSettingsStorage{db: db}
 }
 
 func (storage *UserSettingsStorage) GetSettings(userID int64) (*models.UserSettings, error) {

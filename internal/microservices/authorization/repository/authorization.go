@@ -22,8 +22,8 @@ type AuthStorage struct {
 	redis *redis.Client
 }
 
-func NewAuthStorage(db *sql.DB, redis *redis.Client) AuthStorage {
-	return AuthStorage{db: db, redis: redis}
+func NewAuthStorage(db *sql.DB, redis *redis.Client) *AuthStorage {
+	return &AuthStorage{db: db, redis: redis}
 }
 
 func (storage *AuthStorage) CreateSession(id int64, cookieValue string) error {

@@ -71,12 +71,10 @@ func main() {
 			}
 		}
 	}()
-
 	avatarsServices := image.NewAvatarsService()
 
 	appHandler := api.NewAPIMicroservices(logger, avatarsServices, auth, profile)
 	middlewareHandler := middleware.NewMiddlewareHandler(auth, logger)
-
 	appHandler.Init(server)
 	middlewareHandler.InitMiddlewareHandlers(server)
 

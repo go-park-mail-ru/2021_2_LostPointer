@@ -22,11 +22,11 @@ type ProfileService struct {
 	storage repository.UserSettingsStorage
 }
 
-func NewProfileService(storage repository.UserSettingsStorage) ProfileService {
-	return ProfileService{storage: storage}
+func NewProfileService(storage repository.UserSettingsStorage) *ProfileService {
+	return &ProfileService{storage: storage}
 }
 
-func (service ProfileService) GetSettings(ctx context.Context, user *proto.ProfileUserID) (*proto.UserSettings, error) {
+func (service *ProfileService) GetSettings(ctx context.Context, user *proto.ProfileUserID) (*proto.UserSettings, error) {
 	settings, err := service.storage.GetSettings(user.ID)
 	if err != nil {
 		if errors.Is(err, customErrors.ErrUserNotFound) {
@@ -44,7 +44,7 @@ func (service ProfileService) GetSettings(ctx context.Context, user *proto.Profi
 }
 
 //nolint:cyclop
-func (service ProfileService) UpdateSettings(ctx context.Context, settings *proto.UploadSettings) (*proto.EmptyProfile, error) {
+func (service *ProfileService) UpdateSettings(ctx context.Context, settings *proto.UploadSettings) (*proto.EmptyProfile, error) {
 	log.Println(settings)
 	if strings.ToLower(settings.Email) != settings.OldSettings.Email && len(settings.Email) != 0 {
 		isEmailValid := govalidator.IsEmail(settings.Email)

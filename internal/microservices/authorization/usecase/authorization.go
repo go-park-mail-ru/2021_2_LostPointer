@@ -21,8 +21,8 @@ type AuthService struct {
 	storage repository.AuthStorage
 }
 
-func NewAuthService(storage repository.AuthStorage) AuthService {
-	return AuthService{storage: storage}
+func NewAuthService(storage repository.AuthStorage) *AuthService {
+	return &AuthService{storage: storage}
 }
 
 func (service AuthService) CreateSession(ctx context.Context, data *proto.SessionData) (*proto.Empty, error) {

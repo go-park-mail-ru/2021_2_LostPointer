@@ -50,4 +50,5 @@ const (
 	CookieLifetime               = time.Hour * 24 * 30
 	TracksSearchAmount           = 10
 	ArtistsSearchAmount          = 5
+	CSRFTokenLifetime            = 900
 )

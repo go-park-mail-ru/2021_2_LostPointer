@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-package session;
 option go_package = "microservices/authorization/proto";
 
 message Cookie {

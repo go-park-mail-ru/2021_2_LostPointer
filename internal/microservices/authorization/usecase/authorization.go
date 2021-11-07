@@ -55,7 +55,7 @@ func (service AuthService) Login(ctx context.Context, authData *proto.AuthData) 
 		&models.AuthData{Email: authData.Login, Password: authData.Password})
 	if err != nil {
 		if errors.Is(err, customErrors.ErrWrongCredentials) {
-			return nil, status.Error(codes.Aborted, err.Error())
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -78,7 +78,7 @@ func (service AuthService) Register(ctx context.Context, registerData *proto.Reg
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isEmailUnique {
-		return nil, status.Error(codes.Aborted, constants.NotUniqueEmailMessage)
+		return nil, status.Error(codes.InvalidArgument, constants.NotUniqueEmailMessage)
 	}
 
 	isNicknameUnique, err := service.storage.IsNicknameUnique(registerData.Nickname)
@@ -86,7 +86,7 @@ func (service AuthService) Register(ctx context.Context, registerData *proto.Reg
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isNicknameUnique {
-		return nil, status.Error(codes.Aborted, constants.NotUniqueNicknameMessage)
+		return nil, status.Error(codes.InvalidArgument, constants.NotUniqueNicknameMessage)
 	}
 
 	registerCredentials := &models.RegisterData{
@@ -99,7 +99,7 @@ func (service AuthService) Register(ctx context.Context, registerData *proto.Reg
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isValidCredentials {
-		return nil, status.Error(codes.Aborted, message)
+		return nil, status.Error(codes.InvalidArgument, message)
 	}
 
 	userID, err := service.storage.CreateUser(registerCredentials)

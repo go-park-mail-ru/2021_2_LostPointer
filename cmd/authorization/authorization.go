@@ -69,6 +69,7 @@ func main() {
 
 	server := grpc.NewServer()
 	proto.RegisterAuthorizationServer(server, usecase.NewAuthService(storage))
+	log.Printf("STARTED AUTHORIZATION MICROSERVICE ON %s", port)
 	err = server.Serve(listen)
 	if err != nil {
 		log.Fatal("CANNOT LISTEN PORT: ", port, err.Error())

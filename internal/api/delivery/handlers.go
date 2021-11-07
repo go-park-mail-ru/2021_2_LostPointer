@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"2021_2_LostPointer/pkg/image"
 	"context"
 	"net/http"
 	"time"
@@ -12,18 +13,25 @@ import (
 
 	"2021_2_LostPointer/internal/constants"
 	authorization "2021_2_LostPointer/internal/microservices/authorization/proto"
+	profile "2021_2_LostPointer/internal/microservices/profile/proto"
 	"2021_2_LostPointer/internal/models"
 )
 
 type APIMicroservices struct {
-	logger           *zap.SugaredLogger
-	authMicroservice authorization.AuthorizationClient
+	logger         *zap.SugaredLogger
+	avatarsService image.AvatarsService
+
+	authMicroservice    authorization.AuthorizationClient
+	profileMicroservice profile.ProfileClient
 }
 
-func NewAPIMicroservices(logger *zap.SugaredLogger, auth authorization.AuthorizationClient) APIMicroservices {
+func NewAPIMicroservices(logger *zap.SugaredLogger, avatarsService image.AvatarsService, auth authorization.AuthorizationClient,
+	profile profile.ProfileClient) APIMicroservices {
 	return APIMicroservices{
-		logger:           logger,
-		authMicroservice: auth,
+		logger:              logger,
+		avatarsService:      avatarsService,
+		authMicroservice:    auth,
+		profileMicroservice: profile,
 	}
 }
 
@@ -39,7 +47,7 @@ func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
-		if e.Code() == codes.Aborted {
+		if e.Code() == codes.InvalidArgument || e.Code() == codes.NotFound {
 			api.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", e.Message()),
@@ -194,10 +202,126 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 	})
 }
 
+func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
+	requestID, _ := ctx.Get("REQUEST_ID").(string)
+	userID, _ := ctx.Get("USER_ID").(int)
+	if userID == -1 {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
+	}
+
+	settings, err := api.profileMicroservice.GetSettings(context.Background(), &profile.ProfileUserID{ID: int64(userID)})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, &models.UserSettings{
+		Email:       settings.Email,
+		Nickname:    settings.Nickname,
+		SmallAvatar: settings.SmallAvatar,
+		BigAvatar:   settings.BigAvatar,
+	})
+}
+
+func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
+	requestID, _ := ctx.Get("REQUEST_ID").(string)
+	userID, _ := ctx.Get("USER_ID").(int)
+	if userID == -1 {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
+	}
+
+	oldSettings, err := api.profileMicroservice.GetSettings(context.Background(), &profile.ProfileUserID{ID: int64(userID)})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	var newAvatarFilename string
+	email := ctx.FormValue("email")
+	nickname := ctx.FormValue("nickname")
+	oldPassword := ctx.FormValue("old_password")
+	newPassword := ctx.FormValue("new_password")
+	file, err := ctx.FormFile("avatar")
+	if err != nil {
+		newAvatarFilename = ""
+	} else {
+		newAvatarFilename = file.Filename
+	}
+
+	if len(newAvatarFilename) != 0 {
+		createdAvatarFilename, err := api.avatarsService.CreateImage(file)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		oldAvatarFilename := oldSettings.BigAvatar[0:len(oldSettings.BigAvatar) - 11]
+		err = api.avatarsService.DeleteImage(oldAvatarFilename)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		newAvatarFilename = createdAvatarFilename
+	}
+
+	_, err = api.profileMicroservice.UpdateSettings(context.Background(), &profile.UploadSettings{
+		UserID:         int64(userID),
+		Email:          email,
+		Nickname:       nickname,
+		OldPassword:    oldPassword,
+		NewPassword:    newPassword,
+		AvatarFilename: newAvatarFilename,
+		OldSettings: &profile.UserSettings{
+			Email:       oldSettings.Email,
+			Nickname:    oldSettings.Nickname,
+			SmallAvatar: oldSettings.SmallAvatar,
+			BigAvatar:   oldSettings.BigAvatar,
+		},
+	})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, &models.Response{
+		Status:  http.StatusOK,
+		Message: constants.SettingsUploadedMessage,
+	})
+}
+
 func (api *APIMicroservices) Init(server *echo.Echo) {
 	// Authorization
 	server.POST("/api/v1/user/signin", api.Login)
 	server.POST("/api/v1/user/signup", api.Register)
 	server.GET("/api/v1/auth", api.GetUserAvatar)
 	server.POST("/api/v1/user/logout", api.Logout)
+
+	// Profile
+	server.GET("/api/v1/user/settings", api.GetSettings)
+	server.PATCH("/api/v1/user/settings", api.UpdateSettings)
 }

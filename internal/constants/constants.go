@@ -34,6 +34,8 @@ const (
 	DatabaseNotResponding                    = "Database not responding"
 	NoPlaylists                              = "No playlists"
 	WrongCredentials                         = "Wrong credentials"
+	RequestIDTypeAssertionFailed             = "Type assertion for \"REQUEST_ID\" failed"
+	UserIDTypeAssertionFailed                = "Type assertion for \"USER_ID\" failed"
 
 	SaltLength                   = 8
 	BigAvatarHeight              = 500

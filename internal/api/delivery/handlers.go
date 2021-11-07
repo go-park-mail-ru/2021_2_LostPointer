@@ -50,7 +50,7 @@ func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string
 		if e.Code() == codes.InvalidArgument || e.Code() == codes.NotFound {
 			api.logger.Info(
 				zap.String("ID", requestID),
-				zap.String("ERROR", e.Message()),
+				zap.String("MESSAGE", e.Message()),
 				zap.Int("ANSWER STATUS", http.StatusBadRequest))
 			return ctx.JSON(http.StatusOK, &models.Response{
 				Status:  http.StatusBadRequest,
@@ -62,7 +62,14 @@ func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string
 }
 
 func (api *APIMicroservices) Login(ctx echo.Context) error {
-	requestID, _ := ctx.Get("REQUEST_ID").(string)
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
 	var authData models.AuthData
 
 	if err := ctx.Bind(&authData); err != nil {
@@ -100,7 +107,14 @@ func (api *APIMicroservices) Login(ctx echo.Context) error {
 }
 
 func (api *APIMicroservices) Register(ctx echo.Context) error {
-	requestID, _ := ctx.Get("REQUEST_ID").(string)
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
 	var registerData models.RegisterData
 
 	if err := ctx.Bind(&registerData); err != nil {
@@ -138,12 +152,26 @@ func (api *APIMicroservices) Register(ctx echo.Context) error {
 }
 
 func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
-	requestID, _ := ctx.Get("REQUEST_ID").(string)
-	userID, _ := ctx.Get("USER_ID").(int)
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
 	if userID == -1 {
 		api.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
@@ -168,12 +196,19 @@ func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
 }
 
 func (api *APIMicroservices) Logout(ctx echo.Context) error {
-	requestID, _ := ctx.Get("REQUEST_ID").(string)
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
 	cookie, err := ctx.Cookie("Session_cookie")
 	if err != nil {
 		api.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
@@ -185,7 +220,7 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 	if err != nil {
 		api.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", err.Error()),
+			zap.String("MESSAGE", err.Error()),
 			zap.Int("ANSWER STATUS", http.StatusConflict))
 		return ctx.NoContent(http.StatusConflict)
 	}
@@ -203,12 +238,26 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 }
 
 func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
-	requestID, _ := ctx.Get("REQUEST_ID").(string)
-	userID, _ := ctx.Get("USER_ID").(int)
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
 	if userID == -1 {
 		api.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
@@ -234,8 +283,22 @@ func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
 }
 
 func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
-	requestID, _ := ctx.Get("REQUEST_ID").(string)
-	userID, _ := ctx.Get("USER_ID").(int)
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
 	if userID == -1 {
 		api.logger.Info(
 			zap.String("ID", requestID),

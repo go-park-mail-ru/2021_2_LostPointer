@@ -1,7 +1,6 @@
 package main
 
 import (
-	"2021_2_LostPointer/pkg/image"
 	"fmt"
 	"log"
 	"os"
@@ -15,6 +14,7 @@ import (
 	authMicroservice "2021_2_LostPointer/internal/microservices/authorization/proto"
 	profileMicroservice "2021_2_LostPointer/internal/microservices/profile/proto"
 	"2021_2_LostPointer/internal/middleware"
+	"2021_2_LostPointer/pkg/image"
 )
 
 func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, profileMicroservice.ProfileClient,
@@ -40,7 +40,6 @@ func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient,
 		server.Logger.Fatal("cant connect to grpc")
 	}
 	connections = append(connections, profileConn)
-
 
 	authorizationManager := authMicroservice.NewAuthorizationClient(authConn)
 	profileManager := profileMicroservice.NewProfileClient(profileConn)

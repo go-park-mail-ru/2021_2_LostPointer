@@ -57,12 +57,12 @@ func (storage *AuthStorage) GetUserByPassword(authData *models.AuthData) (int64,
 	if err != nil {
 		return 0, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return 0, err
+	}
 	defer func() {
 		err = rows.Close()
-		if err != nil {
-			log.Fatal("Error occurred during closing rows")
-		}
-		err = rows.Err()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}
@@ -115,12 +115,12 @@ func (storage *AuthStorage) IsEmailUnique(email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return false, err
+	}
 	defer func() {
 		err = rows.Close()
-		if err != nil {
-			log.Fatal("Error occurred during closing rows")
-		}
-		err = rows.Err()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}
@@ -138,12 +138,12 @@ func (storage *AuthStorage) IsNicknameUnique(nickname string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return false, err
+	}
 	defer func() {
 		err = rows.Close()
-		if err != nil {
-			log.Fatal("Error occurred during closing rows")
-		}
-		err = rows.Err()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}
@@ -162,12 +162,12 @@ func (storage *AuthStorage) GetAvatar(userID int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	err = rows.Err()
+	if err != nil {
+		return "", err
+	}
 	defer func() {
 		err = rows.Close()
-		if err != nil {
-			log.Fatal("Error occurred during closing rows")
-		}
-		err = rows.Err()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}

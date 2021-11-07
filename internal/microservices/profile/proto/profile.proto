@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "microservices/profile/proto";
+
+message UserSettings {
+  string Email = 1;
+  string Nickname = 2;
+  string SmallAvatar = 3;
+  string BigAvatar = 4;
+}
+
+message UploadSettings {
+  int64 UserID = 1;
+  string Email = 2;
+  string Nickname = 3;
+  string AvatarFilename = 4;
+  string OldPassword = 5;
+  string NewPassword = 6;
+  UserSettings OldSettings = 7;
+}
+
+message ProfileUserID {
+  int64 ID = 1;
+}
+
+message EmptyProfile {}
+
+service Profile {
+  rpc GetSettings(ProfileUserID) returns(UserSettings) {}
+  rpc UpdateSettings(UploadSettings) returns(EmptyProfile) {}
+}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"2021_2_LostPointer/pkg/image"
 	"fmt"
 	"log"
 	"os"
@@ -12,28 +13,39 @@ import (
 
 	api "2021_2_LostPointer/internal/api/delivery"
 	authMicroservice "2021_2_LostPointer/internal/microservices/authorization/proto"
+	profileMicroservice "2021_2_LostPointer/internal/microservices/profile/proto"
 	"2021_2_LostPointer/internal/middleware"
 )
 
-func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, []*grpc.ClientConn) {
+func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, profileMicroservice.ProfileClient,
+	[]*grpc.ClientConn) {
 	connections := make([]*grpc.ClientConn, 0)
 
 	authPORT := os.Getenv("AUTH_PORT")
-	log.Println("AUTH_PORT", authPORT)
-
 	authConn, err := grpc.Dial(
 		"127.0.0.1"+authPORT,
 		grpc.WithInsecure(),
 	)
-	connections = append(connections, authConn)
-
 	if err != nil {
 		server.Logger.Fatal("cant connect to grpc")
 	}
+	connections = append(connections, authConn)
+
+	profilePORT := os.Getenv("PROFILE_PORT")
+	profileConn, err := grpc.Dial(
+		"127.0.0.1"+profilePORT,
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		server.Logger.Fatal("cant connect to grpc")
+	}
+	connections = append(connections, profileConn)
+
 
 	authorizationManager := authMicroservice.NewAuthorizationClient(authConn)
+	profileManager := profileMicroservice.NewProfileClient(profileConn)
 
-	return authorizationManager, connections
+	return authorizationManager, profileManager, connections
 }
 
 func main() {
@@ -49,7 +61,7 @@ func main() {
 		}
 	}(prLogger)
 
-	auth, conn := LoadMicroservices(server)
+	auth, profile, conn := LoadMicroservices(server)
 	defer func() {
 		if len(conn) > 0 {
 			for _, c := range conn {
@@ -61,7 +73,9 @@ func main() {
 		}
 	}()
 
-	appHandler := api.NewAPIMicroservices(logger, auth)
+	avatarsServices := image.NewAvatarsService()
+
+	appHandler := api.NewAPIMicroservices(logger, avatarsServices, auth, profile)
 	middlewareHandler := middleware.NewMiddlewareHandler(auth, logger)
 
 	appHandler.Init(server)

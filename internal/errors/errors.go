@@ -4,5 +4,5 @@ import "github.com/pkg/errors"
 
 var (
 	ErrWrongCredentials = errors.New("Wrong credentials")
-	ErrTypeAssertion    = errors.New("Assertion not succeeded")
+	ErrUserNotFound = errors.New("User not found in db")
 )

@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
 	"net/http"
@@ -65,7 +66,6 @@ func (api *APIMicroservices) Login(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
 		api.logger.Error(
-			zap.String("ID", requestID),
 			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -110,7 +110,6 @@ func (api *APIMicroservices) Register(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
 		api.logger.Error(
-			zap.String("ID", requestID),
 			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -155,7 +154,6 @@ func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
 		api.logger.Error(
-			zap.String("ID", requestID),
 			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -199,7 +197,6 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
 		api.logger.Error(
-			zap.String("ID", requestID),
 			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -241,7 +238,6 @@ func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
 		api.logger.Error(
-			zap.String("ID", requestID),
 			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -286,7 +282,6 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
 		api.logger.Error(
-			zap.String("ID", requestID),
 			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -302,7 +297,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 	if userID == -1 {
 		api.logger.Info(
 			zap.String("ID", requestID),
-			zap.String("ERROR", constants.UserIsNotAuthorizedMessage),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusUnauthorized,
@@ -376,6 +371,41 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 	})
 }
 
+func (api *APIMicroservices) GenerateCSRF(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	if userID == -1 {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
+	}
+
+	cookie, _ := ctx.Cookie("Session_cookie")
+	token, _ := csrf.Tokens.Create(cookie.Value, time.Now().Unix() + constants.CSRFTokenLifetime)
+	return ctx.JSON(http.StatusOK, &models.Response{
+		Status: http.StatusOK,
+		Message: token,
+	})
+}
+
 func (api *APIMicroservices) Init(server *echo.Echo) {
 	// Authorization
 	server.POST("/api/v1/user/signin", api.Login)
@@ -386,4 +416,7 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	// Profile
 	server.GET("/api/v1/user/settings", api.GetSettings)
 	server.PATCH("/api/v1/user/settings", api.UpdateSettings)
+
+	// CSRF
+	server.GET("/api/v1/csrf", api.GenerateCSRF)
 }

@@ -46,6 +46,11 @@ func (storage *AuthStorage) GetUserByCookie(cookieValue string) (int64, error) {
 	return int64(id), nil
 }
 
+func (storage *AuthStorage) DeleteSession(cookieValue string) error {
+	err := storage.redis.Del(context.Background(), cookieValue).Err()
+	return err
+}
+
 func (storage *AuthStorage) GetUserByPassword(authData *models.AuthData) (int64, error) {
 	query := `SELECT id, password, salt FROM users WHERE email=$1`
 	rows, err := storage.db.Query(query, authData.Email)

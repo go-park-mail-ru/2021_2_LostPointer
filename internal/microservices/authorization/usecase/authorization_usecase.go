@@ -42,6 +42,14 @@ func (service AuthService) GetUserByCookie(ctx context.Context, cookie *proto.Co
 	return &proto.UserID{ID: id}, nil
 }
 
+func (service AuthService) DeleteSession(ctx context.Context, cookie *proto.Cookie) (*proto.Empty, error) {
+	err := service.storage.DeleteSession(cookie.Cookies)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &proto.Empty{}, nil
+}
+
 func (service AuthService) Login(ctx context.Context, authData *proto.AuthData) (*proto.Cookie, error) {
 	userID, err := service.storage.GetUserByPassword(
 		&models.AuthData{Email: authData.Login, Password: authData.Password})
@@ -118,4 +126,12 @@ func (service AuthService) GetAvatar(ctx context.Context, user *proto.UserID) (*
 	}
 
 	return &proto.Avatar{Filename: os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.LittleAvatarPostfix}, nil
+}
+
+func (service AuthService) Logout(ctx context.Context, cookies *proto.Cookie) (*proto.Empty, error) {
+	_, err := service.DeleteSession(ctx, cookies)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &proto.Empty{}, nil
 }

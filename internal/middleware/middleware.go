@@ -1,7 +1,10 @@
 package middleware
 
 import (
+	"2021_2_LostPointer/internal/csrf"
+	"2021_2_LostPointer/internal/models"
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"time"
@@ -29,6 +32,7 @@ func (middleware *Middleware) InitMiddlewareHandlers(server *echo.Echo) {
 	server.Use(middleware.CheckAuthorization)
 	server.Use(middleware.AccessLog)
 	server.Use(middleware.CORS)
+	server.Use(middleware.CSRF)
 }
 
 func (middleware *Middleware) CheckAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
@@ -75,6 +79,44 @@ func (middleware *Middleware) AccessLog(next echo.HandlerFunc) echo.HandlerFunc 
 		)
 
 		return err
+	}
+}
+
+func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(rwContext echo.Context) error {
+		if rwContext.Request().Method == "PATCH" {
+			cookie, err := rwContext.Cookie("Session_cookie")
+			if err != nil {
+				middleware.logger.Debug(
+					zap.String("COOKIE", errors.New("cookie expired").Error()),
+					zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+				)
+
+				return rwContext.JSON(http.StatusUnauthorized, &models.Response{
+					Status:  http.StatusUnauthorized,
+					Message: "Cookie expired",
+				})
+			}
+
+			tokenReq := rwContext.Request().Header.Get("X-CSRF-Token")
+
+			isValidCsrf, err := csrf.Tokens.Check(cookie.Value, tokenReq)
+
+			if err != nil {
+				return rwContext.JSON(http.StatusForbidden, &models.Response{
+					Status:  http.StatusForbidden,
+					Message: "Cookie expired",
+				})
+			}
+
+			if !isValidCsrf {
+				return rwContext.JSON(http.StatusForbidden, &models.Response{
+					Status:  http.StatusForbidden,
+					Message: "Cookie expired",
+				})
+			}
+		}
+		return next(rwContext)
 	}
 }
 

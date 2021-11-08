@@ -39,7 +39,7 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 
 	fileName := uuid.NewV4().String()
 
-	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigAvatarHeight})
+	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Width: constants.BigAvatarHeight, Height: constants.BigAvatarHeight})
 	out, err := os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.BigAvatarPostfix)
 	if err != nil {
 		return "", err
@@ -50,7 +50,7 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		return "", err
 	}
 
-	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittleAvatarHeight})
+	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Width: constants.LittleAvatarHeight, Height: constants.LittleAvatarHeight})
 	out, err = os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.LittleAvatarPostfix)
 	if err != nil {
 		return "", err

@@ -29,6 +29,7 @@ require (
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/oliamb/cutter v0.2.2 // indirect
 	github.com/pdfcpu/pdfcpu v0.3.12 // indirect
 	github.com/sunshineplan/pdf v1.0.0 // indirect
 	github.com/sunshineplan/tiff v0.0.0-20210710125142-3366bd152a12 // indirect

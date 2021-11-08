@@ -1,6 +1,7 @@
 package image
 
 import (
+	"github.com/oliamb/cutter"
 	"io"
 	"mime/multipart"
 	"os"
@@ -39,7 +40,11 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 
 	fileName := uuid.NewV4().String()
 
-	avatarLarge := imgconv.Resize(src, imgconv.ResizeOption{Width: constants.BigAvatarHeight, Height: constants.BigAvatarHeight})
+	src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigAvatarHeight})
+	avatarLarge, err := cutter.Crop(src, cutter.Config{Width: constants.BigAvatarHeight, Height: constants.BigAvatarHeight, Mode: cutter.Centered})
+	if err != nil {
+		return "", err
+	}
 	out, err := os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.BigAvatarPostfix)
 	if err != nil {
 		return "", err
@@ -50,7 +55,11 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		return "", err
 	}
 
-	avatarSmall := imgconv.Resize(src, imgconv.ResizeOption{Width: constants.LittleAvatarHeight, Height: constants.LittleAvatarHeight})
+	src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittleAvatarHeight})
+	avatarSmall, err := cutter.Crop(src, cutter.Config{Width: constants.LittleAvatarHeight, Height: constants.LittleAvatarHeight, Mode: cutter.Centered})
+	if err != nil {
+		return "", err
+	}
 	out, err = os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.LittleAvatarPostfix)
 	if err != nil {
 		return "", err

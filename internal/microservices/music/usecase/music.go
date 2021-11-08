@@ -63,3 +63,12 @@ func (service *MusicService) ArtistProfile(ctx context.Context, metadata *proto.
 
 	return artistData, nil
 }
+
+func (service *MusicService) IncrementListenCount(ctx context.Context, metadata *proto.IncrementListenCountOptions) (*proto.IncrementListenCountEmpty, error) {
+	err := service.storage.IncrementListenCount(metadata.ID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &proto.IncrementListenCountEmpty{}, nil
+}

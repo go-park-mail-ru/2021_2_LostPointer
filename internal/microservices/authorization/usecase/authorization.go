@@ -25,7 +25,7 @@ func NewAuthService(storage repository.AuthStorage) *AuthService {
 	return &AuthService{storage: storage}
 }
 
-func (service AuthService) CreateSession(ctx context.Context, data *proto.SessionData) (*proto.Empty, error) {
+func (service *AuthService) CreateSession(ctx context.Context, data *proto.SessionData) (*proto.Empty, error) {
 	err := service.storage.CreateSession(data.ID, data.Cookies)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (service AuthService) CreateSession(ctx context.Context, data *proto.Sessio
 	return &proto.Empty{}, nil
 }
 
-func (service AuthService) GetUserByCookie(ctx context.Context, cookie *proto.Cookie) (*proto.UserID, error) {
+func (service *AuthService) GetUserByCookie(ctx context.Context, cookie *proto.Cookie) (*proto.UserID, error) {
 	id, err := service.storage.GetUserByCookie(cookie.Cookies)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (service AuthService) GetUserByCookie(ctx context.Context, cookie *proto.Co
 	return &proto.UserID{ID: id}, nil
 }
 
-func (service AuthService) DeleteSession(ctx context.Context, cookie *proto.Cookie) (*proto.Empty, error) {
+func (service *AuthService) DeleteSession(ctx context.Context, cookie *proto.Cookie) (*proto.Empty, error) {
 	err := service.storage.DeleteSession(cookie.Cookies)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -50,7 +50,7 @@ func (service AuthService) DeleteSession(ctx context.Context, cookie *proto.Cook
 	return &proto.Empty{}, nil
 }
 
-func (service AuthService) Login(ctx context.Context, authData *proto.AuthData) (*proto.Cookie, error) {
+func (service *AuthService) Login(ctx context.Context, authData *proto.AuthData) (*proto.Cookie, error) {
 	userID, err := service.storage.GetUserByPassword(
 		&models.AuthData{Email: authData.Login, Password: authData.Password})
 	if err != nil {
@@ -72,7 +72,7 @@ func (service AuthService) Login(ctx context.Context, authData *proto.AuthData) 
 	return sessionData, nil
 }
 
-func (service AuthService) Register(ctx context.Context, registerData *proto.RegisterData) (*proto.Cookie, error) {
+func (service *AuthService) Register(ctx context.Context, registerData *proto.RegisterData) (*proto.Cookie, error) {
 	isEmailUnique, err := service.storage.IsEmailUnique(registerData.Login)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -119,7 +119,7 @@ func (service AuthService) Register(ctx context.Context, registerData *proto.Reg
 	return sessionData, nil
 }
 
-func (service AuthService) GetAvatar(ctx context.Context, user *proto.UserID) (*proto.Avatar, error) {
+func (service *AuthService) GetAvatar(ctx context.Context, user *proto.UserID) (*proto.Avatar, error) {
 	avatar, err := service.storage.GetAvatar(user.ID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -128,7 +128,7 @@ func (service AuthService) GetAvatar(ctx context.Context, user *proto.UserID) (*
 	return &proto.Avatar{Filename: os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.LittleAvatarPostfix}, nil
 }
 
-func (service AuthService) Logout(ctx context.Context, cookies *proto.Cookie) (*proto.Empty, error) {
+func (service *AuthService) Logout(ctx context.Context, cookies *proto.Cookie) (*proto.Empty, error) {
 	_, err := service.DeleteSession(ctx, cookies)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())

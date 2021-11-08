@@ -27,6 +27,7 @@ func NewProfileService(storage repository.UserSettingsStorage) *ProfileService {
 }
 
 func (service *ProfileService) GetSettings(ctx context.Context, user *proto.ProfileUserID) (*proto.UserSettings, error) {
+	log.Println("OK")
 	settings, err := service.storage.GetSettings(user.ID)
 	if err != nil {
 		if errors.Is(err, customErrors.ErrUserNotFound) {

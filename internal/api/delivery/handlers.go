@@ -4,6 +4,7 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
+	"log"
 	"net/http"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 
 	"2021_2_LostPointer/internal/constants"
 	authorization "2021_2_LostPointer/internal/microservices/authorization/proto"
+	music "2021_2_LostPointer/internal/microservices/music/proto"
 	profile "2021_2_LostPointer/internal/microservices/profile/proto"
 	"2021_2_LostPointer/internal/models"
 )
@@ -24,15 +26,17 @@ type APIMicroservices struct {
 
 	authMicroservice    authorization.AuthorizationClient
 	profileMicroservice profile.ProfileClient
+	musicMicroservice   music.MusicClient
 }
 
 func NewAPIMicroservices(logger *zap.SugaredLogger, avatarsService image.AvatarsService, auth authorization.AuthorizationClient,
-	profile profile.ProfileClient) APIMicroservices {
+	profile profile.ProfileClient, music music.MusicClient) APIMicroservices {
 	return APIMicroservices{
 		logger:              logger,
 		avatarsService:      avatarsService,
 		authMicroservice:    auth,
 		profileMicroservice: profile,
+		musicMicroservice:   music,
 	}
 }
 
@@ -399,11 +403,49 @@ func (api *APIMicroservices) GenerateCSRF(ctx echo.Context) error {
 	}
 
 	cookie, _ := ctx.Cookie("Session_cookie")
-	token, _ := csrf.Tokens.Create(cookie.Value, time.Now().Unix() + constants.CSRFTokenLifetime)
+	token, _ := csrf.Tokens.Create(cookie.Value, time.Now().Unix()+constants.CSRFTokenLifetime)
 	return ctx.JSON(http.StatusOK, &models.Response{
-		Status: http.StatusOK,
+		Status:  http.StatusOK,
 		Message: token,
 	})
+}
+
+func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	var isAuthorized bool
+	if userID != -1 {
+		isAuthorized = true
+	}
+
+	log.Println("OK")
+	tracksListProto, err := api.musicMicroservice.RandomTracks(context.Background(),
+		&music.Metadata{Amount: constants.TracksCollectionLimit, IsAuthorized: isAuthorized})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	tracks := make([]models.Track, 0, constants.TracksCollectionLimit)
+	var track models.Track
+	for _, current := range tracksListProto.Tracks {
+		track.BindProtoTrack(current)
+		log.Println(track)
+	}
+
+	return ctx.JSON(http.StatusOK, tracks)
 }
 
 func (api *APIMicroservices) Init(server *echo.Echo) {
@@ -416,6 +458,9 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	// Profile
 	server.GET("/api/v1/user/settings", api.GetSettings)
 	server.PATCH("/api/v1/user/settings", api.UpdateSettings)
+
+	// Music
+	server.GET("/api/v1/home/tracks", api.GetHomeTracks)
 
 	// CSRF
 	server.GET("/api/v1/csrf", api.GenerateCSRF)

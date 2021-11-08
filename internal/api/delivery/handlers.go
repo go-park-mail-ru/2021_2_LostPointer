@@ -549,8 +549,48 @@ func (api *APIMicroservices) GetArtistProfile(ctx echo.Context) error {
 
 	var artistData models.Artist
 	artistData.BindProtoArtist(artistDataProto)
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
 
 	return ctx.JSON(http.StatusOK, artistData)
+}
+
+func (api *APIMicroservices) IncrementListenCount(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	var trackID models.TrackID
+	err := ctx.Bind(&trackID)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+		)
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	_, err = api.musicMicroservice.IncrementListenCount(context.Background(), &music.IncrementListenCountOptions{ID: trackID.ID})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, &models.Response{
+		Status: http.StatusOK,
+		Message: "Incremented track listen count",
+	})
 }
 
 func (api *APIMicroservices) Init(server *echo.Echo) {
@@ -569,6 +609,7 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.GET("/api/v1/home/albums", api.GetHomeAlbums)
 	server.GET("/api/v1/home/artists", api.GetHomeArtists)
 	server.GET("/api/v1/artist/:id", api.GetArtistProfile)
+	server.POST("/api/v1/inc_listencount", api.IncrementListenCount)
 
 	// CSRF
 	server.GET("/api/v1/csrf", api.GenerateCSRF)

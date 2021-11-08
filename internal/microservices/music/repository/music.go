@@ -249,3 +249,16 @@ func (storage *MusicStorage) GetArtistAlbums(artistID int64, amount int64) ([]*p
 
 	return albums, nil
 }
+
+func (storage *MusicStorage) IncrementListenCount(trackID int64) error {
+	query := `
+		UPDATE tracks SET listen_count = listen_count + 1 WHERE id=$1
+	`
+
+	err := storage.db.QueryRow(query, trackID).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

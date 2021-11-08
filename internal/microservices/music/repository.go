@@ -11,4 +11,5 @@ type Storage interface {
 	GetArtistInfo(int64) (*proto.Artist, error)
 	GetArtistTracks(int64, bool, int64) ([]*proto.Track, error)
 	GetArtistAlbums(int64, int64) ([]*proto.Album, error)
+	IncrementListenCount(int64) error
 }

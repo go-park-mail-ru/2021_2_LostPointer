@@ -2,7 +2,6 @@ package models
 
 import (
 	"2021_2_LostPointer/internal/microservices/music/proto"
-	"log"
 )
 
 type Track struct {
@@ -46,8 +45,6 @@ func (t *Track) BindProtoTrack(track *proto.Track) {
 			Video:  track.Artist.Video,
 		},
 	}
-
-	log.Println(bindedTrack)
 
 	*t = *bindedTrack
 }

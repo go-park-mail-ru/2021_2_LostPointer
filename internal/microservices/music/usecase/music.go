@@ -1,8 +1,8 @@
 package usecase
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	"context"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -43,4 +43,23 @@ func (service *MusicService) RandomArtists(ctx context.Context, metadata *proto.
 	}
 
 	return artists, nil
+}
+
+func (service *MusicService) ArtistProfile(ctx context.Context, metadata *proto.ArtistProfileOptions) (*proto.Artist, error) {
+	artistData, err := service.storage.GetArtistInfo(metadata.ArtistID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	artistData.Tracks, err = service.storage.GetArtistTracks(metadata.ArtistID, metadata.IsAuthorized, constants.TracksDefaultAmountForArtist)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	artistData.Albums, err = service.storage.GetArtistAlbums(metadata.ArtistID, constants.AlbumsDefaultAmountForArtist)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return artistData, nil
 }

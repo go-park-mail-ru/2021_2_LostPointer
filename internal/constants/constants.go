@@ -37,6 +37,7 @@ const (
 	RequestIDTypeAssertionFailed             = "Type assertion for \"REQUEST_ID\" failed"
 	UserIDTypeAssertionFailed                = "Type assertion for \"USER_ID\" failed"
 
+
 	SaltLength                   = 8
 	BigAvatarHeight              = 500
 	LittleAvatarHeight           = 150

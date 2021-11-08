@@ -4,7 +4,6 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
-	"log"
 	"net/http"
 	"time"
 
@@ -410,6 +409,7 @@ func (api *APIMicroservices) GenerateCSRF(ctx echo.Context) error {
 	})
 }
 
+//nolint:dupl
 func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -431,21 +431,82 @@ func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
 		isAuthorized = true
 	}
 
-	log.Println("OK")
 	tracksListProto, err := api.musicMicroservice.RandomTracks(context.Background(),
-		&music.Metadata{Amount: constants.TracksCollectionLimit, IsAuthorized: isAuthorized})
+		&music.RandomTracksOptions{Amount: constants.TracksCollectionLimit, IsAuthorized: isAuthorized})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
 	tracks := make([]models.Track, 0, constants.TracksCollectionLimit)
-	var track models.Track
 	for _, current := range tracksListProto.Tracks {
+		var track models.Track
 		track.BindProtoTrack(current)
-		log.Println(track)
+		tracks = append(tracks, track)
 	}
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
 
 	return ctx.JSON(http.StatusOK, tracks)
+}
+
+//nolint:dupl
+func (api *APIMicroservices) GetHomeAlbums(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	albumsListProto, err := api.musicMicroservice.RandomAlbums(context.Background(), &music.RandomAlbumsOptions{Amount: constants.AlbumCollectionLimit})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	albums := make([]models.Album, 0, constants.AlbumCollectionLimit)
+	for _, current := range albumsListProto.Albums {
+		var album models.Album
+		album.BindProtoAlbum(current)
+		albums = append(albums, album)
+	}
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, albums)
+}
+
+//nolint:dupl
+func (api *APIMicroservices) GetHomeArtists(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	artistsListProto, err := api.musicMicroservice.RandomArtists(context.Background(), &music.RandomArtistsOptions{Amount: constants.ArtistsCollectionLimit})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	artists := make([]models.Artist, 0, constants.ArtistsCollectionLimit)
+	for _, current := range artistsListProto.Artists {
+		var artist models.Artist
+		artist.BindProtoArtist(current)
+		artists = append(artists, artist)
+	}
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, artists)
 }
 
 func (api *APIMicroservices) Init(server *echo.Echo) {
@@ -461,6 +522,8 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 
 	// Music
 	server.GET("/api/v1/home/tracks", api.GetHomeTracks)
+	server.GET("/api/v1/home/albums", api.GetHomeAlbums)
+	server.GET("/api/v1/home/artists", api.GetHomeArtists)
 
 	// CSRF
 	server.GET("/api/v1/csrf", api.GenerateCSRF)

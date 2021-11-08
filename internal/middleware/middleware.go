@@ -41,15 +41,36 @@ func (middleware *Middleware) CheckAuthorization(next echo.HandlerFunc) echo.Han
 		userID := &authorization.UserID{
 			ID: -1,
 		}
-
-		if err == nil {
-			userID, err = middleware.authMicroservice.GetUserByCookie(context.Background(), &authorization.Cookie{
+		if err != nil {
+			cookie = &http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "",
+				Path:     "/",
+				Secure:   true,
+				HttpOnly: true,
+				SameSite: http.SameSiteNoneMode,
+				Expires:  time.Now().AddDate(0,0,-1),
+			}
+			ctx.SetCookie(cookie)
+		} else {
+			uID, err := middleware.authMicroservice.GetUserByCookie(context.Background(), &authorization.Cookie{
 				Cookies: cookie.Value,
 			})
-		}
-		if err != nil {
-			cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
-			ctx.SetCookie(cookie)
+			if err != nil {
+				cookie = &http.Cookie{
+					Name:     "Session_cookie",
+					Value:    "",
+					Path:     "/",
+					Secure:   true,
+					HttpOnly: true,
+					SameSite: http.SameSiteNoneMode,
+					Expires:  time.Now().AddDate(0,0,-1),
+				}
+				ctx.SetCookie(cookie)
+				userID.ID = -1
+			} else {
+				userID.ID = uID.ID
+			}
 		}
 
 		ctx.Set("USER_ID", int(userID.ID))

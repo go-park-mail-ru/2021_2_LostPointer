@@ -36,14 +36,8 @@ func (storage *AuthStorage) CreateSession(id int64, cookieValue string) error {
 
 func (storage *AuthStorage) GetUserByCookie(cookieValue string) (int64, error) {
 	idStr, err := storage.redis.Get(context.Background(), cookieValue).Result()
-	if err != nil {
-		return 0, err
-	}
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return 0, err
-	}
-	return int64(id), nil
+	id, _ := strconv.Atoi(idStr)
+	return int64(id), err
 }
 
 func (storage *AuthStorage) DeleteSession(cookieValue string) error {

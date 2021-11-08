@@ -234,7 +234,6 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().AddDate(0,0,-1),
 	}
-	//cookie.Expires = time.Now().AddDate(0, 0, -1)
 	ctx.SetCookie(cookie)
 
 	api.logger.Info(

@@ -18,6 +18,10 @@ type Track struct {
 	Artist      Artist `json:"artist"`
 }
 
+type TrackID struct {
+	ID int64 `json:"id,omitempty" form:"id" query:"id"`
+}
+
 func (t *Track) BindProtoTrack(track *proto.Track) {
 	bindedTrack := &Track{
 		ID:          track.ID,

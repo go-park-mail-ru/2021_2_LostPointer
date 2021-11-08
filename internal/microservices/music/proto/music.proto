@@ -15,6 +15,10 @@ message RandomArtistsOptions {
   int64 Amount = 1;
 }
 
+message IncrementListenCountOptions {
+  int64 ID = 1;
+}
+
 message ArtistProfileOptions {
   int64 ArtistID = 1;
   bool IsAuthorized = 2;
@@ -65,9 +69,12 @@ message Artists {
   repeated Artist Artists = 1;
 }
 
+message IncrementListenCountEmpty {}
+
 service Music {
   rpc RandomTracks(RandomTracksOptions) returns (Tracks) {}
   rpc RandomAlbums(RandomAlbumsOptions) returns (Albums) {}
   rpc RandomArtists(RandomArtistsOptions) returns (Artists) {}
   rpc ArtistProfile(ArtistProfileOptions) returns (Artist) {}
+  rpc IncrementListenCount(IncrementListenCountOptions) returns (IncrementListenCountEmpty) {}
 }

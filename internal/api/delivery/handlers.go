@@ -5,6 +5,7 @@ import (
 	"2021_2_LostPointer/pkg/image"
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -509,6 +510,49 @@ func (api *APIMicroservices) GetHomeArtists(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, artists)
 }
 
+func (api *APIMicroservices) GetArtistProfile(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	var isAuthorized bool
+	if userID != -1 {
+		isAuthorized = true
+	}
+	artistID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	artistDataProto, err := api.musicMicroservice.ArtistProfile(context.Background(), &music.ArtistProfileOptions{
+		ArtistID:     int64(artistID),
+		IsAuthorized: isAuthorized,
+	})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	var artistData models.Artist
+	artistData.BindProtoArtist(artistDataProto)
+
+	return ctx.JSON(http.StatusOK, artistData)
+}
+
 func (api *APIMicroservices) Init(server *echo.Echo) {
 	// Authorization
 	server.POST("/api/v1/user/signin", api.Login)
@@ -524,6 +568,7 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.GET("/api/v1/home/tracks", api.GetHomeTracks)
 	server.GET("/api/v1/home/albums", api.GetHomeAlbums)
 	server.GET("/api/v1/home/artists", api.GetHomeArtists)
+	server.GET("/api/v1/artist/:id", api.GetArtistProfile)
 
 	// CSRF
 	server.GET("/api/v1/csrf", api.GenerateCSRF)

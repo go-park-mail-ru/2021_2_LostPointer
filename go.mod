@@ -32,6 +32,7 @@ require (
 	github.com/pdfcpu/pdfcpu v0.3.12 // indirect
 	github.com/sunshineplan/pdf v1.0.0 // indirect
 	github.com/sunshineplan/tiff v0.0.0-20210710125142-3366bd152a12 // indirect
+	github.com/travisjeffery/proto-go-sql v0.0.0-20190911121832-39ff47280e87 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	go.uber.org/atomic v1.7.0 // indirect

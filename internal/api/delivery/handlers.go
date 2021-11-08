@@ -225,7 +225,16 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 			zap.Int("ANSWER STATUS", http.StatusConflict))
 		return ctx.NoContent(http.StatusConflict)
 	}
-	cookie.Expires = time.Now().AddDate(0, 0, -1)
+	cookie = &http.Cookie{
+		Name:     "Session_cookie",
+		Value:    "",
+		Path:     "/",
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().AddDate(0,0,-1),
+	}
+	//cookie.Expires = time.Now().AddDate(0, 0, -1)
 	ctx.SetCookie(cookie)
 
 	api.logger.Info(

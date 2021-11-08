@@ -226,6 +226,7 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusConflict)
 	}
 	cookie.Expires = time.Now().AddDate(0, 0, -1)
+	ctx.SetCookie(cookie)
 
 	api.logger.Info(
 		zap.String("ID", requestID),

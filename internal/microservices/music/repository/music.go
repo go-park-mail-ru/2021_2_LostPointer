@@ -2,7 +2,6 @@ package repository
 
 import (
 	"2021_2_LostPointer/internal/microservices/music/proto"
-	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/pkg/wrapper"
 	"database/sql"
 	"log"
@@ -44,24 +43,104 @@ func (storage *MusicStorage) RandomTracks(amount int64, isAuthorized bool) (*pro
 		}
 	}()
 
-	// tracks := make([]*proto.Track, 0, constants.TracksSearchAmount)
-	
+	tracks := make([]*proto.Track, 0, amount)
 	for rows.Next() {
-		//var track proto.Track
-		var track models.Track
+		track := &proto.Track{}
+		track.Album = &proto.Album{}
+		track.Artist = &proto.Artist{}
 		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
-			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork,
-			&track.Artist.ID, &track.Artist.Name, &track.Genre); err != nil {
+			&track.Duration, &track.Lossless,
+			&track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Artist.ID,
+			&track.Artist.Name, &track.Genre); err != nil {
 			return nil, err
 		}
-		//if !isAuthorized {
-		//	track.File = ""
-		//}
-		log.Println(track)
-		// tracks = append(tracks, track)
+		if !isAuthorized {
+			track.File = ""
+		}
+		tracks = append(tracks, track)
 	}
 
-	//tracksList := &proto.Tracks{Tracks: tracks}
+	tracksList := &proto.Tracks{Tracks: tracks}
+	return tracksList, nil
+}
 
-	return nil, nil
+func (storage *MusicStorage) RandomAlbums(amount int64) (*proto.Albums, error) {
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+		`
+		FROM albums alb
+		LEFT JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY RANDOM()
+		LIMIT $1
+		`
+
+	rows, err := storage.db.Query(query, amount)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	albums := make([]*proto.Album, 0, amount)
+	for rows.Next() {
+		album := &proto.Album{}
+		if err = rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.TracksAmount, &album.Artist,
+			&album.TracksDuration); err != nil {
+			return nil, err
+		}
+		albums = append(albums, album)
+	}
+
+	albumsList := &proto.Albums{Albums: albums}
+	return albumsList, nil
+}
+
+func (storage *MusicStorage) RandomArtists(amount int64) (*proto.Artists, error) {
+	query := `
+		SELECT
+		id, name, avatar
+		FROM artists
+		ORDER BY RANDOM()
+		LIMIT $1
+	`
+
+	rows, err := storage.db.Query(query, amount)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	artists := make([]*proto.Artist, 0, amount)
+	for rows.Next() {
+		artist := &proto.Artist{}
+		artist.Tracks = []*proto.Track{}
+		artist.Albums = []*proto.Album{}
+		if err = rows.Scan(&artist.ID, &artist.Name, &artist.Avatar); err != nil {
+			return nil, err
+		}
+		artists = append(artists, artist)
+	}
+
+	artistsList := &proto.Artists{Artists: artists}
+	return artistsList, nil
 }

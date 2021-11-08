@@ -1,17 +1,19 @@
 package main
 
 import (
-	"2021_2_LostPointer/internal/microservices/music/proto"
-	"2021_2_LostPointer/internal/microservices/music/repository"
-	"2021_2_LostPointer/internal/microservices/music/usecase"
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
 	"time"
+
+	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
+
+	"2021_2_LostPointer/internal/microservices/music/proto"
+	"2021_2_LostPointer/internal/microservices/music/repository"
+	"2021_2_LostPointer/internal/microservices/music/usecase"
 )
 
 func InitializeDatabase() *sql.DB {

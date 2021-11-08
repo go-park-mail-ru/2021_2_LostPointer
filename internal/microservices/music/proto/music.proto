@@ -2,9 +2,17 @@ syntax = "proto3";
 
 option go_package = "microservices/music/proto";
 
-message Metadata {
+message RandomTracksOptions {
   int64 Amount = 1;
   bool IsAuthorized = 2;
+}
+
+message RandomAlbumsOptions {
+  int64 Amount = 1;
+}
+
+message RandomArtistsOptions {
+  int64 Amount = 1;
 }
 
 message Album {
@@ -44,6 +52,16 @@ message Tracks {
   repeated Track Tracks = 1;
 }
 
+message Albums {
+  repeated Album Albums = 1;
+}
+
+message Artists {
+  repeated Artist Artists = 1;
+}
+
 service Music {
-  rpc RandomTracks(Metadata) returns (Tracks) {}
+  rpc RandomTracks(RandomTracksOptions) returns (Tracks) {}
+  rpc RandomAlbums(RandomAlbumsOptions) returns (Albums) {}
+  rpc RandomArtists(RandomArtistsOptions) returns (Artists) {}
 }

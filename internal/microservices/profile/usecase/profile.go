@@ -46,7 +46,6 @@ func (service *ProfileService) GetSettings(ctx context.Context, user *proto.Prof
 
 //nolint:cyclop
 func (service *ProfileService) UpdateSettings(ctx context.Context, settings *proto.UploadSettings) (*proto.EmptyProfile, error) {
-	log.Println(settings)
 	if strings.ToLower(settings.Email) != settings.OldSettings.Email && len(settings.Email) != 0 {
 		isEmailValid := govalidator.IsEmail(settings.Email)
 		if !isEmailValid {

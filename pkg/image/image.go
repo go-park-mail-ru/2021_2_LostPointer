@@ -2,12 +2,12 @@ package image
 
 import (
 	"bufio"
+	"github.com/CapsLock-Studio/go-webpbin"
 	"github.com/oliamb/cutter"
 	"io"
 	"mime/multipart"
 	"os"
 
-	"github.com/chai2010/webp"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sunshineplan/imgconv"
 
@@ -74,8 +74,7 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		return "", err
 	}
 	writer := io.Writer(out)
-	err = webp.Encode(writer, avatarLarge, &webp.Options{Quality: 85})
-	if err != nil {
+	if err = webpbin.Encode(writer, avatarLarge); err != nil {
 		return "", err
 	}
 
@@ -93,8 +92,7 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		return "", err
 	}
 	writer = io.Writer(out)
-	err = webp.Encode(writer, avatarSmall, &webp.Options{Quality: 85})
-	if err != nil {
+	if err = webpbin.Encode(writer, avatarSmall); err != nil {
 		return "", err
 	}
 

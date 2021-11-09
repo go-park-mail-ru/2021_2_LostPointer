@@ -1,0 +1,67 @@
+version: "3.7"
+
+volumes:
+  postgres:
+
+services:
+  db:
+    container_name: pg_container
+    image: postgres
+    volumes:
+      - postgres:/var/lib/postgresql
+    restart: always
+    environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: root
+        POSTGRES_DB: lostpointer
+    ports:
+        - "5432:5432"
+
+  main:
+    build:
+      context: .
+      dockerfile: ./cmd/main/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - authorization
+      - profile
+      - music
+    ports:
+      - "3030:3030"
+
+  authorization:
+    build:
+      context: .
+      dockerfile: ./cmd/authorization/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "3080:3080"
+
+  profile:
+    build:
+      context: .
+      dockerfile: ./cmd/profile/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "3081:3081"
+
+  music:
+    build:
+      context: .
+      dockerfile: ./cmd/music/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "3082:3082"
+
+  redis:
+    image: redis:alpine

@@ -10,6 +10,7 @@ type Album struct {
 	Artwork        string `json:"artwork,omitempty"`
 	TracksCount    int64  `json:"tracks_count,omitempty"`
 	TracksDuration int64  `json:"tracks_duration,omitempty"`
+	ArtworkColor   string `json:"artwork_color,omitempty"`
 }
 
 func (a *Album) BindProtoAlbum(album *proto.Album) {
@@ -21,6 +22,7 @@ func (a *Album) BindProtoAlbum(album *proto.Album) {
 		Artwork:        album.Artwork,
 		TracksCount:    album.TracksAmount,
 		TracksDuration: album.TracksDuration,
+		ArtworkColor:   album.ArtworkColor,
 	}
 
 	*a = *bindedAlbum

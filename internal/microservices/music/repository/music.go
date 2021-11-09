@@ -25,9 +25,9 @@ func (storage *MusicStorage) RandomTracks(amount int64, isAuthorized bool) (*pro
 		wrapper.Wrapper([]string{"name"}, "g") +
 		`
 		FROM tracks t
-		LEFT JOIN genres g ON t.genre = g.id
-		LEFT JOIN albums alb ON t.album = alb.id
-		LEFT JOIN artists art ON t.artist = art.id
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
 		ORDER BY RANDOM() DESC LIMIT $1`
 
 	rows, err := storage.db.Query(query, amount)
@@ -67,11 +67,11 @@ func (storage *MusicStorage) RandomTracks(amount int64, isAuthorized bool) (*pro
 
 func (storage *MusicStorage) RandomAlbums(amount int64) (*proto.Albums, error) {
 	query := `SELECT ` +
-		wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb") + ", " +
 		wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
 		`
 		FROM albums alb
-		LEFT JOIN artists art ON art.id = alb.artist
+		JOIN artists art ON art.id = alb.artist
 		JOIN tracks t ON alb.id = t.album
 		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
 		ORDER BY RANDOM()
@@ -96,7 +96,7 @@ func (storage *MusicStorage) RandomAlbums(amount int64) (*proto.Albums, error) {
 	albums := make([]*proto.Album, 0, amount)
 	for rows.Next() {
 		album := &proto.Album{}
-		if err = rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.TracksAmount, &album.Artist,
+		if err = rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.TracksAmount, &album.ArtworkColor, &album.Artist,
 			&album.TracksDuration); err != nil {
 			return nil, err
 		}
@@ -175,9 +175,9 @@ func (storage *MusicStorage) GetArtistTracks(artistID int64, isAuthorized bool, 
 		wrapper.Wrapper([]string{"name"}, "g") +
 		`
 		FROM tracks t
-		LEFT JOIN genres g ON t.genre = g.id
-		LEFT JOIN albums alb ON t.album = alb.id
-		LEFT JOIN artists art ON t.artist = art.id
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
 		WHERE t.artist = $1
 		ORDER BY t.listen_count DESC LIMIT $2
 		`

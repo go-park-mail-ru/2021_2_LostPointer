@@ -32,6 +32,7 @@ message Album {
   string Artwork = 5;
   int64 TracksAmount = 6;
   int64 TracksDuration = 7;
+  string ArtworkColor = 8;
 }
 
 message Artist {

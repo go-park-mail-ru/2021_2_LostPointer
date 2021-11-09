@@ -159,6 +159,8 @@ func (storage *MusicStorage) GetArtistInfo(artistID int64) (*proto.Artist, error
 		return nil, err
 	}
 
+	artist.Avatar = os.Getenv("ARTISTS_ROOT_PREFIX") + artist.Avatar + constants.BigArtistPostfix
+
 	if len(video) != 1 {
 		artist.Video = os.Getenv("MOV_ROOT_PREFIX") + video + constants.VideoPostfix
 	}

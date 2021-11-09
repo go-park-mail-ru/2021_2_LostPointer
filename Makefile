@@ -1,3 +1,8 @@
+LDFLAGS   = \
+			-X $(GOPREFIX).Version=$(VERSION) \
+			-X $(GOPREFIX).Branch=$(BRANCH) \
+			-X $(GOPREFIX).Revision=$(REVISION)
+
 .PHONY: lint
 ifeq ($(BRANCH),master)
 lint:
@@ -11,8 +16,16 @@ endif
 test:
 	go test ./... -covermode=atomic -v -race
 
-.PHONY: all
-all: lint test
+.PHONY: build
+build:
+ifndef TARGET
+	@echo 'build target is not defined'
+else
+	go build $(GOTAGS) \
+		-ldflags '$(LDFLAGS)' \
+		-o bin/$(TARGET) \
+		./cmd/$(TARGET)
+endif
 
 .PHONY: run
 run:

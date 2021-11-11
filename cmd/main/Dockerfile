@@ -6,6 +6,7 @@ ENV CGO_ENABLED=0
 COPY ./go.mod .
 COPY ./go.sum .
 RUN go mod download
+RUN mkdir "users"
 
 COPY ./. .
 

@@ -21,3 +21,4 @@
 /log.txt
 *cover.out*
 *.webp
+/db/csv/

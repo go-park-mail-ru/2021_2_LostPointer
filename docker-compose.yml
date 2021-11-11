@@ -1,7 +1,8 @@
 version: "3.7"
 
 volumes:
-  postgres:
+  postgres_data:
+  redis_data:
 
 networks:
   lp_network:
@@ -56,3 +57,27 @@ services:
     networks:
       lp_network:
         ipv4_address: 10.5.0.5
+  db:
+    container_name: postgres
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${DBUSER}
+      POSTGRES_PASSWORD: ${DBPASS}
+      POSTGRES_DB: ${DBNAME}
+    ports:
+      - "5432:5432"
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.6
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  redis:
+    container_name: tarantool
+    image: redis:latest
+    restart: always
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.7
+    volumes:
+      - redis_data:/data

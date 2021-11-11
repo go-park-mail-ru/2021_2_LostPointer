@@ -66,7 +66,7 @@ services:
       POSTGRES_PASSWORD: ${DBPASS}
       POSTGRES_DB: ${DBNAME}
     ports:
-      - "5432:5432"
+      - "${PG_EXTERNAL_PORT}:5432"
     networks:
       lp_network:
         ipv4_address: 10.5.0.6
@@ -79,5 +79,7 @@ services:
     networks:
       lp_network:
         ipv4_address: 10.5.0.7
+    ports:
+      - "${REDIS_EXTERNAL_PORT}:6379"
     volumes:
       - redis_data:/data

@@ -7,6 +7,7 @@ import (
 	"2021_2_LostPointer/pkg/validation"
 	"context"
 	"errors"
+	"log"
 	"os"
 
 	uuid "github.com/satori/go.uuid"
@@ -51,6 +52,8 @@ func (service *AuthService) DeleteSession(ctx context.Context, cookie *proto.Coo
 }
 
 func (service *AuthService) Login(ctx context.Context, authData *proto.AuthData) (*proto.Cookie, error) {
+	log.Println("Running in Docker")
+
 	userID, err := service.storage.GetUserByPassword(
 		&models.AuthData{Email: authData.Login, Password: authData.Password})
 	if err != nil {

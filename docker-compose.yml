@@ -4,19 +4,6 @@ volumes:
   postgres:
 
 services:
-  db:
-    container_name: pg_container
-    image: postgres
-    volumes:
-      - postgres:/var/lib/postgresql
-    restart: always
-    environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: root
-        POSTGRES_DB: lostpointer
-    ports:
-        - "5432:5432"
-
   main:
     build:
       context: .
@@ -36,8 +23,6 @@ services:
       dockerfile: ./cmd/authorization/Dockerfile
     env_file:
       - .env
-    depends_on:
-      - db
     ports:
       - "3080:3080"
 
@@ -47,8 +32,6 @@ services:
       dockerfile: ./cmd/profile/Dockerfile
     env_file:
       - .env
-    depends_on:
-      - db
     ports:
       - "3081:3081"
 
@@ -58,10 +41,5 @@ services:
       dockerfile: ./cmd/music/Dockerfile
     env_file:
       - .env
-    depends_on:
-      - db
     ports:
       - "3082:3082"
-
-  redis:
-    image: redis:alpine

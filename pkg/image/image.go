@@ -5,6 +5,7 @@ import (
 	"github.com/CapsLock-Studio/go-webpbin"
 	"github.com/oliamb/cutter"
 	"io"
+	"log"
 	"mime/multipart"
 	"os"
 
@@ -27,6 +28,7 @@ func NewAvatarsService() AvatarsService {
 
 func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, error) {
 	// Open image and decode it into image.Image type
+	log.Println("CHECKPOINT 1")
 	f, err := file.Open()
 	if err != nil {
 		return "", err
@@ -35,12 +37,12 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		_ = f.Close()
 	}(f)
 	reader := bufio.NewReader(f)
-
+	log.Println("CHECKPOINT 2")
 	src, err := imgconv.Decode(reader)
 	if err != nil {
 		return "", err
 	}
-
+	log.Println("CHECKPOINT 3")
 	// Get image width and height
 	_, err = f.Seek(0, 0)
 	if err != nil {
@@ -53,10 +55,10 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 	}
 	width := tmp.Width
 	height := tmp.Height
-
+	log.Println("CHECKPOINT 4")
 	// Generate filename for image
 	fileName := uuid.NewV4().String()
-
+	log.Println("CHECKPOINT 5")
 	// Resizing image
 	if height < width {
 		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigAvatarHeight})
@@ -77,7 +79,7 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 	if err = webpbin.Encode(writer, avatarLarge); err != nil {
 		return "", err
 	}
-
+	log.Println("CHECKPOINT 6")
 	if height < width {
 		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittleAvatarHeight})
 	} else {

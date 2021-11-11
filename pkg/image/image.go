@@ -2,7 +2,7 @@ package image
 
 import (
 	"bufio"
-	"github.com/chai2010/webp"
+	"github.com/CapsLock-Studio/go-webpbin"
 	"github.com/oliamb/cutter"
 	"io"
 	"log"
@@ -76,10 +76,10 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		return "", err
 	}
 	writer := io.Writer(out)
-
-	if err = webp.Encode(writer, avatarLarge, &webp.Options{Lossless: true}); err != nil {
+	if err = webpbin.Encode(writer, avatarLarge); err != nil {
 		return "", err
 	}
+
 	log.Println("CHECKPOINT 6")
 	if height < width {
 		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittleAvatarHeight})
@@ -95,7 +95,7 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		return "", err
 	}
 	writer = io.Writer(out)
-	if err = webp.Encode(writer, avatarSmall, &webp.Options{Lossless: true}); err != nil {
+	if err = webpbin.Encode(writer, avatarSmall); err != nil {
 		return "", err
 	}
 

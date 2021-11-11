@@ -1,4 +1,4 @@
-FROM golang:1.17-buster AS build
+FROM golang:1.17.3-alpine3.14 AS build
 
 WORKDIR /app
 
@@ -9,8 +9,6 @@ COPY ../go.mod .
 COPY ../go.sum .
 RUN go mod download
 RUN go build ./cmd/main/main.go
-
-FROM alpine:latest
 
 WORKDIR /app
 COPY --from=build /app/ .

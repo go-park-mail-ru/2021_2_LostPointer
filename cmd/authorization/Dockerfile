@@ -1,4 +1,4 @@
-FROM golang:1.17-buster AS build
+FROM golang:1.17.3-alpine3.14 AS build
 
 WORKDIR /app
 
@@ -13,12 +13,8 @@ RUN go build ./cmd/authorization/authorization.go
 
 ENV AUTH_PORT=":3080"
 
-FROM alpine:latest
-
 WORKDIR /app
 COPY --from=build /app/ .
 ADD cmd/authorization .
 
 CMD ["./authorization"]
-
-EXPOSE 3080

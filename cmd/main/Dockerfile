@@ -17,6 +17,3 @@ COPY --from=build /app/ .
 ADD cmd/main .
 
 CMD ["./main"]
-
-
-EXPOSE 3030

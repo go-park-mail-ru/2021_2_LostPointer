@@ -90,7 +90,5 @@ func main() {
 	appHandler.Init(server)
 	middlewareHandler.InitMiddlewareHandlers(server)
 
-	log.Println(os.Getenv("DBUSER"), os.Getenv("CSRF_SECRET"))
-
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

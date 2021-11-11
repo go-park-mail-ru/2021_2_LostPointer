@@ -1,4 +1,4 @@
-FROM golang:1.17-buster AS build
+FROM golang:1.17.3-alpine3.14 AS build
 
 WORKDIR /app
 
@@ -10,12 +10,8 @@ COPY ../go.sum .
 RUN go mod download
 RUN go build ./cmd/music/music.go
 
-FROM alpine:latest
-
 WORKDIR /app
 COPY --from=build /app/ .
 ADD cmd/music .
 
 CMD ["./music"]
-
-EXPOSE 3081

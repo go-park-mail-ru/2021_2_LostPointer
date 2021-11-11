@@ -24,7 +24,7 @@ func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient,
 
 	authPORT := os.Getenv("AUTH_PORT")
 	authConn, err := grpc.Dial(
-		"127.0.0.1"+authPORT,
+		os.Getenv("AUTH_HOST")+authPORT,
 		grpc.WithInsecure(),
 	)
 	if err != nil {
@@ -34,7 +34,7 @@ func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient,
 
 	profilePORT := os.Getenv("PROFILE_PORT")
 	profileConn, err := grpc.Dial(
-		"127.0.0.1"+profilePORT,
+		os.Getenv("PROFILE_HOST")+profilePORT,
 		grpc.WithInsecure(),
 	)
 	if err != nil {
@@ -44,7 +44,7 @@ func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient,
 
 	musicPORT := os.Getenv("MUSIC_PORT")
 	musicConn, err := grpc.Dial(
-		"127.0.0.1"+musicPORT,
+		os.Getenv("MUSIC_HOST")+musicPORT,
 		grpc.WithInsecure(),
 	)
 	if err != nil {

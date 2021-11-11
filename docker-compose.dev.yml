@@ -1,0 +1,88 @@
+version: "3.7"
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  lp_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/8
+
+services:
+  main:
+    build:
+      context: .
+      dockerfile: ./cmd/main/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - authorization
+      - profile
+      - music
+    ports:
+      - "3030:3030"
+    volumes:
+      - "${LOCAL_STATIC_PATH}/users:/app/users"
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.2
+
+  authorization:
+    build:
+      context: .
+      dockerfile: ./cmd/authorization/Dockerfile
+    env_file:
+      - .env
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.3
+
+  profile:
+    build:
+      context: .
+      dockerfile: ./cmd/profile/Dockerfile
+    env_file:
+      - .env
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.4
+
+  music:
+    build:
+      context: .
+      dockerfile: ./cmd/music/Dockerfile
+    env_file:
+      - .env
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.5
+  db:
+    container_name: postgres
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${DBUSER}
+      POSTGRES_PASSWORD: ${DBPASS}
+      POSTGRES_DB: ${DBNAME}
+    ports:
+      - "${PG_EXTERNAL_PORT}:5432"
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.6
+    volumes:
+      - postgres_data:/var/lib/postgresql/csv
+      - ./db:/docker-entrypoint-initdb.d
+  redis:
+    container_name: tarantool
+    image: redis:latest
+    restart: always
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.7
+    ports:
+      - "${REDIS_EXTERNAL_PORT}:6379"
+    volumes:
+      - redis_data:/csv

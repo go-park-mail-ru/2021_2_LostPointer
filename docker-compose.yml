@@ -71,7 +71,8 @@ services:
       lp_network:
         ipv4_address: 10.5.0.6
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/csv
+      - ./db:/docker-entrypoint-initdb.d
   redis:
     container_name: tarantool
     image: redis:latest

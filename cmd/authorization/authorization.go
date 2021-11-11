@@ -55,8 +55,6 @@ func InitializeStorages() *repository.AuthStorage {
 	redisConnection := InitializeRedis()
 	dbConnection := InitializeDatabase()
 
-	log.Println(redisConnection, dbConnection)
-
 	authStorage := repository.NewAuthStorage(dbConnection, redisConnection)
 	return authStorage
 }

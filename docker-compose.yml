@@ -24,8 +24,6 @@ services:
       - music
     ports:
       - "3030:3030"
-    volumes:
-      - /home/ubuntu/users:/app/users
     networks:
       lp_network:
         ipv4_address: 10.5.0.2

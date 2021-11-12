@@ -108,6 +108,8 @@ func (service *AvatarsService) DeleteImage(filename string) error {
 		doesFileExist = false
 	}
 
+	log.Println("Exists?", doesFileExist)
+
 	if filename != constants.AvatarDefaultFileName && doesFileExist {
 		err := os.Remove(os.Getenv("USERS_FULL_PREFIX") + filename + constants.LittleAvatarPostfix)
 		if err != nil {

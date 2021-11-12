@@ -4,6 +4,7 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -345,6 +346,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
 		oldAvatarFilename := oldSettings.BigAvatar[0 : len(oldSettings.BigAvatar)-11]
+		log.Println(oldAvatarFilename)
 		err = api.avatarsService.DeleteImage(oldAvatarFilename)
 		if err != nil {
 			api.logger.Error(

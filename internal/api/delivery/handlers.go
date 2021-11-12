@@ -6,6 +6,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -233,7 +234,7 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode,
-		Expires:  time.Now().AddDate(0,0,-1),
+		Expires:  time.Now().AddDate(0, 0, -1),
 	}
 	ctx.SetCookie(cookie)
 
@@ -345,7 +346,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
-		oldAvatarFilename := oldSettings.BigAvatar[0 : len(oldSettings.BigAvatar)-11]
+		oldAvatarFilename := oldSettings.BigAvatar[len(os.Getenv("USERS_ROOT_PREFIX")) : len(oldSettings.BigAvatar)-len(constants.LittleAvatarPostfix)]
 		log.Println(oldAvatarFilename)
 		err = api.avatarsService.DeleteImage(oldAvatarFilename)
 		if err != nil {
@@ -599,7 +600,7 @@ func (api *APIMicroservices) IncrementListenCount(ctx echo.Context) error {
 	)
 
 	return ctx.JSON(http.StatusOK, &models.Response{
-		Status: http.StatusOK,
+		Status:  http.StatusOK,
 		Message: "Incremented track listen count",
 	})
 }

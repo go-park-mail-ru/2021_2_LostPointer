@@ -23,6 +23,10 @@ message ProfileUserID {
   int64 ID = 1;
 }
 
+message Avatar {
+  string Filename = 1;
+}
+
 message EmptyProfile {}
 
 service Profile {

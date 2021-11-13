@@ -296,7 +296,7 @@ func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*p
 		JOIN albums alb ON t.album = alb.id
 		JOIN artists art ON t.artist = art.id
 		WHERE alb.id = $1
-		ORDER BY t.listen_count
+		ORDER BY t.listen_count DESC
 		`
 	rows, err := storage.db.Query(query, albumID)
 	if err != nil {

@@ -24,6 +24,11 @@ message ArtistProfileOptions {
   bool IsAuthorized = 2;
 }
 
+message AlbumPageOptions {
+  int64 AlbumID = 1;
+  bool IsAuthorized = 2;
+}
+
 message Album {
   int64 ID = 1;
   string Title = 2;
@@ -58,6 +63,30 @@ message Track {
   Artist Artist = 11;
 }
 
+message AlbumTrack {
+  int64 ID = 1;
+  string Title = 2;
+  bool Explicit = 3;
+  string Genre = 4;
+  int64 Number = 5;
+  string File = 6;
+  int64 ListenCount = 7;
+  int64 Duration = 8;
+  bool Lossless = 9;
+}
+
+message AlbumPageResponse {
+  int64 AlbumID = 1;
+  string Title = 2;
+  int64 Year = 3;
+  string Artwork = 4;
+  string ArtworkColor = 5;
+  int64 TracksCount = 6;
+  int64 TracksDuration = 7;
+  Artist Artist = 8;
+  repeated AlbumTrack Tracks = 9;
+}
+
 message Tracks {
   repeated Track Tracks = 1;
 }
@@ -78,4 +107,5 @@ service Music {
   rpc RandomArtists(RandomArtistsOptions) returns (Artists) {}
   rpc ArtistProfile(ArtistProfileOptions) returns (Artist) {}
   rpc IncrementListenCount(IncrementListenCountOptions) returns (IncrementListenCountEmpty) {}
+  rpc AlbumPage(AlbumPageOptions) returns (AlbumPageResponse) {}
 }

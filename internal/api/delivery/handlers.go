@@ -4,7 +4,6 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -344,7 +343,6 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
 		oldAvatarFilename := oldSettings.BigAvatar[len(os.Getenv("USERS_ROOT_PREFIX")) : len(oldSettings.BigAvatar)-len(constants.LittleAvatarPostfix)]
-		log.Println(oldAvatarFilename)
 		err = api.avatarsService.DeleteImage(oldAvatarFilename)
 		if err != nil {
 			api.logger.Error(
@@ -602,6 +600,53 @@ func (api *APIMicroservices) IncrementListenCount(ctx echo.Context) error {
 	})
 }
 
+func (api *APIMicroservices) GetAlbumPage(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	var isAuthorized bool
+	if userID != -1 {
+		isAuthorized = true
+	}
+	albumID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	albumDataProto, err := api.musicMicroservice.AlbumPage(context.Background(), &music.AlbumPageOptions{
+		AlbumID:      int64(albumID),
+		IsAuthorized: isAuthorized,
+	})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	var albumData models.AlbumPage
+	albumData.BindProtoAlbumPage(albumDataProto)
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, albumData)
+}
+
 func (api *APIMicroservices) Init(server *echo.Echo) {
 	// Authorization
 	server.POST("/api/v1/user/signin", api.Login)
@@ -618,6 +663,7 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.GET("/api/v1/home/albums", api.GetHomeAlbums)
 	server.GET("/api/v1/home/artists", api.GetHomeArtists)
 	server.GET("/api/v1/artist/:id", api.GetArtistProfile)
+	server.GET("/api/v1/album/:id", api.GetAlbumPage)
 	server.POST("/api/v1/inc_listencount", api.IncrementListenCount)
 
 	// CSRF

@@ -2,49 +2,47 @@ package middleware
 
 import (
 	"2021_2_LostPointer/internal/csrf"
-	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
 	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/users"
 	"context"
 	"errors"
-	"github.com/labstack/echo/v4"
-	"github.com/satori/go.uuid"
-	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
+
+	authorization "2021_2_LostPointer/internal/microservices/authorization/proto"
 )
 
 type Middleware struct {
-	logger      *zap.SugaredLogger
-	UserUseCase users.UserUseCase
-	sessionChecker session.SessionCheckerClient
+	logger           *zap.SugaredLogger
+	authMicroservice authorization.AuthorizationClient
 }
 
-func NewMiddlewareHandler(logger *zap.SugaredLogger, userUseCase users.UserUseCase, sessionChecker session.SessionCheckerClient) Middleware {
+func NewMiddlewareHandler(authMicroservice authorization.AuthorizationClient, logger *zap.SugaredLogger) Middleware {
 	return Middleware{
-		UserUseCase: userUseCase,
-		logger:      logger,
-		sessionChecker: sessionChecker,
+		logger:           logger,
+		authMicroservice: authMicroservice,
 	}
 }
 
-func (middleware Middleware) InitMiddlewareHandlers(server *echo.Echo) {
+func (middleware *Middleware) InitMiddlewareHandlers(server *echo.Echo) {
 	server.Use(middleware.CheckAuthorization)
 	server.Use(middleware.AccessLog)
-	server.Use(middleware.CSRF)
 	server.Use(middleware.CORS)
+	server.Use(middleware.CSRF)
 }
 
-func (middleware Middleware) CheckAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
+func (middleware *Middleware) CheckAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("Session_cookie")
-		userID := &session.UserID{
-			UserID: -1,
+		userID := &authorization.UserID{
+			ID: -1,
 		}
-
 		if err == nil {
-			userID, err = middleware.sessionChecker.GetUserBySession(context.Background(), &session.SessionData{
+			userID, err = middleware.authMicroservice.GetUserByCookie(context.Background(), &authorization.Cookie{
 				Cookies: cookie.Value,
 			})
 		}
@@ -53,13 +51,13 @@ func (middleware Middleware) CheckAuthorization(next echo.HandlerFunc) echo.Hand
 			ctx.SetCookie(cookie)
 		}
 
-		ctx.Set("USER_ID", int(userID.UserID))
+		ctx.Set("USER_ID", int(userID.ID))
 
 		return next(ctx)
 	}
 }
 
-func (middleware Middleware) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
+func (middleware *Middleware) AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		uniqueID := uuid.NewV4()
 		start := time.Now()
@@ -121,7 +119,7 @@ func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (middleware Middleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
+func (middleware *Middleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		c.Response().Header().Set("Access-Control-Allow-Origin", os.Getenv("CORS_ORIGIN"))

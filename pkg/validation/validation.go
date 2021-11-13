@@ -1,20 +1,21 @@
 package validation
 
 import (
+	"regexp"
+
+	"github.com/asaskevich/govalidator"
+
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/models"
-	"regexp"
 )
 
-
 func ValidatePassword(password string) (bool, string, error) {
-	patterns := map[string]string {
+	patterns := map[string]string{
 		`^.{` + constants.PasswordRequiredLength + `,}$`: constants.PasswordValidationInvalidLengthMessage,
 		`[0-9]`: constants.PasswordValidationNoDigitMessage,
 		`[A-Z]`: constants.PasswordValidationNoUppercaseMessage,
 		`[a-z]`: constants.PasswordValidationNoLowerCaseMessage,
 		`[\@\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\?\[\\\]\^\_]`: constants.PasswordValidationNoSpecialSymbolMessage,
-
 	}
 
 	for pattern, errorMessage := range patterns {
@@ -30,8 +31,12 @@ func ValidatePassword(password string) (bool, string, error) {
 	return true, "", nil
 }
 
-func ValidateRegisterCredentials(userData *models.User) (bool, string, error) {
-	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{` +constants.MinNicknameLength+ `,` +constants.MaxNicknameLength+ `}$`, userData.Nickname)
+func ValidateRegisterCredentials(registerData *models.RegisterData) (bool, string, error) {
+	isEmailValid := govalidator.IsEmail(registerData.Email)
+	if !isEmailValid {
+		return false, constants.InvalidEmailMessage, nil
+	}
+	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{`+constants.MinNicknameLength+`,`+constants.MaxNicknameLength+`}$`, registerData.Nickname)
 	if err != nil {
 		return false, "", err
 	}
@@ -39,15 +44,7 @@ func ValidateRegisterCredentials(userData *models.User) (bool, string, error) {
 		return false, constants.InvalidNicknameMessage, nil
 	}
 
-	isEmailValid, err := regexp.MatchString(constants.EmailRegexPattern, userData.Email)
-	if err != nil {
-		return false, "", err
-	}
-	if !isEmailValid {
-		return false, constants.InvalidEmailMessage, nil
-	}
-
-	passwordValid, message, err := ValidatePassword(userData.Password)
+	passwordValid, message, err := ValidatePassword(registerData.Password)
 	if err != nil {
 		return false, "", err
 	}

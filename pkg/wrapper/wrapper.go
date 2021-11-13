@@ -5,5 +5,5 @@ func Wrapper(fields []string, prefix string) string {
 	for _, field := range fields {
 		result = result + prefix + "." + field + ", "
 	}
-	return result[:len(result) - 2]
+	return result[:len(result)-2]
 }

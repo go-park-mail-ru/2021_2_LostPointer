@@ -14,7 +14,6 @@ import (
 
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/errors"
-	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/pkg/utils"
 )
 
@@ -46,7 +45,7 @@ func (storage *AuthStorage) DeleteSession(cookieValue string) error {
 	return err
 }
 
-func (storage *AuthStorage) GetUserByPassword(authData *models.AuthData) (int64, error) {
+func (storage *AuthStorage) GetUserByPassword(authData *proto.AuthData) (int64, error) {
 	query := `SELECT id, password, salt FROM users WHERE email=$1`
 	rows, err := storage.db.Query(query, authData.Email)
 	if err != nil {

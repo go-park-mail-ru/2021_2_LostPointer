@@ -2,13 +2,13 @@ package image
 
 import (
 	"bufio"
-	"github.com/CapsLock-Studio/go-webpbin"
-	"github.com/oliamb/cutter"
 	"io"
 	"log"
 	"mime/multipart"
 	"os"
 
+	"github.com/CapsLock-Studio/go-webpbin"
+	"github.com/oliamb/cutter"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sunshineplan/imgconv"
 
@@ -26,6 +26,7 @@ func NewAvatarsService() AvatarsService {
 	return AvatarsService{}
 }
 
+//nolint:cyclop
 func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, error) {
 	// Open image and decode it into image.Image type
 	log.Println("CHECKPOINT 1")

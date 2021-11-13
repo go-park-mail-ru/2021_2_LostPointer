@@ -75,7 +75,7 @@ func main() {
 	port := os.Getenv("AUTH_PORT")
 	listen, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Fatal("CANNOT LISTEN PORT: ", port, err.Error())
+		log.Println("CANNOT LISTEN PORT: ", port, err.Error())
 	}
 
 	server := grpc.NewServer()
@@ -83,6 +83,6 @@ func main() {
 	log.Printf("STARTED AUTHORIZATION MICROSERVICE ON %s", port)
 	err = server.Serve(listen)
 	if err != nil {
-		log.Fatal("CANNOT LISTEN PORT: ", port, err.Error())
+		log.Println("CANNOT LISTEN PORT: ", port, err.Error())
 	}
 }

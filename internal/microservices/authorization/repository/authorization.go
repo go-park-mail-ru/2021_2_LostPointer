@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"2021_2_LostPointer/internal/microservices/authorization/proto"
 	"context"
 	"database/sql"
 	"log"
@@ -78,7 +79,7 @@ func (storage *AuthStorage) GetUserByPassword(authData *models.AuthData) (int64,
 	return int64(dbUserID), nil
 }
 
-func (storage *AuthStorage) CreateUser(registerData *models.RegisterData) (int64, error) {
+func (storage *AuthStorage) CreateUser(registerData *proto.RegisterData) (int64, error) {
 	query := `INSERT INTO users(email, password, nickname, salt, avatar) VALUES($1, $2, $3, $4, $5) RETURNING id`
 
 	salt, err := utils.GetRandomString(constants.SaltLength)

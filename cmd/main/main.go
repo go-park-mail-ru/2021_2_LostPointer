@@ -1,170 +1,62 @@
 package main
 
 import (
-	deliveryArtist "2021_2_LostPointer/internal/artist/delivery"
-	repositoryArtist "2021_2_LostPointer/internal/artist/repository"
-	usecaseArtist "2021_2_LostPointer/internal/artist/usecase"
-	"2021_2_LostPointer/internal/middleware"
-	deliveryTrack "2021_2_LostPointer/internal/track/delivery"
-	repositoryTrack "2021_2_LostPointer/internal/track/repository"
-	usecaseTrack "2021_2_LostPointer/internal/track/usecase"
-
-	deliveryAlbum "2021_2_LostPointer/internal/album/delivery"
-	repositoryAlbum "2021_2_LostPointer/internal/album/repository"
-	usecaseAlbum "2021_2_LostPointer/internal/album/usecase"
-
-	deliveryPlaylist "2021_2_LostPointer/internal/playlist/delivery"
-	repositoryPlaylist "2021_2_LostPointer/internal/playlist/repository"
-	usecasePlaylist "2021_2_LostPointer/internal/playlist/usecase"
-
-	deliveryUser "2021_2_LostPointer/internal/users/delivery"
-	repositoryUser "2021_2_LostPointer/internal/users/repository"
-	usecaseUser "2021_2_LostPointer/internal/users/usecase"
-
-	deliverySearch "2021_2_LostPointer/internal/search/delivery"
-	repositorySearch "2021_2_LostPointer/internal/search/repository"
-	usecaseSearch "2021_2_LostPointer/internal/search/usecase"
-
-	repositoryAvatar "2021_2_LostPointer/internal/avatars/repository"
-
-	authorizationMicro "2021_2_LostPointer/internal/microservices/authorization/delivery"
-
-	"database/sql"
 	"fmt"
-	"github.com/go-redis/redis/v8"
+	"log"
+	"os"
+
 	"github.com/labstack/echo/v4"
-	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
-	"log"
-	"os"
-	"time"
+
+	api "2021_2_LostPointer/internal/api/delivery"
+	authMicroservice "2021_2_LostPointer/internal/microservices/authorization/proto"
+	musicMicroservice "2021_2_LostPointer/internal/microservices/music/proto"
+	profileMicroservice "2021_2_LostPointer/internal/microservices/profile/proto"
+	"2021_2_LostPointer/internal/middleware"
+	"2021_2_LostPointer/pkg/image"
 )
 
-type RequestHandlers struct {
-	userHandlers       deliveryUser.UserDelivery
-	artistHandlers     deliveryArtist.ArtistDelivery
-	trackHandlers      deliveryTrack.TrackDelivery
-	albumHandlers      deliveryAlbum.AlbumDelivery
-	playlistHandlers   deliveryPlaylist.PlaylistDelivery
-	searchHandlers     deliverySearch.Handler
-	middlewareHandlers middleware.Middleware
-}
-
-func NewRequestHandler(db *sql.DB, redisConnQueue *redis.Client, logger *zap.SugaredLogger, sessionChecker authorizationMicro.SessionCheckerClient) *RequestHandlers {
-	userDB := repositoryUser.NewUserRepository(db)
-	images := repositoryAvatar.NewAvatarRepository()
-	userUseCase := usecaseUser.NewUserUserCase(userDB, sessionChecker, images)
-	userHandlers := deliveryUser.NewUserDelivery(logger, userUseCase)
-
-	artistRepo := repositoryArtist.NewArtistRepository(db)
-	artistUseCase := usecaseArtist.NewArtistUseCase(artistRepo)
-	artistHandlers := deliveryArtist.NewArtistDelivery(artistUseCase, logger)
-
-	trackRepo := repositoryTrack.NewTrackRepository(db)
-	trackUseCase := usecaseTrack.NewTrackUseCase(trackRepo)
-	trackHandlers := deliveryTrack.NewTrackDelivery(trackUseCase, logger)
-
-	albumRepo := repositoryAlbum.NewAlbumRepository(db)
-	albumUseCase := usecaseAlbum.NewAlbumUseCase(albumRepo)
-	albumHandlers := deliveryAlbum.NewAlbumDelivery(albumUseCase, logger)
-
-	playlistRepo := repositoryPlaylist.NewPlaylistRepository(db)
-	playlistUseCase := usecasePlaylist.NewPlaylistUseCase(playlistRepo)
-	playlistHandlers := deliveryPlaylist.NewPlaylistDelivery(playlistUseCase, logger)
-
-	searchRepo := repositorySearch.NewSearchRepository(db)
-	searchUsecase := usecaseSearch.NewSearchUsecase(&searchRepo)
-	searchHandlers := deliverySearch.NewHandler(&searchUsecase, logger)
-
-	middlewareHandlers := middleware.NewMiddlewareHandler(logger, userUseCase, sessionChecker)
-
-	api := &(RequestHandlers{
-		userHandlers:       userHandlers,
-		artistHandlers:     artistHandlers,
-		trackHandlers:      trackHandlers,
-		albumHandlers:      albumHandlers,
-		playlistHandlers:   playlistHandlers,
-		searchHandlers:     searchHandlers,
-		middlewareHandlers: middlewareHandlers,
-	})
-
-	return api
-}
-
-func InitializeDatabase() *sql.DB {
-	connectionString := fmt.Sprintf(
-		"user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
-		os.Getenv("DBUSER"),
-		os.Getenv("DBPASS"),
-		os.Getenv("DBHOST"),
-		os.Getenv("DBPORT"),
-		os.Getenv("DBNAME"),
-	)
-
-	db, err := sql.Open("postgres", connectionString)
-	if err != nil {
-		log.Fatalln("NO CONNECTION TO DATABASE", err.Error())
-	}
-	db.SetConnMaxLifetime(time.Second * 300)
-
-	return db
-}
-
-func InitializeRedisUsers() *redis.Client {
-	var AddrConfig string
-	if len(os.Getenv("REDIS_PORT")) == 0 {
-		AddrConfig = os.Getenv("REDIS_HOST")
-	} else {
-		AddrConfig = fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
-	}
-
-	redisConnUsers := redis.NewClient(&redis.Options{
-		Addr:     AddrConfig,
-		Password: os.Getenv("REDIS_PASS"),
-		DB:       1,
-	})
-
-	return redisConnUsers
-}
-
-func InitializeRedisQueues() *redis.Client {
-	var AddrConfig string
-	if len(os.Getenv("REDIS_PORT")) == 0 {
-		AddrConfig = os.Getenv("REDIS_HOST")
-	} else {
-		AddrConfig = fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
-	}
-
-	redisConnUsers := redis.NewClient(&redis.Options{
-		Addr:     AddrConfig,
-		Password: os.Getenv("REDIS_PASS"),
-		DB:       2,
-	})
-
-	return redisConnUsers
-}
-
-func LoadMicroservices(server *echo.Echo) (authorizationMicro.SessionCheckerClient, []*grpc.ClientConn) {
+func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, profileMicroservice.ProfileClient,
+	musicMicroservice.MusicClient, []*grpc.ClientConn) {
 	connections := make([]*grpc.ClientConn, 0)
 
 	authPORT := os.Getenv("AUTH_PORT")
-	log.Println("AUTH_PORT", authPORT)
-
 	authConn, err := grpc.Dial(
-		"127.0.0.1"+authPORT,
+		os.Getenv("AUTH_HOST")+authPORT,
 		grpc.WithInsecure(),
 	)
-	connections = append(connections, authConn)
-
 	if err != nil {
 		server.Logger.Fatal("cant connect to grpc")
 	}
+	connections = append(connections, authConn)
 
-	authorizationManager := authorizationMicro.NewSessionCheckerClient(authConn)
+	profilePORT := os.Getenv("PROFILE_PORT")
+	profileConn, err := grpc.Dial(
+		os.Getenv("PROFILE_HOST")+profilePORT,
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		server.Logger.Fatal("cant connect to grpc")
+	}
+	connections = append(connections, profileConn)
 
-	return authorizationManager, connections
+	musicPORT := os.Getenv("MUSIC_PORT")
+	musicConn, err := grpc.Dial(
+		os.Getenv("MUSIC_HOST")+musicPORT,
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		server.Logger.Fatal("cant connect to grpc")
+	}
+	connections = append(connections, musicConn)
+
+	authorizationManager := authMicroservice.NewAuthorizationClient(authConn)
+	profileManager := profileMicroservice.NewProfileClient(profileConn)
+	musicManager := musicMicroservice.NewMusicClient(musicConn)
+
+	return authorizationManager, profileManager, musicManager, connections
 }
 
 func main() {
@@ -173,47 +65,30 @@ func main() {
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	prLogger, _ := config.Build()
 	logger := prLogger.Sugar()
-	defer prLogger.Sync()
+	defer func(prLogger *zap.Logger) {
+		err := prLogger.Sync()
+		if err != nil {
+			log.Fatal("Error occurred in logger sync")
+		}
+	}(prLogger)
 
-	db := InitializeDatabase()
-	defer func() {
-		if db != nil {
-			db.Close()
-		}
-	}()
-	redisConnUsers := InitializeRedisUsers()
-	defer func() {
-		if redisConnUsers != nil {
-			redisConnUsers.Close()
-		}
-	}()
-	redisConnQueues := InitializeRedisQueues()
-	defer func() {
-		if redisConnQueues != nil {
-			redisConnQueues.Close()
-		}
-	}()
-
-	auth, conn := LoadMicroservices(server)
+	auth, profile, music, conn := LoadMicroservices(server)
 	defer func() {
 		if len(conn) > 0 {
-			for i, _ := range conn {
-				conn[i].Close()
+			for _, c := range conn {
+				err := c.Close()
+				if err != nil {
+					log.Fatalf("Error occurred during closing connection")
+				}
 			}
 		}
 	}()
+	avatarsServices := image.NewAvatarsService()
 
-	api := NewRequestHandler(db, redisConnQueues, logger, auth)
-
-	api.userHandlers.InitHandlers(server)
-	api.artistHandlers.InitHandlers(server)
-	api.trackHandlers.InitHandlers(server)
-	api.albumHandlers.InitHandlers(server)
-	api.playlistHandlers.InitHandlers(server)
-	api.searchHandlers.InitHandlers(server)
-	api.middlewareHandlers.InitMiddlewareHandlers(server)
-
-	server.Static("/tracks", os.Getenv("TRACKS_PATH"))
+	appHandler := api.NewAPIMicroservices(logger, avatarsServices, auth, profile, music)
+	middlewareHandler := middleware.NewMiddlewareHandler(auth, logger)
+	appHandler.Init(server)
+	middlewareHandler.InitMiddlewareHandlers(server)
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

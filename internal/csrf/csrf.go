@@ -6,30 +6,31 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-var Tokens *HashToken
-
-func init() {
-	Tokens, _ = NewHMACHashToken("SomeSecret")
-}
-
 type HashToken struct {
 	Secret []byte
 }
 
-func NewHMACHashToken(secret string) (*HashToken, error) {
-	return &HashToken{Secret: []byte(secret)}, nil
+var Tokens *HashToken
+
+//nolint:gochecknoinits
+func init() {
+	Tokens = NewHMACHashToken(os.Getenv("CSRF_SECRET"))
+}
+
+func NewHMACHashToken(secret string) *HashToken {
+	return &HashToken{Secret: []byte(secret)}
 }
 
 func (tk *HashToken) Create(cookie string, tokenExpTime int64) (string, error) {
 	h := hmac.New(sha256.New, tk.Secret)
 	data := fmt.Sprintf("%s:%d", cookie, tokenExpTime)
-	_, err := h.Write([]byte(data))
-	if err != nil {
+	if _, err := h.Write([]byte(data)); err != nil {
 		return "", err
 	}
 	token := hex.EncodeToString(h.Sum(nil)) + ":" + strconv.FormatInt(tokenExpTime, 10)
@@ -48,7 +49,7 @@ func (tk *HashToken) Check(cookie string, inputToken string) (bool, error) {
 	}
 
 	if tokenExp < time.Now().Unix() {
-		return false, errors.New("Session expires\n")
+		return false, errors.New("Session expires")
 	}
 
 	h := hmac.New(sha256.New, tk.Secret)

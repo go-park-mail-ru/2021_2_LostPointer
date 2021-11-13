@@ -14,9 +14,11 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-.env
+*.env
 .idea
 .idea/
 *.DS_Store
 /log.txt
 *cover.out*
+*.webp
+/db/csv/

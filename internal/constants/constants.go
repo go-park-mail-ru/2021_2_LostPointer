@@ -34,6 +34,9 @@ const (
 	DatabaseNotResponding                    = "Database not responding"
 	NoPlaylists                              = "No playlists"
 	WrongCredentials                         = "Wrong credentials"
+	RequestIDTypeAssertionFailed             = "Type assertion for \"REQUEST_ID\" failed"
+	UserIDTypeAssertionFailed                = "Type assertion for \"USER_ID\" failed"
+
 
 	SaltLength                   = 8
 	BigAvatarHeight              = 500
@@ -48,4 +51,5 @@ const (
 	CookieLifetime               = time.Hour * 24 * 30
 	TracksSearchAmount           = 10
 	ArtistsSearchAmount          = 5
+	CSRFTokenLifetime            = 900
 )

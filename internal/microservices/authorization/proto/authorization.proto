@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option go_package = "microservices/authorization/proto";
+
+message Cookie {
+  string Cookies = 1;
+}
+
+message SessionData {
+  int64 ID = 1;
+  string Cookies = 2;
+}
+
+message AuthData {
+  string Login = 1;
+  string Password = 2;
+}
+
+message RegisterData {
+  string Login = 1;
+  string Password = 2;
+  string Nickname = 3;
+}
+
+message UserID {
+  int64 ID = 1;
+}
+
+message Avatar {
+  string Filename = 1;
+}
+
+message Empty {}
+
+service Authorization {
+  rpc CreateSession(SessionData) returns(Empty) {}
+  rpc GetUserByCookie(Cookie) returns(UserID) {}
+  rpc DeleteSession(Cookie) returns(Empty) {}
+
+  rpc Logout(Cookie) returns(Empty) {}
+  rpc GetAvatar(UserID) returns(Avatar) {}
+  rpc Login(AuthData) returns(Cookie) {}
+  rpc Register(RegisterData) returns(Cookie) {}
+}

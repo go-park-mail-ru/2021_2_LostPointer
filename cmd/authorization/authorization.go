@@ -1,22 +1,39 @@
 package main
 
 import (
-	session "2021_2_LostPointer/internal/microservices/authorization/delivery"
-	"2021_2_LostPointer/internal/microservices/authorization/usecase"
-	sessionsRepository "2021_2_LostPointer/internal/sessions/repository"
-	repositoryUser "2021_2_LostPointer/internal/users/repository"
 	"database/sql"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	_ "github.com/lib/pq"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
+
+	"2021_2_LostPointer/internal/microservices/authorization/proto"
+	"2021_2_LostPointer/internal/microservices/authorization/repository"
+	"2021_2_LostPointer/internal/microservices/authorization/usecase"
 )
 
-func InitializeDataBases() (repositoryUser.UserRepository, sessionsRepository.SessionRepository) {
+func InitializeRedis() *redis.Client {
+	var AddrConfig string
+	if len(os.Getenv("REDIS_PORT")) == 0 {
+		AddrConfig = os.Getenv("REDIS_HOST")
+	} else {
+		AddrConfig = fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
+	}
+	redisConnection := redis.NewClient(&redis.Options{
+		Addr:     AddrConfig,
+		Password: os.Getenv("REDIS_PASS"),
+		DB:       1,
+	})
+
+	return redisConnection
+}
+
+func InitializeDatabase() *sql.DB {
 	connectionString := fmt.Sprintf(
 		"user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
 		os.Getenv("DBUSER"),
@@ -25,48 +42,47 @@ func InitializeDataBases() (repositoryUser.UserRepository, sessionsRepository.Se
 		os.Getenv("DBPORT"),
 		os.Getenv("DBNAME"),
 	)
-
 	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		log.Fatalln("NO CONNECTION TO DATABASE", err.Error())
 	}
 	db.SetConnMaxLifetime(time.Second * 300)
 
-	var AddrConfig string
-	if len(os.Getenv("REDIS_PORT")) == 0 {
-		AddrConfig = os.Getenv("REDIS_HOST")
-	} else {
-		AddrConfig = fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
-	}
-
-	redisConnUsers := redis.NewClient(&redis.Options{
-		Addr:     AddrConfig,
-		Password: os.Getenv("REDIS_PASS"),
-		DB:       1,
-	})
-
-	sessionDB := sessionsRepository.NewSessionRepository(redisConnUsers)
-	userDB := repositoryUser.NewUserRepository(db)
-
-	return userDB, sessionDB
+	return db
 }
 
 func main() {
-	users, sessions := InitializeDataBases()
+	redisConnection := InitializeRedis()
+	dbConnection := InitializeDatabase()
+	defer func() {
+		if redisConnection != nil {
+			err := redisConnection.Close()
+			if err != nil {
+				log.Fatal("Error occurred during closing redis connection")
+			}
+		}
+	}()
+	defer func() {
+		if dbConnection != nil {
+			err := dbConnection.Close()
+			if err != nil {
+				log.Fatal("Error occurred during closing database connection")
+			}
+		}
+	}()
+	storage := repository.NewAuthStorage(dbConnection, redisConnection)
+
 	port := os.Getenv("AUTH_PORT")
-	log.Println(port)
-	lis, err := net.Listen("tcp", port)
+	listen, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Fatal("CANNOT LISTEN PORT : ", port, err.Error())
+		log.Fatal("CANNOT LISTEN PORT: ", port, err.Error())
 	}
 
 	server := grpc.NewServer()
-
-	session.RegisterSessionCheckerServer(server, usecase.NewAuthorizationUseCase(users, sessions))
-
-	fmt.Println("starting server at " + port)
-	err = server.Serve(lis)
+	proto.RegisterAuthorizationServer(server, usecase.NewAuthService(*storage))
+	log.Printf("STARTED AUTHORIZATION MICROSERVICE ON %s", port)
+	err = server.Serve(listen)
 	if err != nil {
-		log.Fatal("CANNOT LISTEN PORT : ", port, err.Error())
+		log.Fatal("CANNOT LISTEN PORT: ", port, err.Error())
 	}
 }

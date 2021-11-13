@@ -3,7 +3,6 @@ package usecase
 import (
 	"2021_2_LostPointer/internal/constants"
 	customErrors "2021_2_LostPointer/internal/errors"
-	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/pkg/validation"
 	"context"
 	"errors"
@@ -54,8 +53,7 @@ func (service *AuthService) DeleteSession(ctx context.Context, cookie *proto.Coo
 func (service *AuthService) Login(ctx context.Context, authData *proto.AuthData) (*proto.Cookie, error) {
 	log.Println("Running in Docker")
 
-	userID, err := service.storage.GetUserByPassword(
-		&models.AuthData{Email: authData.Login, Password: authData.Password})
+	userID, err := service.storage.GetUserByPassword(authData)
 	if err != nil {
 		if errors.Is(err, customErrors.ErrWrongCredentials) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())

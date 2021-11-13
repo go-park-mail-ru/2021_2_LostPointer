@@ -83,7 +83,7 @@ func (api *APIMicroservices) Login(ctx echo.Context) error {
 	}
 
 	cookies, err := api.authMicroservice.Login(context.Background(),
-		&authorization.AuthData{Login: authData.Email, Password: authData.Password})
+		&authorization.AuthData{Email: authData.Email, Password: authData.Password})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}

@@ -253,9 +253,7 @@ func (storage *MusicStorage) GetArtistAlbums(artistID int64, amount int64) ([]*p
 }
 
 func (storage *MusicStorage) IncrementListenCount(trackID int64) error {
-	query := `
-		UPDATE tracks SET listen_count = listen_count + 1 WHERE id=$1
-	`
+	query := `UPDATE tracks SET listen_count = listen_count + 1 WHERE id=$1`
 
 	err := storage.db.QueryRow(query, trackID).Err()
 	if err != nil {
@@ -263,4 +261,69 @@ func (storage *MusicStorage) IncrementListenCount(trackID int64) error {
 	}
 
 	return nil
+}
+
+func (storage *MusicStorage) AlbumData(albumID int64) (*proto.AlbumPageResponse, error) {
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "year", "artwork", "artwork_color", "track_count"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+		`
+		FROM albums alb
+		JOIN artists art ON alb.artist = art.id
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.id = $1
+		GROUP BY alb.id, art.id
+		`
+
+	album := &proto.AlbumPageResponse{}
+	album.Artist = &proto.Artist{}
+	err := storage.db.QueryRow(query, albumID).Scan(&album.AlbumID, &album.Title, &album.Year, &album.Artwork, &album.ArtworkColor,
+		&album.TracksCount, &album.Artist.ID, &album.Artist.Name, &album.TracksDuration)
+	if err != nil {
+		return nil, err
+	}
+	return album, nil
+}
+
+func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*proto.AlbumTrack, error) {
+
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE alb.id = $1
+		ORDER BY t.listen_count DESC
+		`
+	rows, err := storage.db.Query(query, albumID)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	tracks := make([]*proto.AlbumTrack, 0)
+	for rows.Next() {
+		track := &proto.AlbumTrack{}
+		if err := rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
+			&track.Duration, &track.Lossless, &track.Genre); err != nil {
+			return nil, err
+		}
+		if !isAuthorized {
+			track.File = ""
+		}
+		tracks = append(tracks, track)
+	}
+	return tracks, nil
 }

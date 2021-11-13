@@ -14,12 +14,40 @@ type Track struct {
 	ListenCount int64  `json:"listen_count,omitempty"`
 	Duration    int64  `json:"duration,omitempty"`
 	Lossless    bool   `json:"lossless,omitempty"`
-	Album       Album  `json:"album"`
-	Artist      Artist `json:"artist"`
+	Album       Album  `json:"album,omitempty"`
+	Artist      Artist `json:"artist,omitempty"`
+}
+
+type TrackAlbum struct {
+	ID          int64  `json:"id,omitempty"`
+	Title       string `json:"title,omitempty"`
+	Explicit    bool   `json:"explicit "`
+	Genre       string `json:"genre,omitempty"`
+	Number      int64  `json:"number,omitempty"`
+	File        string `json:"file,omitempty"`
+	ListenCount int64  `json:"listen_count,omitempty"`
+	Duration    int64  `json:"duration,omitempty"`
+	Lossless    bool   `json:"lossless,omitempty"`
 }
 
 type TrackID struct {
 	ID int64 `json:"id,omitempty" form:"id" query:"id"`
+}
+
+func (t *TrackAlbum) BindProtoAlbumTrack(track *proto.AlbumTrack) {
+	bindedTrack := &TrackAlbum{
+		ID:          track.ID,
+		Title:       track.Title,
+		Explicit:    track.Explicit,
+		Genre:       track.Genre,
+		Number:      track.Number,
+		File:        track.File,
+		ListenCount: track.ListenCount,
+		Duration:    track.Duration,
+		Lossless:    track.Lossless,
+	}
+
+	*t = *bindedTrack
 }
 
 func (t *Track) BindProtoTrack(track *proto.Track) {

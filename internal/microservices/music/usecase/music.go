@@ -2,12 +2,11 @@ package usecase
 
 import (
 	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/microservices/music/proto"
+	"2021_2_LostPointer/internal/microservices/music/repository"
 	"context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"2021_2_LostPointer/internal/microservices/music/proto"
-	"2021_2_LostPointer/internal/microservices/music/repository"
 )
 
 type MusicService struct {
@@ -71,4 +70,18 @@ func (service *MusicService) IncrementListenCount(ctx context.Context, metadata 
 	}
 
 	return &proto.IncrementListenCountEmpty{}, nil
+}
+
+func (service *MusicService) AlbumPage(ctx context.Context, metadata *proto.AlbumPageOptions) (*proto.AlbumPageResponse, error) {
+	album, err := service.storage.AlbumData(metadata.AlbumID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	album.Tracks, err = service.storage.AlbumTracks(metadata.AlbumID, metadata.IsAuthorized)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return album, nil
 }

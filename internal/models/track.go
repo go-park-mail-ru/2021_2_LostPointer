@@ -21,7 +21,7 @@ type Track struct {
 type TrackAlbum struct {
 	ID          int64  `json:"id,omitempty"`
 	Title       string `json:"title,omitempty"`
-	Explicit    bool   `json:"explicit "`
+	Explicit    bool   `json:"explicit"`
 	Genre       string `json:"genre,omitempty"`
 	Number      int64  `json:"number,omitempty"`
 	File        string `json:"file,omitempty"`

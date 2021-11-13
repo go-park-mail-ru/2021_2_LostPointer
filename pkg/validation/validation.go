@@ -6,7 +6,6 @@ import (
 	"github.com/asaskevich/govalidator"
 
 	"2021_2_LostPointer/internal/constants"
-	"2021_2_LostPointer/internal/models"
 )
 
 func ValidatePassword(password string) (bool, string, error) {
@@ -31,12 +30,12 @@ func ValidatePassword(password string) (bool, string, error) {
 	return true, "", nil
 }
 
-func ValidateRegisterCredentials(registerData *models.RegisterData) (bool, string, error) {
-	isEmailValid := govalidator.IsEmail(registerData.Email)
+func ValidateRegisterCredentials(email string, password string, nickname string) (bool, string, error) {
+	isEmailValid := govalidator.IsEmail(email)
 	if !isEmailValid {
 		return false, constants.InvalidEmailMessage, nil
 	}
-	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{`+constants.MinNicknameLength+`,`+constants.MaxNicknameLength+`}$`, registerData.Nickname)
+	isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{`+constants.MinNicknameLength+`,`+constants.MaxNicknameLength+`}$`, nickname)
 	if err != nil {
 		return false, "", err
 	}
@@ -44,7 +43,7 @@ func ValidateRegisterCredentials(registerData *models.RegisterData) (bool, strin
 		return false, constants.InvalidNicknameMessage, nil
 	}
 
-	passwordValid, message, err := ValidatePassword(registerData.Password)
+	passwordValid, message, err := ValidatePassword(password)
 	if err != nil {
 		return false, "", err
 	}

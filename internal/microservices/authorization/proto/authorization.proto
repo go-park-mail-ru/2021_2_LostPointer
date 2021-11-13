@@ -17,7 +17,7 @@ message AuthData {
 }
 
 message RegisterData {
-  string Login = 1;
+  string Email = 1;
   string Password = 2;
   string Nickname = 3;
 }

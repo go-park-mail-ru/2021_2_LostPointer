@@ -127,7 +127,7 @@ func (api *APIMicroservices) Register(ctx echo.Context) error {
 	}
 
 	cookies, err := api.authMicroservice.Register(context.Background(),
-		&authorization.RegisterData{Login: registerData.Email, Password: registerData.Password, Nickname: registerData.Nickname})
+		&authorization.RegisterData{Email: registerData.Email, Password: registerData.Password, Nickname: registerData.Nickname})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
@@ -517,6 +517,7 @@ func (api *APIMicroservices) GetHomeArtists(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, artists)
 }
 
+//nolint:dupl
 func (api *APIMicroservices) GetArtistProfile(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -600,6 +601,7 @@ func (api *APIMicroservices) IncrementListenCount(ctx echo.Context) error {
 	})
 }
 
+//nolint:dupl
 func (api *APIMicroservices) GetAlbumPage(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {

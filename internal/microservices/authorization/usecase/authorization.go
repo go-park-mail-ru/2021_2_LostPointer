@@ -76,7 +76,7 @@ func (service *AuthService) Login(ctx context.Context, authData *proto.AuthData)
 }
 
 func (service *AuthService) Register(ctx context.Context, registerData *proto.RegisterData) (*proto.Cookie, error) {
-	isEmailUnique, err := service.storage.IsEmailUnique(registerData.Login)
+	isEmailUnique, err := service.storage.IsEmailUnique(registerData.Email)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -92,12 +92,7 @@ func (service *AuthService) Register(ctx context.Context, registerData *proto.Re
 		return nil, status.Error(codes.InvalidArgument, constants.NotUniqueNicknameMessage)
 	}
 
-	registerCredentials := &models.RegisterData{
-		Email:    registerData.Login,
-		Password: registerData.Password,
-		Nickname: registerData.Nickname,
-	}
-	isValidCredentials, message, err := validation.ValidateRegisterCredentials(registerCredentials)
+	isValidCredentials, message, err := validation.ValidateRegisterCredentials(registerData.Email, registerData.Password, registerData.Nickname)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -105,7 +100,7 @@ func (service *AuthService) Register(ctx context.Context, registerData *proto.Re
 		return nil, status.Error(codes.InvalidArgument, message)
 	}
 
-	userID, err := service.storage.CreateUser(registerCredentials)
+	userID, err := service.storage.CreateUser(registerData)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

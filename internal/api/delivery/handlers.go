@@ -42,9 +42,6 @@ func NewAPIMicroservices(logger *zap.SugaredLogger, avatarsService image.Avatars
 	}
 }
 
-type MyStringType string
-type MyIntType int
-
 func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string, err error) error {
 	if e, temp := status.FromError(err); temp {
 		if e.Code() == codes.Internal {

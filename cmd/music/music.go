@@ -34,15 +34,18 @@ func InitializeDatabase() *sql.DB {
 	return db
 }
 
-func InitializeStorages() *repository.MusicStorage {
-	dbConnection := InitializeDatabase()
-
-	musicStorage := repository.NewMusicStorage(dbConnection)
-	return musicStorage
-}
-
 func main() {
-	storage := InitializeStorages()
+	dbConnection := InitializeDatabase()
+	storage := repository.NewMusicStorage(dbConnection)
+	defer func() {
+		if dbConnection != nil {
+			err := dbConnection.Close()
+			if err != nil {
+				log.Fatal("Error occurred during closing database connection")
+			}
+		}
+	}()
+
 	port := os.Getenv("MUSIC_PORT")
 	listen, err := net.Listen("tcp", port)
 	if err != nil {

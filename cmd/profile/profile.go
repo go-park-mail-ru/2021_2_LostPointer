@@ -34,15 +34,18 @@ func InitializeDatabase() *sql.DB {
 	return db
 }
 
-func InitializeStorages() *repository.UserSettingsStorage {
-	dbConnection := InitializeDatabase()
-
-	userSettingsStorage := repository.NewUserSettingsStorage(dbConnection)
-	return userSettingsStorage
-}
-
 func main() {
-	storage := InitializeStorages()
+	dbConnection := InitializeDatabase()
+	storage := repository.NewUserSettingsStorage(dbConnection)
+	defer func() {
+		if dbConnection != nil {
+			err := dbConnection.Close()
+			if err != nil {
+				log.Fatal("Error occurred during closing database connection")
+			}
+		}
+	}()
+
 	port := os.Getenv("PROFILE_PORT")
 	listen, err := net.Listen("tcp", port)
 	if err != nil {

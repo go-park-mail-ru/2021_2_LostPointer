@@ -51,16 +51,27 @@ func InitializeDatabase() *sql.DB {
 	return db
 }
 
-func InitializeStorages() *repository.AuthStorage {
+func main() {
 	redisConnection := InitializeRedis()
 	dbConnection := InitializeDatabase()
+	defer func() {
+		if redisConnection != nil {
+			err := redisConnection.Close()
+			if err != nil {
+				log.Fatal("Error occurred during closing redis connection")
+			}
+		}
+	}()
+	defer func() {
+		if dbConnection != nil {
+			err := dbConnection.Close()
+			if err != nil {
+				log.Fatal("Error occurred during closing database connection")
+			}
+		}
+	}()
+	storage := repository.NewAuthStorage(dbConnection, redisConnection)
 
-	authStorage := repository.NewAuthStorage(dbConnection, redisConnection)
-	return authStorage
-}
-
-func main() {
-	storage := InitializeStorages()
 	port := os.Getenv("AUTH_PORT")
 	listen, err := net.Listen("tcp", port)
 	if err != nil {

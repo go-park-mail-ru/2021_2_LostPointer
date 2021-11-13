@@ -27,8 +27,8 @@ services:
     networks:
       lp_network:
         ipv4_address: 10.5.0.2
-#    volumes:
-#      - /home/ubuntu/users:/app/users
+    volumes:
+      - /home/ubuntu/users:/app/users
 
   authorization:
     build:
@@ -73,8 +73,7 @@ services:
       lp_network:
         ipv4_address: 10.5.0.6
     volumes:
-      - postgres_data:/var/lib/postgresql/csv
-      - ./db:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
   redis:
     container_name: tarantool
     image: redis:latest

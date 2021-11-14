@@ -29,6 +29,11 @@ message AlbumPageOptions {
   bool IsAuthorized = 2;
 }
 
+message FindOptions {
+  string Text = 1;
+  bool IsAuthorized = 2;
+}
+
 message Album {
   int64 ID = 1;
   string Title = 2;
@@ -99,6 +104,12 @@ message Artists {
   repeated Artist Artists = 1;
 }
 
+message FindResponse {
+  repeated Track Tracks = 1;
+  repeated Album Albums = 2;
+  repeated Artist Artists = 3;
+}
+
 message IncrementListenCountEmpty {}
 
 service Music {
@@ -108,4 +119,5 @@ service Music {
   rpc ArtistProfile(ArtistProfileOptions) returns (Artist) {}
   rpc IncrementListenCount(IncrementListenCountOptions) returns (IncrementListenCountEmpty) {}
   rpc AlbumPage(AlbumPageOptions) returns (AlbumPageResponse) {}
+  rpc Find(FindOptions) returns (FindResponse) {}
 }

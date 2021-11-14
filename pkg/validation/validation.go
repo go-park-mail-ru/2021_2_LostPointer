@@ -34,7 +34,7 @@ func ValidateRegisterCredentials(email string, password string, nickname string)
 	if !isEmailValid {
 		return false, constants.InvalidEmailMessage, nil
 	}
-	isNicknameValid, err := regexp.MatchString(`^([\wА-Яа-я]+)$`, nickname)
+	isNicknameValid, err := regexp.MatchString(`^(([\w]+)|([0-9А-Яа-я_]+))$`, nickname)
 	if err != nil {
 		return false, "", err
 	}

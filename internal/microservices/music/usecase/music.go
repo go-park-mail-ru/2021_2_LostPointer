@@ -87,3 +87,51 @@ func (service *MusicService) AlbumPage(ctx context.Context, metadata *proto.Albu
 
 	return album, nil
 }
+
+func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) (*proto.FindResponse, error) {
+	tracks, err := service.storage.FindTracksByFullWord(data.Text, data.IsAuthorized)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	var FindTracksByPartial []*proto.Track
+	if len(tracks) < constants.TracksSearchAmount {
+		FindTracksByPartial, err = service.storage.FindTracksByPartial(data.Text, data.IsAuthorized)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	for _, track := range FindTracksByPartial {
+		if !contains(tracks, track.ID) {
+			tracks = append(tracks, track)
+		}
+	}
+
+	artists, err := service.storage.FindArtists(data.Text)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	albums, err := service.storage.FindAlbums(data.Text)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	result := &proto.FindResponse{
+		Tracks:  tracks,
+		Albums:  albums,
+		Artists: artists,
+	}
+
+	return result, nil
+}
+
+func contains(tracks []*proto.Track, trackID int64) bool {
+	for _, currentTrack := range tracks {
+		if currentTrack.ID == trackID {
+			return true
+		}
+	}
+	return false
+}

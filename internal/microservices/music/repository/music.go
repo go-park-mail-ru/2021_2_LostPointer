@@ -46,6 +46,7 @@ func (storage *MusicStorage) RandomTracks(amount int64, isAuthorized bool) (*pro
 	}()
 
 	tracks := make([]*proto.Track, 0, amount)
+	//nolint:dupl
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -326,4 +327,185 @@ func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*p
 		tracks = append(tracks, track)
 	}
 	return tracks, nil
+}
+
+//nolint:dupl
+func (storage *MusicStorage) FindTracksByFullWord(text string, isAuthorized bool) ([]*proto.Track, error) {
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+		    FROM search
+		    WHERE concatenation @@ plainto_tsquery($1)
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`
+	rows, err := storage.db.Query(query, text, constants.TracksSearchAmount)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	tracks := make([]*proto.Track, 0, constants.TracksSearchAmount)
+	for rows.Next() {
+		track := &proto.Track{}
+		track.Album = &proto.Album{}
+		track.Artist = &proto.Artist{}
+		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Artist.ID,
+			&track.Artist.Name, &track.Genre); err != nil {
+			return nil, err
+		}
+		if !isAuthorized {
+			track.File = ""
+		}
+		tracks = append(tracks, track)
+	}
+
+	return tracks, nil
+}
+
+//nolint:dupl
+func (storage *MusicStorage) FindTracksByPartial(text string, isAuthorized bool) ([]*proto.Track, error) {
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+		    SELECT track
+		    FROM test
+		    WHERE concat ILIKE $1
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.TracksSearchAmount)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	tracks := make([]*proto.Track, 0, constants.TracksSearchAmount)
+	for rows.Next() {
+		track := &proto.Track{}
+		track.Album = &proto.Album{}
+		track.Artist = &proto.Artist{}
+		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Artist.ID,
+			&track.Artist.Name, &track.Genre); err != nil {
+			return nil, err
+		}
+		if !isAuthorized {
+			track.File = ""
+		}
+		tracks = append(tracks, track)
+	}
+
+	return tracks, nil
+}
+
+func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
+	query := `
+		SELECT id, name, avatar
+		FROM artists
+		WHERE name ILIKE $1
+		LIMIT $2
+	`
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.ArtistsSearchAmount)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	artists := make([]*proto.Artist, 0, constants.ArtistsSearchAmount)
+	for rows.Next() {
+		artist := &proto.Artist{}
+		artist.Tracks = []*proto.Track{}
+		artist.Albums = []*proto.Album{}
+		if err = rows.Scan(&artist.ID, &artist.Name, &artist.Avatar); err != nil {
+			return nil, err
+		}
+		artists = append(artists, artist)
+	}
+
+	return artists, nil
+}
+
+func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+		`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.title ILIKE $1
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY year DESC
+		LIMIT $2
+		`
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.AlbumsSearchAmount)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	albums := make([]*proto.Album, 0, constants.AlbumsSearchAmount)
+	for rows.Next() {
+		album := &proto.Album{}
+		if err = rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.TracksAmount, &album.ArtworkColor, &album.Artist,
+			&album.TracksDuration); err != nil {
+			return nil, err
+		}
+		albums = append(albums, album)
+	}
+
+	return albums, nil
 }

@@ -40,6 +40,14 @@ func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto
 }
 
 func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto.UpdatePlaylistOptions) (*proto.UpdatePlaylistResponse, error) {
+	isOwner, err := service.storage.IsOwner(data.PlaylistID, data.UserID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if !isOwner {
+		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
+	}
+
 	isTitleValid, msg, err := validation.ValidatePlaylistTitle(data.Title)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -57,7 +65,15 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 }
 
 func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto.DeletePlaylistOptions) (*proto.DeletePlaylistResponse, error) {
-	err := service.storage.DeletePlaylist(data.PlaylistID)
+	isOwner, err := service.storage.IsOwner(data.PlaylistID, data.UserID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if !isOwner {
+		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
+	}
+
+	err = service.storage.DeletePlaylist(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -90,14 +106,19 @@ func (service *PlaylistsService) AddTrack(ctx context.Context, data *proto.AddTr
 	return &proto.AddTrackResponse{}, nil
 }
 
-//TODO
-func (service *PlaylistsService) GetUserPlaylists(ctx context.Context, data *proto.GetUserPlaylistsOptions) (*proto.GetUserPlaylistsResponse, error) {
-	playlists, err := service.storage.UserPlaylists(data.UserID)
+func (service *PlaylistsService) DeleteTrack(ctx context.Context, data *proto.DeleteTrackOptions) (*proto.DeleteTrackResponse, error) {
+	isOwner, err := service.storage.IsOwner(data.PlaylistID, data.UserID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if !isOwner {
+		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
+	}
+
+	err = service.storage.DeleteTrack(data.PlaylistID, data.TrackID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	response := &proto.GetUserPlaylistsResponse{Playlists: playlists}
-	log.Println("USECASE:", response)
-	return response, nil
+	return &proto.DeleteTrackResponse{}, nil
 }

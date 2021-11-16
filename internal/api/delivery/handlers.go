@@ -778,6 +778,7 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 	_, err = api.playlistsMicroservice.UpdatePlaylist(context.Background(), &playlists.UpdatePlaylistOptions{
 		PlaylistID: int64(playlistID),
 		Title:      title,
+		UserID:     int64(userID),
 	})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
@@ -829,7 +830,10 @@ func (api *APIMicroservices) DeletePlaylist(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	_, err = api.playlistsMicroservice.DeletePlaylist(context.Background(), &playlists.DeletePlaylistOptions{PlaylistID: int64(playlistID)})
+	_, err = api.playlistsMicroservice.DeletePlaylist(context.Background(), &playlists.DeletePlaylistOptions{
+		PlaylistID: int64(playlistID),
+		UserID:     int64(userID),
+	})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
@@ -842,35 +846,6 @@ func (api *APIMicroservices) DeletePlaylist(ctx echo.Context) error {
 		Status:  http.StatusOK,
 		Message: constants.PlaylistDeletedMessage,
 	})
-}
-
-func (api *APIMicroservices) GetPlaylists(ctx echo.Context) error {
-	requestID, ok := ctx.Get("REQUEST_ID").(string)
-	if !ok {
-		api.logger.Error(
-			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
-			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-	userID, ok := ctx.Get("USER_ID").(int)
-	if !ok {
-		api.logger.Error(
-			zap.String("ID", requestID),
-			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
-			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-
-	_, err := api.playlistsMicroservice.GetUserPlaylists(context.Background(), &playlists.GetUserPlaylistsOptions{UserID: int64(userID)})
-	if err != nil {
-		return api.ParseErrorByCode(ctx, requestID, err)
-	}
-
-	api.logger.Info(
-		zap.String("ID", requestID),
-		zap.Int("ANSWER STATUS", http.StatusOK),
-	)
-	return ctx.JSON(http.StatusOK, "TODO")
 }
 
 func (api *APIMicroservices) AddTrack(ctx echo.Context) error {
@@ -900,7 +875,7 @@ func (api *APIMicroservices) AddTrack(ctx echo.Context) error {
 		})
 	}
 
-	var requestData models.AddTrackRequestData
+	var requestData models.PlaylistTrack
 	if err := ctx.Bind(&requestData); err != nil {
 		api.logger.Error(
 			zap.String("ID", requestID),
@@ -910,9 +885,9 @@ func (api *APIMicroservices) AddTrack(ctx echo.Context) error {
 	}
 
 	_, err := api.playlistsMicroservice.AddTrack(context.Background(), &playlists.AddTrackOptions{
-		TrackID: requestData.TrackID,
+		TrackID:    requestData.TrackID,
 		PlaylistID: requestData.PlaylistID,
-		UserID: int64(userID),
+		UserID:     int64(userID),
 	})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
@@ -923,8 +898,63 @@ func (api *APIMicroservices) AddTrack(ctx echo.Context) error {
 		zap.Int("ANSWER STATUS", http.StatusCreated),
 	)
 	return ctx.JSON(http.StatusCreated, &models.Response{
-		Status: http.StatusCreated,
+		Status:  http.StatusCreated,
 		Message: constants.TrackAddedToPlaylistMessage,
+	})
+}
+
+func (api *APIMicroservices) DeleteTrack(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	if userID == -1 {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
+	}
+
+	var requestData models.PlaylistTrack
+	if err := ctx.Bind(&requestData); err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	_, err := api.playlistsMicroservice.DeleteTrack(context.Background(), &playlists.DeleteTrackOptions{
+		PlaylistID: requestData.PlaylistID,
+		TrackID:    requestData.TrackID,
+		UserID:     int64(userID),
+	})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+	return ctx.JSON(http.StatusOK, &models.Response{
+		Status:  http.StatusOK,
+		Message: constants.TrackDeletedFromPlaylistMessage,
 	})
 }
 
@@ -952,8 +982,8 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.POST("/api/v1/playlists", api.CreatePlaylist)
 	server.PATCH("/api/v1/playlists/:id", api.UpdatePlaylist)
 	server.DELETE("/api/v1/playlists/:id", api.DeletePlaylist)
-	server.GET("/api/v1/playlists", api.GetPlaylists)
-	server.POST("/api/v1/playlists/add_track", api.AddTrack)
+	server.POST("/api/v1/playlist/track", api.AddTrack)
+	server.DELETE("/api/v1/playlist/track", api.DeleteTrack)
 
 	// CSRF
 	server.GET("/api/v1/csrf", api.GenerateCSRF)

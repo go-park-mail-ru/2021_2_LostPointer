@@ -88,6 +88,17 @@ func (storage *PlaylistsStorage) IsAdded(playlistID int64, trackID int64) (bool,
 	return false, nil
 }
 
+func (storage *PlaylistsStorage) DeleteTrack(playlistID int64, trackID int64) error {
+	query := `DELETE FROM playlist_tracks WHERE playlist=$1 AND track=$2`
+
+	err := storage.db.QueryRow(query, playlistID, trackID).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (storage *PlaylistsStorage) IsOwner(playlistID int64, userID int64) (bool, error) {
 	query := `SELECT * FROM playlists WHERE id=$1 AND user_id=$2`
 
@@ -110,10 +121,4 @@ func (storage *PlaylistsStorage) IsOwner(playlistID int64, userID int64) (bool, 
 		return true, nil
 	}
 	return false, nil
-}
-
-func (storage *PlaylistsStorage) UserPlaylists(userID int64) ([]*proto.Playlist, error) {
-
-
-	return nil, nil
 }

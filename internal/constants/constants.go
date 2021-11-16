@@ -36,6 +36,7 @@ const (
 	PlaylistDeletedMessage                 = "Playlist deleted"
 	TrackAddedToPlaylistMessage            = "Track was successfully added to playlist"
 	TrackAlreadyInPlaylistMessage          = "Track was already added to playlist"
+	TrackDeletedFromPlaylistMessage        = "Track was successfully deleted from playlist"
 	NotPlaylistOwnerMessage                = "You are not owner of this playlist"
 
 	SaltLength                   = 8

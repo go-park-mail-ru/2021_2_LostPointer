@@ -6,7 +6,7 @@ type PlaylistID struct {
 	ID int64 `json:"id,omitempty"`
 }
 
-type AddTrackRequestData struct {
+type PlaylistTrack struct {
 	TrackID    int64 `json:"track_id,omitempty" form:"track_id" query:"track_id"`
 	PlaylistID int64 `json:"playlist_id,omitempty" form:"playlist_id" query:"playlist_id"`
 }

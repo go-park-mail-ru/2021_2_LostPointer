@@ -8,6 +8,8 @@ type Storage interface {
 	DeletePlaylist(int64) error
 	UserPlaylists(int64) ([]*proto.Playlist, error)
 	AddTrack(int64, int64) error
+	DeleteTrack(int64, int64) error
 	IsAdded(int64, int64) (bool, error)
 	IsOwner(int64, int64) (bool, error)
+
 }

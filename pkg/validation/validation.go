@@ -34,6 +34,7 @@ func ValidateRegisterCredentials(email string, password string, nickname string)
 	if !isEmailValid {
 		return false, constants.InvalidEmailMessage, nil
 	}
+
 	isNicknameValid, err := regexp.MatchString(`^([\wА-Яа-я]+)$`, nickname)
 	if err != nil {
 		return false, "", err
@@ -53,6 +54,16 @@ func ValidateRegisterCredentials(email string, password string, nickname string)
 	}
 	if !passwordValid {
 		return false, message, nil
+	}
+
+	return true, "", nil
+}
+
+func ValidatePlaylistTitle(title string) (bool, string, error) {
+	minLength, _ := strconv.Atoi(constants.MinPlaylistTitleLength)
+	maxLength, _ := strconv.Atoi(constants.MaxPlaylistTitleLength)
+	if len(title) < minLength && len(title) > maxLength {
+		return false, constants.InvalidPlaylistTitleLengthMessage, nil
 	}
 
 	return true, "", nil

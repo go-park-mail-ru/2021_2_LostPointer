@@ -13,13 +13,14 @@ import (
 	api "2021_2_LostPointer/internal/api/delivery"
 	authMicroservice "2021_2_LostPointer/internal/microservices/authorization/proto"
 	musicMicroservice "2021_2_LostPointer/internal/microservices/music/proto"
+	playlistsMicroservice "2021_2_LostPointer/internal/microservices/playlists/proto"
 	profileMicroservice "2021_2_LostPointer/internal/microservices/profile/proto"
 	"2021_2_LostPointer/internal/middleware"
 	"2021_2_LostPointer/pkg/image"
 )
 
 func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, profileMicroservice.ProfileClient,
-	musicMicroservice.MusicClient, []*grpc.ClientConn) {
+	musicMicroservice.MusicClient, playlistsMicroservice.PlaylistsClient, []*grpc.ClientConn) {
 	connections := make([]*grpc.ClientConn, 0)
 
 	authPORT := os.Getenv("AUTH_PORT")
@@ -52,11 +53,22 @@ func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient,
 	}
 	connections = append(connections, musicConn)
 
+	playlistsPORT := os.Getenv("PLAYLISTS_PORT")
+	playlistsConn, err := grpc.Dial(
+		os.Getenv("PLAYLISTS_HOST")+playlistsPORT,
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		server.Logger.Fatal("cant connect to grpc")
+	}
+	connections = append(connections, playlistsConn)
+
 	authorizationManager := authMicroservice.NewAuthorizationClient(authConn)
 	profileManager := profileMicroservice.NewProfileClient(profileConn)
 	musicManager := musicMicroservice.NewMusicClient(musicConn)
+	playlistsManager := playlistsMicroservice.NewPlaylistsClient(playlistsConn)
 
-	return authorizationManager, profileManager, musicManager, connections
+	return authorizationManager, profileManager, musicManager, playlistsManager, connections
 }
 
 func main() {
@@ -72,7 +84,7 @@ func main() {
 		}
 	}(prLogger)
 
-	auth, profile, music, conn := LoadMicroservices(server)
+	auth, profile, music, playlists, conn := LoadMicroservices(server)
 	defer func() {
 		if len(conn) > 0 {
 			for _, c := range conn {
@@ -84,9 +96,9 @@ func main() {
 		}
 	}()
 	avatarsServices := image.NewAvatarsService()
-
-	appHandler := api.NewAPIMicroservices(logger, avatarsServices, auth, profile, music)
+	appHandler := api.NewAPIMicroservices(logger, avatarsServices, auth, profile, music, playlists)
 	middlewareHandler := middleware.NewMiddlewareHandler(auth, logger)
+
 	appHandler.Init(server)
 	middlewareHandler.InitMiddlewareHandlers(server)
 

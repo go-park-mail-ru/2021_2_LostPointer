@@ -22,13 +22,14 @@ services:
       - authorization
       - profile
       - music
+      - playlists
     ports:
       - "3030:3030"
     networks:
       lp_network:
         ipv4_address: 10.5.0.2
-    volumes:
-      - /home/ubuntu/users:/app/users
+  #    volumes:
+  #      - /home/ubuntu/users:/app/users
 
   authorization:
     build:
@@ -59,6 +60,17 @@ services:
     networks:
       lp_network:
         ipv4_address: 10.5.0.5
+
+  playlists:
+    build:
+      context: .
+      dockerfile: ./cmd/playlists/Dockerfile
+    env_file:
+      - .env
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.6
+
   db:
     container_name: postgres
     image: postgres:latest
@@ -71,7 +83,7 @@ services:
       - "${PG_EXTERNAL_PORT}:5432"
     networks:
       lp_network:
-        ipv4_address: 10.5.0.6
+        ipv4_address: 10.5.0.7
     volumes:
       - postgres_data:/var/lib/postgresql/data
   redis:
@@ -80,7 +92,7 @@ services:
     restart: always
     networks:
       lp_network:
-        ipv4_address: 10.5.0.7
+        ipv4_address: 10.5.0.8
     ports:
       - "${REDIS_EXTERNAL_PORT}:6379"
     volumes:

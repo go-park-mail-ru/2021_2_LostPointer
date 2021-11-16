@@ -521,7 +521,7 @@ COPY public.playlist_tracks (id, playlist, track)
 -- Data for Name: playlists; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.playlists (id, title, "user")
+COPY public.playlists (id, title, user_id)
     FROM '/docker-entrypoint-initdb.d/csv/playlists.csv'
     DELIMITER ';' quote E'\b' CSV;
 
@@ -833,7 +833,7 @@ ALTER TABLE ONLY public.playlist_tracks
 --
 
 ALTER TABLE ONLY public.playlists
-    ADD CONSTRAINT playlist_user FOREIGN KEY ("user") REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT playlist_user FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --

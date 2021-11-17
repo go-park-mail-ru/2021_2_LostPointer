@@ -21,6 +21,7 @@ require (
 )
 
 require (
+	github.com/cenkalti/dominantcolor v0.0.0-20210411190141-70117844b8ca // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -35,6 +36,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/nickalie/go-binwrapper v0.0.0-20190114141239-525121d43c84 // indirect
 	github.com/nwaples/rardecode v1.1.0 // indirect
 	github.com/pdfcpu/pdfcpu v0.3.12 // indirect

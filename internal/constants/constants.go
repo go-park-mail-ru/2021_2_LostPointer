@@ -27,7 +27,7 @@ const (
 	LittlePlaylistArtworkPostfix           = "_100px.webp"
 	VideoPostfix                           = ".mp4"
 	AvatarDefaultFileName                  = "default_avatar"
-	PlaylistArtworkDefaultFilename		   = "default_artwork"
+	PlaylistArtworkDefaultFilename         = "default_playlist_artwork"
 	UserIsNotAuthorizedMessage             = "User is not authorized"
 	LoggedOutMessage                       = "Logged out"
 	SettingsUploadedMessage                = "Settings were uploaded successfully"
@@ -41,6 +41,7 @@ const (
 	TrackAlreadyInPlaylistMessage          = "Track was already added to playlist"
 	TrackDeletedFromPlaylistMessage        = "Track was successfully deleted from playlist"
 	NotPlaylistOwnerMessage                = "You are not owner of this playlist"
+	DefaultPlaylistArtworkColor            = "#8071c2"
 
 	SaltLength                   = 8
 	BigAvatarHeight              = 500

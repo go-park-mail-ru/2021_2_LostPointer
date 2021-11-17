@@ -17,15 +17,12 @@ func NewPlaylistsStorage(db *sql.DB) *PlaylistsStorage {
 	return &PlaylistsStorage{db: db}
 }
 
-func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artwork string) (*proto.CreatePlaylistResponse, error) {
-	query := `INSERT INTO playlists(title, user_id, artwork) VALUES ($1, $2, $3) RETURNING id`
+func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artwork string, artworkColor string) (*proto.CreatePlaylistResponse, error) {
+	query := `INSERT INTO playlists(title, user_id, artwork, artwork_color) VALUES ($1, $2, $3, $4) RETURNING id`
 
 	var id int64
 	title = sanitize.HTML(title)
-	if len(artwork) == 0 {
-		artwork = "default_artwork"
-	}
-	err := storage.db.QueryRow(query, title, userID, artwork).Scan(&id)
+	err := storage.db.QueryRow(query, title, userID, artwork, artworkColor).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
@@ -33,23 +30,23 @@ func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artw
 	return &proto.CreatePlaylistResponse{PlaylistID: id}, nil
 }
 
-func (storage *PlaylistsStorage) GetOldArtwork(playlistID int64) (string, error) {
-	query := `SELECT artwork FROM playlists WHERE id=$1`
+func (storage *PlaylistsStorage) GetOldArtwork(playlistID int64) (string, string, error) {
+	query := `SELECT artwork, artwork_color FROM playlists WHERE id=$1`
 
-	var artwork string
-	err := storage.db.QueryRow(query, playlistID).Scan(&artwork)
+	var artwork, artworkColor string
+	err := storage.db.QueryRow(query, playlistID).Scan(&artwork, &artworkColor)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return artwork, nil
+	return artwork, artworkColor, nil
 }
 
-func (storage *PlaylistsStorage) UpdatePlaylist(playlistID int64, title string, artwork string) error {
-	query := `UPDATE playlists SET title=$1, artwork=$2 WHERE id=$3`
+func (storage *PlaylistsStorage) UpdatePlaylist(playlistID int64, title string, artwork string, artworkColor string) error {
+	query := `UPDATE playlists SET title=$1, artwork=$2, artwork_color=$3 WHERE id=$4`
 
 	title = sanitize.HTML(title)
-	err := storage.db.QueryRow(query, title, artwork, playlistID).Err()
+	err := storage.db.QueryRow(query, title, artwork, artworkColor, playlistID).Err()
 	if err != nil {
 		return err
 	}

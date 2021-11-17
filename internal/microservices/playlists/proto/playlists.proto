@@ -6,6 +6,7 @@ message CreatePlaylistOptions {
   int64 UserID = 1;
   string Title = 2;
   string Artwork = 3;
+  string ArtworkColor = 4;
 }
 
 message UpdatePlaylistOptions {
@@ -13,6 +14,7 @@ message UpdatePlaylistOptions {
   string Title = 2;
   int64 UserID = 3;
   string Artwork = 4;
+  string ArtworkColor = 5;
 }
 
 message DeletePlaylistOptions {

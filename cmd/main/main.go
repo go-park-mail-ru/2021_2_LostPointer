@@ -90,5 +90,7 @@ func main() {
 	appHandler.Init(server)
 	middlewareHandler.InitMiddlewareHandlers(server)
 
+	server.Static("/tracks", os.Getenv("TRACKS_PATH"))
+
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

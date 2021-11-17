@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"2021_2_LostPointer/internal/microservices/authorization/proto"
 	"context"
 	"database/sql"
 	"log"
@@ -14,6 +13,7 @@ import (
 
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/errors"
+	"2021_2_LostPointer/internal/microservices/authorization/proto"
 	"2021_2_LostPointer/pkg/utils"
 )
 
@@ -85,8 +85,8 @@ func (storage *AuthStorage) CreateUser(registerData *proto.RegisterData) (int64,
 	if err != nil {
 		return 0, err
 	}
-	sanitizedEmail := SanitizeEmail(registerData.Email)
-	sanitizedNickname := SanitizeNickname(registerData.Nickname)
+	sanitizedEmail := sanitize.HTML(registerData.Email)
+	sanitizedNickname := sanitize.HTML(registerData.Nickname)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerData.Password+salt), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, err
@@ -177,12 +177,4 @@ func (storage *AuthStorage) GetAvatar(userID int64) (string, error) {
 	}
 
 	return filename, nil
-}
-
-func SanitizeEmail(email string) string {
-	return sanitize.HTML(email)
-}
-
-func SanitizeNickname(nickname string) string {
-	return sanitize.HTML(nickname)
 }

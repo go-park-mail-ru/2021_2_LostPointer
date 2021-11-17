@@ -1,40 +1,41 @@
 package validation
 
 import (
-	"2021_2_LostPointer/internal/constants"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"2021_2_LostPointer/internal/constants"
 )
 
-// TODO: дописать)
-
+//nolint:scopelint
 func TestValidateRegisterCredentials(t *testing.T) {
 	tests := []struct {
-		name           string
-		expectedValid        bool
-		email          string
-		password       string
-		nickname       string
+		name                   string
+		expectedValid          bool
+		email                  string
+		password               string
+		nickname               string
 		expectedInvalidMessage string
-		expectedError  bool
+		expectedError          bool
 	}{
 		{
-			name: "invalid nickname",
-			email: "qwerty@qw.com",
-			password: "Qwerty1111",
-			nickname: "Qwerty!",
+			name:                   "invalid nickname",
+			email:                  "qwerty@qw.com",
+			password:               "Qwerty1111",
+			nickname:               "Qwerty!",
 			expectedInvalidMessage: constants.InvalidNicknameMessage,
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			isValid, errMsg, err := ValidateRegisterCredentials(test.email, test.password, test.nickname)
-			if test.expectedError {
+	for _, current := range tests {
+		t.Run(current.name, func(t *testing.T) {
+			isValid, errMsg, err := ValidateRegisterCredentials(current.email, current.password, current.nickname)
+			if current.expectedError {
 				assert.Error(t, err)
 			} else {
-				assert.Equal(t, test.expectedValid, isValid)
-				assert.Equal(t, test.expectedInvalidMessage, errMsg)
+				assert.Equal(t, current.expectedValid, isValid)
+				assert.Equal(t, current.expectedInvalidMessage, errMsg)
 				assert.NoError(t, err)
 			}
 		})

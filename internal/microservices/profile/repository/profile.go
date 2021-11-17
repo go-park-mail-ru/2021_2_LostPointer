@@ -61,7 +61,7 @@ func (storage *UserSettingsStorage) GetSettings(userID int64) (*models.UserSetti
 func (storage *UserSettingsStorage) UpdateEmail(userID int64, email string) error {
 	query := `UPDATE users SET email=$1 WHERE id=$2`
 
-	sanitizedEmail := SanitizeEmail(email)
+	sanitizedEmail := sanitize.HTML(email)
 	err := storage.db.QueryRow(query, strings.ToLower(sanitizedEmail), userID).Err()
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func (storage *UserSettingsStorage) UpdateEmail(userID int64, email string) erro
 func (storage *UserSettingsStorage) UpdateNickname(userID int64, nickname string) error {
 	query := `UPDATE users SET nickname=$1 WHERE id=$2`
 
-	sanitizedNickname := SanitizeNickname(nickname)
+	sanitizedNickname := sanitize.HTML(nickname)
 	err := storage.db.QueryRow(query, sanitizedNickname, userID).Err()
 	if err != nil {
 		return err
@@ -185,12 +185,4 @@ func (storage *UserSettingsStorage) CheckPasswordByUserID(userID int64, oldPassw
 	}
 
 	return true, nil
-}
-
-func SanitizeEmail(email string) string {
-	return sanitize.HTML(email)
-}
-
-func SanitizeNickname(nickname string) string {
-	return sanitize.HTML(nickname)
 }

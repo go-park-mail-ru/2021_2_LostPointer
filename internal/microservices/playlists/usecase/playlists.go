@@ -30,7 +30,10 @@ func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.InvalidArgument, msg)
 	}
 
-	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork)
+	if len(data.Artwork) == 0 {
+		data.Artwork = "default_playlist_artwork"
+	}
+	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork, data.ArtworkColor)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -57,17 +60,18 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 	}
 
 	response :=  &proto.UpdatePlaylistResponse{}
-	oldArtwork, err := service.storage.GetOldArtwork(data.PlaylistID)
+	oldArtwork, oldArtworkColor, err := service.storage.GetOldArtwork(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if len(data.Artwork) == 0 {
 		data.Artwork = oldArtwork
+		data.ArtworkColor = oldArtworkColor
 		response.OldArtworkFilename = ""
 	} else {
 		response.OldArtworkFilename = oldArtwork
 	}
-	err = service.storage.UpdatePlaylist(data.PlaylistID, data.Title, data.Artwork)
+	err = service.storage.UpdatePlaylist(data.PlaylistID, data.Title, data.Artwork, data.ArtworkColor)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -84,7 +88,7 @@ func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
 	}
 
-	oldArtwork, err := service.storage.GetOldArtwork(data.PlaylistID)
+	oldArtwork, _, err := service.storage.GetOldArtwork(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

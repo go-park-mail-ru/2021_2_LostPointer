@@ -2,6 +2,7 @@ package image
 
 import (
 	"bufio"
+	"github.com/cenkalti/dominantcolor"
 	"io"
 	"mime/multipart"
 	"os"
@@ -96,11 +97,11 @@ func (service *ImageService) CreateAvatar(file *multipart.FileHeader) (string, e
 	return fileName, nil
 }
 
-func (service *ImageService) CreatePlaylistArtwork(file *multipart.FileHeader) (string, error) {
+func (service *ImageService) CreatePlaylistArtwork(file *multipart.FileHeader) (string, string, error) {
 	// Open image and decode it into image.Image type
 	f, err := file.Open()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer func(f multipart.File) {
 		_ = f.Close()
@@ -108,17 +109,17 @@ func (service *ImageService) CreatePlaylistArtwork(file *multipart.FileHeader) (
 	reader := bufio.NewReader(f)
 	src, err := imgconv.Decode(reader)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	// Get image width and height
 	_, err = f.Seek(0, 0)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	reader = bufio.NewReader(f)
 	tmp, err := imgconv.DecodeConfig(reader)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	width := tmp.Width
 	height := tmp.Height
@@ -133,16 +134,16 @@ func (service *ImageService) CreatePlaylistArtwork(file *multipart.FileHeader) (
 	// Cropping image
 	avatarLarge, err := cutter.Crop(src, cutter.Config{Width: constants.BigPlaylistArtworkHeight, Height: constants.BigPlaylistArtworkHeight, Mode: cutter.Centered})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	// Create image and encode it into WEBP
 	out, err := os.Create(os.Getenv("PLAYLIST_FULL_PREFIX") + fileName + constants.BigPlaylistArtworkPostfix)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	writer := io.Writer(out)
 	if err = webpbin.Encode(writer, avatarLarge); err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if height < width {
@@ -152,18 +153,20 @@ func (service *ImageService) CreatePlaylistArtwork(file *multipart.FileHeader) (
 	}
 	avatarSmall, err := cutter.Crop(src, cutter.Config{Width: constants.LittlePlaylistArtworkHeight, Height: constants.LittlePlaylistArtworkHeight, Mode: cutter.Centered})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	out, err = os.Create(os.Getenv("PLAYLIST_FULL_PREFIX") + fileName + constants.LittlePlaylistArtworkPostfix)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	writer = io.Writer(out)
 	if err = webpbin.Encode(writer, avatarSmall); err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return fileName, nil
+	artworkColor := dominantcolor.Hex(dominantcolor.Find(avatarSmall))
+
+	return fileName, artworkColor, nil
 }
 
 func (service *ImageService) DeletePlaylistArtwork(filename string) error {

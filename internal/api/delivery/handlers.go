@@ -736,8 +736,9 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 	} else {
 		artworkFilename = artwork.Filename
 	}
+	artworkColor := constants.DefaultPlaylistArtworkColor
 	if len(artworkFilename) != 0 {
-		artworkFilename, err = api.imageService.CreatePlaylistArtwork(artwork)
+		artworkFilename, artworkColor, err = api.imageService.CreatePlaylistArtwork(artwork)
 		if err != nil {
 			api.logger.Error(
 				zap.String("ID", requestID),
@@ -748,9 +749,10 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 	}
 
 	playlistIDProto, err := api.playlistsMicroservice.CreatePlaylist(context.Background(), &playlists.CreatePlaylistOptions{
-		UserID:  int64(userID),
-		Title:   title,
-		Artwork: artworkFilename,
+		UserID:       int64(userID),
+		Title:        title,
+		Artwork:      artworkFilename,
+		ArtworkColor: artworkColor,
 	})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
@@ -809,8 +811,9 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 	} else {
 		artworkFilename = artwork.Filename
 	}
+	var artworkColor string
 	if len(artworkFilename) != 0 {
-		artworkFilename, err = api.imageService.CreatePlaylistArtwork(artwork)
+		artworkFilename, artworkColor, err = api.imageService.CreatePlaylistArtwork(artwork)
 		if err != nil {
 			api.logger.Error(
 				zap.String("ID", requestID),
@@ -821,10 +824,11 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 	}
 
 	oldArtworkProto, err := api.playlistsMicroservice.UpdatePlaylist(context.Background(), &playlists.UpdatePlaylistOptions{
-		PlaylistID: int64(playlistID),
-		Title:      title,
-		UserID:     int64(userID),
-		Artwork:    artworkFilename,
+		PlaylistID:   int64(playlistID),
+		Title:        title,
+		UserID:       int64(userID),
+		Artwork:      artworkFilename,
+		ArtworkColor: artworkColor,
 	})
 	if err != nil {
 		_ = api.imageService.DeletePlaylistArtwork(artworkFilename)
@@ -1078,7 +1082,7 @@ func (api *APIMicroservices) GetPlaylistPage(ctx echo.Context) error {
 
 	playlistPageDataProto, err := api.musicMicroservice.PlaylistPage(context.Background(), &music.PlaylistPageOptions{
 		PlaylistID: int64(playlistID),
-		UserID: int64(userID),
+		UserID:     int64(userID),
 	})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)

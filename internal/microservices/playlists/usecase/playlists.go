@@ -48,7 +48,7 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
+		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	isTitleValid, msg, err := validation.ValidatePlaylistTitle(data.Title)
@@ -85,7 +85,7 @@ func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
+		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	oldArtwork, _, err := service.storage.GetOldArtwork(data.PlaylistID)
@@ -106,7 +106,7 @@ func (service *PlaylistsService) AddTrack(ctx context.Context, data *proto.AddTr
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
+		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	isAdded, err := service.storage.IsAdded(data.PlaylistID, data.TrackID)
@@ -131,7 +131,7 @@ func (service *PlaylistsService) DeleteTrack(ctx context.Context, data *proto.De
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
+		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	err = service.storage.DeleteTrack(data.PlaylistID, data.TrackID)

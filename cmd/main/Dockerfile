@@ -8,6 +8,7 @@ COPY ./go.sum .
 RUN go mod download
 
 RUN mkdir users
+RUN mkdir playlists
 
 RUN apk add --no-cache --update libwebp-tools
 RUN mkdir .bin && mkdir .bin/webp && cp $(which cwebp) .bin/webp/

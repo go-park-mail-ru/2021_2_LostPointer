@@ -5,12 +5,14 @@ option go_package = "microservices/playlists/proto";
 message CreatePlaylistOptions {
   int64 UserID = 1;
   string Title = 2;
+  string Artwork = 3;
 }
 
 message UpdatePlaylistOptions {
   int64 PlaylistID = 1;
   string Title = 2;
   int64 UserID = 3;
+  string Artwork = 4;
 }
 
 message DeletePlaylistOptions {
@@ -34,9 +36,13 @@ message CreatePlaylistResponse {
   int64 PlaylistID = 1;
 }
 
-message UpdatePlaylistResponse {}
+message UpdatePlaylistResponse {
+  string OldArtworkFilename = 1;
+}
 
-message DeletePlaylistResponse {}
+message DeletePlaylistResponse {
+  string OldArtworkFilename = 1;
+}
 
 message AddTrackResponse {}
 

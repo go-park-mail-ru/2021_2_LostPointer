@@ -509,3 +509,122 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 
 	return albums, nil
 }
+
+func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bool, error) {
+	query := `SELECT * FROM playlists WHERE id=$1 AND user_id=$2`
+
+	rows, err := storage.db.Query(query, playlistID, userID)
+	if err != nil {
+		return true, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return true, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	if rows.Next() {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (storage *MusicStorage) GetPlaylistTracks(playlistID int64) ([]*proto.Track, error) {
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+			FROM playlist_tracks
+			WHERE playlist=$1
+		)`
+
+	rows, err := storage.db.Query(query, playlistID)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	tracks := make([]*proto.Track, 0, constants.TracksSearchAmount)
+	for rows.Next() {
+		track := &proto.Track{}
+		track.Album = &proto.Album{}
+		track.Artist = &proto.Artist{}
+		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Artist.ID,
+			&track.Artist.Name, &track.Genre); err != nil {
+			return nil, err
+		}
+		tracks = append(tracks, track)
+	}
+
+	log.Println("Tracks repos: ", tracks)
+
+	return tracks, nil
+}
+
+func (storage *MusicStorage) GetPlaylistInfo(playlistID int64) (*proto.PlaylistData, error) {
+	query := `SELECT title, artwork FROM playlists WHERE id=$1`
+
+	playlistInfo := &proto.PlaylistData{}
+	err := storage.db.QueryRow(query, playlistID).Scan(&playlistInfo.Title, &playlistInfo.Artwork)
+	if err != nil {
+		return nil, err
+	}
+
+	playlistInfo.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlistInfo.Artwork + constants.BigPlaylistArtworkPostfix
+
+	return playlistInfo, nil
+}
+
+func (storage *MusicStorage) GetUserPlaylists(userID int64) ([]*proto.PlaylistData, error) {
+	query := `SELECT id, title, artwork FROM playlists WHERE user_id=$1`
+
+	rows, err := storage.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	playlists := make([]*proto.PlaylistData, 0)
+	for rows.Next() {
+		playlist := &proto.PlaylistData{}
+		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork); err != nil {
+			return nil, err
+		}
+		playlist.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlist.Artwork + constants.LittlePlaylistArtworkPostfix
+		playlists = append(playlists, playlist)
+	}
+
+	return playlists, nil
+}

@@ -63,6 +63,16 @@ func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string
 				Message: e.Message(),
 			})
 		}
+		if e.Code() == codes.PermissionDenied {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("MESSAGE", e.Message()),
+				zap.Int("ANSWER STATUS", http.StatusForbidden))
+			return ctx.JSON(http.StatusOK, &models.Response{
+				Status:  http.StatusForbidden,
+				Message: e.Message(),
+			})
+		}
 	}
 	return nil
 }
@@ -997,6 +1007,93 @@ func (api *APIMicroservices) DeleteTrack(ctx echo.Context) error {
 	})
 }
 
+func (api *APIMicroservices) GetUserPlaylists(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	playlistsProto, err := api.musicMicroservice.UserPlaylists(context.Background(), &music.UserPlaylistsOptions{UserID: int64(userID)})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	var userPlaylists models.UserPlaylists
+	userPlaylists.BindProto(playlistsProto)
+
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+	return ctx.JSON(http.StatusOK, userPlaylists)
+}
+
+func (api *APIMicroservices) GetPlaylistPage(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	if userID == -1 {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
+	}
+
+	playlistID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	playlistPageDataProto, err := api.musicMicroservice.PlaylistPage(context.Background(), &music.PlaylistPageOptions{
+		PlaylistID: int64(playlistID),
+		UserID: int64(userID),
+	})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	var playlistPage models.PlaylistPage
+	playlistPage.BindProto(playlistPageDataProto)
+
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+	return ctx.JSON(http.StatusOK, playlistPage)
+}
+
 func (api *APIMicroservices) Init(server *echo.Echo) {
 	// Authorization
 	server.POST("/api/v1/user/signin", api.Login)
@@ -1016,6 +1113,8 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.GET("/api/v1/album/:id", api.GetAlbumPage)
 	server.POST("/api/v1/inc_listencount", api.IncrementListenCount)
 	server.GET("/api/v1/music/search", api.SearchMusic)
+	server.GET("/api/v1/playlists", api.GetUserPlaylists)
+	server.GET("/api/v1/playlists/:id", api.GetPlaylistPage)
 
 	// Playlists
 	server.POST("/api/v1/playlists", api.CreatePlaylist)

@@ -127,6 +127,44 @@ func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) 
 	return result, nil
 }
 
+func (service *MusicService) UserPlaylists(ctx context.Context, data *proto.UserPlaylistsOptions) (*proto.PlaylistsData, error) {
+	playlists, err := service.storage.GetUserPlaylists(data.UserID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &proto.PlaylistsData{Playlists: playlists}, nil
+}
+
+func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.PlaylistPageOptions) (*proto.PlaylistPageResponse, error) {
+	isOwner, err := service.storage.IsPlaylistOwner(data.PlaylistID, data.UserID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if !isOwner {
+		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
+	}
+
+	playlistInfo, err := service.storage.GetPlaylistInfo(data.PlaylistID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	playlistTracks, err := service.storage.GetPlaylistTracks(data.PlaylistID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	playlistData := &proto.PlaylistPageResponse{
+		PlaylistID: playlistInfo.PlaylistID,
+		Title: playlistInfo.Title,
+		Artwork: playlistInfo.Artwork,
+		Tracks: playlistTracks,
+	}
+
+	return playlistData, nil
+}
+
 func contains(tracks []*proto.Track, trackID int64) bool {
 	for _, currentTrack := range tracks {
 		if currentTrack.ID == trackID {

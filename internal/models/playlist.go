@@ -1,6 +1,9 @@
 package models
 
-import "2021_2_LostPointer/internal/microservices/playlists/proto"
+import (
+	music "2021_2_LostPointer/internal/microservices/music/proto"
+	playlists "2021_2_LostPointer/internal/microservices/playlists/proto"
+)
 
 type PlaylistID struct {
 	ID int64 `json:"id,omitempty"`
@@ -11,7 +14,54 @@ type PlaylistTrack struct {
 	PlaylistID int64 `json:"playlist_id,omitempty" form:"playlist_id" query:"playlist_id"`
 }
 
-func (p *PlaylistID) BindProto(playlist *proto.CreatePlaylistResponse) {
+type UserPlaylist struct {
+	PlaylistID int64  `json:"playlist_id,omitempty"`
+	Title      string `json:"title,omitempty"`
+	Artwork    string `json:"artwork,omitempty"`
+}
+
+type UserPlaylists struct {
+	Playlists []UserPlaylist `json:"playlists,omitempty"`
+}
+
+type PlaylistPage struct {
+	Title      string  `json:"title,omitempty"`
+	Artwork    string  `json:"artwork,omitempty"`
+	Tracks     []Track `json:"tracks,omitempty"`
+}
+
+func (p *PlaylistPage) BindProto(playlistPage *music.PlaylistPageResponse) {
+	bindedTracks := make([]Track, 0)
+	for _, track := range playlistPage.Tracks {
+		var bindedTrack Track
+		bindedTrack.BindProtoTrack(track)
+		bindedTracks = append(bindedTracks, bindedTrack)
+	}
+
+	bindedPlaylistPage := PlaylistPage{
+		Title: playlistPage.Title,
+		Artwork: playlistPage.Artwork,
+		Tracks: bindedTracks,
+	}
+
+	*p = bindedPlaylistPage
+}
+
+func (u *UserPlaylists) BindProto(playlists *music.PlaylistsData) {
+	bindedPlaylists := make([]UserPlaylist, 0)
+	for _, playlist := range playlists.Playlists {
+		bindedPlaylist := UserPlaylist{
+			PlaylistID: playlist.PlaylistID,
+			Title:      playlist.Title,
+			Artwork:    playlist.Artwork,
+		}
+		bindedPlaylists = append(bindedPlaylists, bindedPlaylist)
+	}
+
+	(*u).Playlists = bindedPlaylists
+}
+
+func (p *PlaylistID) BindProto(playlist *playlists.CreatePlaylistResponse) {
 	binded := &PlaylistID{
 		ID: playlist.PlaylistID,
 	}

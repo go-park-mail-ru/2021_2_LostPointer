@@ -28,9 +28,9 @@ services:
     networks:
       lp_network:
         ipv4_address: 10.5.0.2
-  #    volumes:
-  #      - /home/ubuntu/users:/app/users
-  #      - /home/ubuntu/playlists:/app/playlists
+    volumes:
+      - /home/ubuntu/users:/app/users
+      - /home/ubuntu/playlists:/app/playlists
 
   authorization:
     build:

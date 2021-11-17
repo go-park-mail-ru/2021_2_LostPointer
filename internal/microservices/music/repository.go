@@ -18,4 +18,8 @@ type Storage interface {
 	FindTracksByPartial(string, bool) ([]*proto.Track, error)
 	FindArtists(string) ([]*proto.Artist, error)
 	FindAlbums(string) ([]*proto.Album, error)
+	GetUserPlaylists(int64) ([]*proto.PlaylistData, error)
+	IsPlaylistOwner(int64, int64) (bool, error)
+	GetPlaylistTracks(int64) ([]*proto.Track, error)
+	GetPlaylistInfo(int64) (*proto.PlaylistData, error)
 }

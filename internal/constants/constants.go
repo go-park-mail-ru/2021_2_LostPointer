@@ -23,8 +23,11 @@ const (
 	BigArtistPostfix                       = ".webp"
 	BigAvatarPostfix                       = "_500px.webp"
 	LittleAvatarPostfix                    = "_150px.webp"
+	BigPlaylistArtworkPostfix              = "_384px.webp"
+	LittlePlaylistArtworkPostfix           = "_100px.webp"
 	VideoPostfix                           = ".mp4"
 	AvatarDefaultFileName                  = "default_avatar"
+	PlaylistArtworkDefaultFilename		   = "default_artwork"
 	UserIsNotAuthorizedMessage             = "User is not authorized"
 	LoggedOutMessage                       = "Logged out"
 	SettingsUploadedMessage                = "Settings were uploaded successfully"
@@ -42,6 +45,8 @@ const (
 	SaltLength                   = 8
 	BigAvatarHeight              = 500
 	LittleAvatarHeight           = 150
+	BigPlaylistArtworkHeight     = 384
+	LittlePlaylistArtworkHeight  = 100
 	TracksDefaultAmountForArtist = 10
 	AlbumsDefaultAmountForArtist = 8
 	TracksCollectionLimit        = 10

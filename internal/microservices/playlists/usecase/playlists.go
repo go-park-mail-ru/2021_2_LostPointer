@@ -30,7 +30,7 @@ func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.InvalidArgument, msg)
 	}
 
-	response, err := service.storage.CreatePlaylist(data.UserID, data.Title)
+	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -56,12 +56,23 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.InvalidArgument, msg)
 	}
 
-	err = service.storage.UpdatePlaylist(data.PlaylistID, data.Title)
+	response :=  &proto.UpdatePlaylistResponse{}
+	oldArtwork, err := service.storage.GetOldArtwork(data.PlaylistID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if len(data.Artwork) == 0 {
+		data.Artwork = oldArtwork
+		response.OldArtworkFilename = ""
+	} else {
+		response.OldArtworkFilename = oldArtwork
+	}
+	err = service.storage.UpdatePlaylist(data.PlaylistID, data.Title, data.Artwork)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &proto.UpdatePlaylistResponse{}, nil
+	return response, nil
 }
 
 func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto.DeletePlaylistOptions) (*proto.DeletePlaylistResponse, error) {
@@ -73,12 +84,16 @@ func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.InvalidArgument, constants.NotPlaylistOwnerMessage)
 	}
 
+	oldArtwork, err := service.storage.GetOldArtwork(data.PlaylistID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 	err = service.storage.DeletePlaylist(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &proto.DeletePlaylistResponse{}, nil
+	return &proto.DeletePlaylistResponse{OldArtworkFilename: oldArtwork}, nil
 }
 
 func (service *PlaylistsService) AddTrack(ctx context.Context, data *proto.AddTrackOptions) (*proto.AddTrackResponse, error) {

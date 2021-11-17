@@ -23,8 +23,8 @@ import (
 )
 
 type APIMicroservices struct {
-	logger         *zap.SugaredLogger
-	avatarsService image.AvatarsService
+	logger       *zap.SugaredLogger
+	imageService image.ImageService
 
 	authMicroservice      authorization.AuthorizationClient
 	profileMicroservice   profile.ProfileClient
@@ -32,11 +32,11 @@ type APIMicroservices struct {
 	playlistsMicroservice playlists.PlaylistsClient
 }
 
-func NewAPIMicroservices(logger *zap.SugaredLogger, avatarsService image.AvatarsService, auth authorization.AuthorizationClient,
+func NewAPIMicroservices(logger *zap.SugaredLogger, imageService image.ImageService, auth authorization.AuthorizationClient,
 	profile profile.ProfileClient, music music.MusicClient, playlists playlists.PlaylistsClient) APIMicroservices {
 	return APIMicroservices{
 		logger:                logger,
-		avatarsService:        avatarsService,
+		imageService:          imageService,
 		authMicroservice:      auth,
 		profileMicroservice:   profile,
 		musicMicroservice:     music,
@@ -337,7 +337,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 	}
 
 	if len(newAvatarFilename) != 0 {
-		newAvatarFilename, err = api.avatarsService.CreateImage(file)
+		newAvatarFilename, err = api.imageService.CreateAvatar(file)
 		if err != nil {
 			api.logger.Error(
 				zap.String("ID", requestID),
@@ -346,7 +346,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
 		oldAvatarFilename := oldSettings.BigAvatar[len(os.Getenv("USERS_ROOT_PREFIX")) : len(oldSettings.BigAvatar)-len(constants.LittleAvatarPostfix)]
-		err = api.avatarsService.DeleteImage(oldAvatarFilename)
+		err = api.imageService.DeleteAvatar(oldAvatarFilename)
 		if err != nil {
 			api.logger.Error(
 				zap.String("ID", requestID),
@@ -719,10 +719,28 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 	}
 
 	title := ctx.FormValue("title")
+	artwork, err := ctx.FormFile("artwork")
+	var artworkFilename string
+	if err != nil {
+		artworkFilename = ""
+	} else {
+		artworkFilename = artwork.Filename
+	}
+	if len(artworkFilename) != 0 {
+		artworkFilename, err = api.imageService.CreatePlaylistArtwork(artwork)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+	}
 
 	playlistIDProto, err := api.playlistsMicroservice.CreatePlaylist(context.Background(), &playlists.CreatePlaylistOptions{
-		UserID: int64(userID),
-		Title:  title,
+		UserID:  int64(userID),
+		Title:   title,
+		Artwork: artworkFilename,
 	})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
@@ -774,15 +792,35 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	title := ctx.FormValue("title")
+	artwork, err := ctx.FormFile("artwork")
+	var artworkFilename string
+	if err != nil {
+		artworkFilename = ""
+	} else {
+		artworkFilename = artwork.Filename
+	}
+	if len(artworkFilename) != 0 {
+		artworkFilename, err = api.imageService.CreatePlaylistArtwork(artwork)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+	}
 
-	_, err = api.playlistsMicroservice.UpdatePlaylist(context.Background(), &playlists.UpdatePlaylistOptions{
+	oldArtworkProto, err := api.playlistsMicroservice.UpdatePlaylist(context.Background(), &playlists.UpdatePlaylistOptions{
 		PlaylistID: int64(playlistID),
 		Title:      title,
 		UserID:     int64(userID),
+		Artwork:    artworkFilename,
 	})
 	if err != nil {
+		_ = api.imageService.DeletePlaylistArtwork(artworkFilename)
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
+	_ = api.imageService.DeletePlaylistArtwork(oldArtworkProto.OldArtworkFilename)
 
 	api.logger.Info(
 		zap.String("ID", requestID),
@@ -830,13 +868,14 @@ func (api *APIMicroservices) DeletePlaylist(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	_, err = api.playlistsMicroservice.DeletePlaylist(context.Background(), &playlists.DeletePlaylistOptions{
+	oldArtworkProto, err := api.playlistsMicroservice.DeletePlaylist(context.Background(), &playlists.DeletePlaylistOptions{
 		PlaylistID: int64(playlistID),
 		UserID:     int64(userID),
 	})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
+	_ = api.imageService.DeletePlaylistArtwork(oldArtworkProto.OldArtworkFilename)
 
 	api.logger.Info(
 		zap.String("ID", requestID),

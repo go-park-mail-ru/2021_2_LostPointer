@@ -3,7 +3,6 @@ package image
 import (
 	"bufio"
 	"io"
-	"log"
 	"mime/multipart"
 	"os"
 
@@ -16,20 +15,19 @@ import (
 )
 
 type Service interface {
-	CreateImage(*multipart.FileHeader) (string, error)
-	DeleteImage(string) error
+	CreateAvatar(*multipart.FileHeader) (string, error)
+	DeleteAvatar(string) error
 }
 
-type AvatarsService struct{}
+type ImageService struct{}
 
-func NewAvatarsService() AvatarsService {
-	return AvatarsService{}
+func NewImageService() ImageService {
+	return ImageService{}
 }
 
 //nolint:cyclop
-func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, error) {
+func (service *ImageService) CreateAvatar(file *multipart.FileHeader) (string, error) {
 	// Open image and decode it into image.Image type
-	log.Println("CHECKPOINT 1")
 	f, err := file.Open()
 	if err != nil {
 		return "", err
@@ -38,12 +36,10 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		_ = f.Close()
 	}(f)
 	reader := bufio.NewReader(f)
-	log.Println("CHECKPOINT 2")
 	src, err := imgconv.Decode(reader)
 	if err != nil {
 		return "", err
 	}
-	log.Println("CHECKPOINT 3")
 	// Get image width and height
 	_, err = f.Seek(0, 0)
 	if err != nil {
@@ -56,10 +52,8 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 	}
 	width := tmp.Width
 	height := tmp.Height
-	log.Println("CHECKPOINT 4")
 	// Generate filename for image
 	fileName := uuid.NewV4().String()
-	log.Println("CHECKPOINT 5")
 	// Resizing image
 	if height < width {
 		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigAvatarHeight})
@@ -81,7 +75,6 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 		return "", err
 	}
 
-	log.Println("CHECKPOINT 6")
 	if height < width {
 		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittleAvatarHeight})
 	} else {
@@ -103,13 +96,101 @@ func (service *AvatarsService) CreateImage(file *multipart.FileHeader) (string, 
 	return fileName, nil
 }
 
-func (service *AvatarsService) DeleteImage(filename string) error {
+func (service *ImageService) CreatePlaylistArtwork(file *multipart.FileHeader) (string, error) {
+	// Open image and decode it into image.Image type
+	f, err := file.Open()
+	if err != nil {
+		return "", err
+	}
+	defer func(f multipart.File) {
+		_ = f.Close()
+	}(f)
+	reader := bufio.NewReader(f)
+	src, err := imgconv.Decode(reader)
+	if err != nil {
+		return "", err
+	}
+	// Get image width and height
+	_, err = f.Seek(0, 0)
+	if err != nil {
+		return "", err
+	}
+	reader = bufio.NewReader(f)
+	tmp, err := imgconv.DecodeConfig(reader)
+	if err != nil {
+		return "", err
+	}
+	width := tmp.Width
+	height := tmp.Height
+	// Generate filename for image
+	fileName := uuid.NewV4().String()
+	// Resizing image
+	if height < width {
+		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigPlaylistArtworkHeight})
+	} else {
+		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.BigPlaylistArtworkHeight})
+	}
+	// Cropping image
+	avatarLarge, err := cutter.Crop(src, cutter.Config{Width: constants.BigPlaylistArtworkHeight, Height: constants.BigPlaylistArtworkHeight, Mode: cutter.Centered})
+	if err != nil {
+		return "", err
+	}
+	// Create image and encode it into WEBP
+	out, err := os.Create(os.Getenv("PLAYLIST_FULL_PREFIX") + fileName + constants.BigPlaylistArtworkPostfix)
+	if err != nil {
+		return "", err
+	}
+	writer := io.Writer(out)
+	if err = webpbin.Encode(writer, avatarLarge); err != nil {
+		return "", err
+	}
+
+	if height < width {
+		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittlePlaylistArtworkHeight})
+	} else {
+		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.LittlePlaylistArtworkHeight})
+	}
+	avatarSmall, err := cutter.Crop(src, cutter.Config{Width: constants.LittlePlaylistArtworkHeight, Height: constants.LittlePlaylistArtworkHeight, Mode: cutter.Centered})
+	if err != nil {
+		return "", err
+	}
+	out, err = os.Create(os.Getenv("PLAYLIST_FULL_PREFIX") + fileName + constants.LittlePlaylistArtworkPostfix)
+	if err != nil {
+		return "", err
+	}
+	writer = io.Writer(out)
+	if err = webpbin.Encode(writer, avatarSmall); err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func (service *ImageService) DeletePlaylistArtwork(filename string) error {
+	doesFileExist := true
+	if _, err := os.Stat(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.LittlePlaylistArtworkPostfix); os.IsNotExist(err) {
+		doesFileExist = false
+	}
+
+	if filename != constants.PlaylistArtworkDefaultFilename && doesFileExist {
+		err := os.Remove(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.LittlePlaylistArtworkPostfix)
+		if err != nil {
+			return err
+		}
+		err = os.Remove(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.BigPlaylistArtworkPostfix)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (service *ImageService) DeleteAvatar(filename string) error {
 	doesFileExist := true
 	if _, err := os.Stat(os.Getenv("USERS_FULL_PREFIX") + filename + constants.LittleAvatarPostfix); os.IsNotExist(err) {
 		doesFileExist = false
 	}
-
-	log.Println("Exists?", doesFileExist)
 
 	if filename != constants.AvatarDefaultFileName && doesFileExist {
 		err := os.Remove(os.Getenv("USERS_FULL_PREFIX") + filename + constants.LittleAvatarPostfix)

@@ -14,6 +14,6 @@ type UserSettingsStorage interface {
 	IsEmailUnique(string) (bool, error)
 	IsNicknameUnique(string) (bool, error)
 	CheckPasswordByUserID(int64, string) (bool, error)
-	CreateImage(*multipart.FileHeader) (string, error)
-	DeleteImage(string) error
+	CreateAvatar(*multipart.FileHeader) (string, error)
+	DeleteAvatar(string) error
 }

@@ -17,12 +17,15 @@ func NewPlaylistsStorage(db *sql.DB) *PlaylistsStorage {
 	return &PlaylistsStorage{db: db}
 }
 
-func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string) (*proto.CreatePlaylistResponse, error) {
-	query := `INSERT INTO playlists(title, user_id) VALUES ($1, $2) RETURNING id`
+func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artwork string) (*proto.CreatePlaylistResponse, error) {
+	query := `INSERT INTO playlists(title, user_id, artwork) VALUES ($1, $2, $3) RETURNING id`
 
 	var id int64
 	title = sanitize.HTML(title)
-	err := storage.db.QueryRow(query, title, userID).Scan(&id)
+	if len(artwork) == 0 {
+		artwork = "default_artwork"
+	}
+	err := storage.db.QueryRow(query, title, userID, artwork).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
@@ -30,11 +33,23 @@ func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string) (*pr
 	return &proto.CreatePlaylistResponse{PlaylistID: id}, nil
 }
 
-func (storage *PlaylistsStorage) UpdatePlaylist(playlistID int64, title string) error {
-	query := `UPDATE playlists SET title=$1 WHERE id=$2`
+func (storage *PlaylistsStorage) GetOldArtwork(playlistID int64) (string, error) {
+	query := `SELECT artwork FROM playlists WHERE id=$1`
+
+	var artwork string
+	err := storage.db.QueryRow(query, playlistID).Scan(&artwork)
+	if err != nil {
+		return "", err
+	}
+
+	return artwork, nil
+}
+
+func (storage *PlaylistsStorage) UpdatePlaylist(playlistID int64, title string, artwork string) error {
+	query := `UPDATE playlists SET title=$1, artwork=$2 WHERE id=$3`
 
 	title = sanitize.HTML(title)
-	err := storage.db.QueryRow(query, title, playlistID).Err()
+	err := storage.db.QueryRow(query, title, artwork, playlistID).Err()
 	if err != nil {
 		return err
 	}

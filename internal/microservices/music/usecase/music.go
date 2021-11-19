@@ -137,6 +137,14 @@ func (service *MusicService) UserPlaylists(ctx context.Context, data *proto.User
 }
 
 func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.PlaylistPageOptions) (*proto.PlaylistPageResponse, error) {
+	doesExist, err := service.storage.DoesPlaylistExist(data.PlaylistID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if !doesExist {
+		return nil, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
+	}
+
 	isOwner, err := service.storage.IsPlaylistOwner(data.PlaylistID, data.UserID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -156,10 +164,11 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 	}
 
 	playlistData := &proto.PlaylistPageResponse{
-		PlaylistID: playlistInfo.PlaylistID,
-		Title: playlistInfo.Title,
-		Artwork: playlistInfo.Artwork,
-		Tracks: playlistTracks,
+		PlaylistID:   playlistInfo.PlaylistID,
+		Title:        playlistInfo.Title,
+		Artwork:      playlistInfo.Artwork,
+		ArtworkColor: playlistInfo.ArtworkColor,
+		Tracks:       playlistTracks,
 	}
 
 	return playlistData, nil

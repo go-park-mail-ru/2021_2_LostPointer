@@ -15,7 +15,7 @@ type PlaylistTrack struct {
 }
 
 type UserPlaylist struct {
-	PlaylistID int64  `json:"playlist_id,omitempty"`
+	PlaylistID int64  `json:"id,omitempty"`
 	Title      string `json:"title,omitempty"`
 	Artwork    string `json:"artwork,omitempty"`
 }
@@ -25,9 +25,11 @@ type UserPlaylists struct {
 }
 
 type PlaylistPage struct {
-	Title      string  `json:"title,omitempty"`
-	Artwork    string  `json:"artwork,omitempty"`
-	Tracks     []Track `json:"tracks,omitempty"`
+	ID           int64   `json:"id,omitempty"`
+	Title        string  `json:"title,omitempty"`
+	Artwork      string  `json:"artwork,omitempty"`
+	ArtworkColor string  `json:"artwork_color,omitempty"`
+	Tracks       []Track `json:"tracks,omitempty"`
 }
 
 func (p *PlaylistPage) BindProto(playlistPage *music.PlaylistPageResponse) {
@@ -39,9 +41,11 @@ func (p *PlaylistPage) BindProto(playlistPage *music.PlaylistPageResponse) {
 	}
 
 	bindedPlaylistPage := PlaylistPage{
-		Title: playlistPage.Title,
-		Artwork: playlistPage.Artwork,
-		Tracks: bindedTracks,
+		ID:           playlistPage.PlaylistID,
+		Title:        playlistPage.Title,
+		Artwork:      playlistPage.Artwork,
+		ArtworkColor: playlistPage.ArtworkColor,
+		Tracks:       bindedTracks,
 	}
 
 	*p = bindedPlaylistPage
@@ -58,7 +62,7 @@ func (u *UserPlaylists) BindProto(playlists *music.PlaylistsData) {
 		bindedPlaylists = append(bindedPlaylists, bindedPlaylist)
 	}
 
-	(*u).Playlists = bindedPlaylists
+	u.Playlists = bindedPlaylists
 }
 
 func (p *PlaylistID) BindProto(playlist *playlists.CreatePlaylistResponse) {

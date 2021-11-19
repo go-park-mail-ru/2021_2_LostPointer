@@ -52,12 +52,12 @@ func (service *MusicService) ArtistProfile(ctx context.Context, metadata *proto.
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	artistData.Tracks, err = service.storage.GetArtistTracks(metadata.ArtistID, metadata.IsAuthorized, constants.TracksDefaultAmountForArtist)
+	artistData.Tracks, err = service.storage.GetArtistTracks(metadata.ArtistID, metadata.IsAuthorized, constants.ArtistTracksSelectionAmount)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	artistData.Albums, err = service.storage.GetArtistAlbums(metadata.ArtistID, constants.AlbumsDefaultAmountForArtist)
+	artistData.Albums, err = service.storage.GetArtistAlbums(metadata.ArtistID, constants.ArtistAlbumsSelectionAmount)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -95,7 +95,7 @@ func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) 
 	}
 
 	var FindTracksByPartial []*proto.Track
-	if len(tracks) < constants.TracksSearchAmount {
+	if len(tracks) < constants.SearchTracksAmount {
 		FindTracksByPartial, err = service.storage.FindTracksByPartial(data.Text, data.IsAuthorized)
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())

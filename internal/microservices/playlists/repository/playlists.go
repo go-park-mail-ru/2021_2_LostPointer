@@ -174,7 +174,7 @@ func (storage *PlaylistsStorage) UpdatePlaylistArtwork(playlistID int64, artwork
 func (storage *PlaylistsStorage) DeletePlaylistArtwork(playlistID int64) error {
 	query := `UPDATE playlists SET artwork=$1, artwork_color=$2 WHERE id=$3`
 
-	err := storage.db.QueryRow(query, constants.PlaylistArtworkDefaultFilename, constants.DefaultPlaylistArtworkColor, playlistID).Err()
+	err := storage.db.QueryRow(query, constants.PlaylistArtworkDefaultFilename, constants.PlaylistArtworkDefaultColor, playlistID).Err()
 	if err != nil {
 		return err
 	}

@@ -34,7 +34,7 @@ type TrackID struct {
 	ID int64 `json:"id,omitempty" form:"id" query:"id"`
 }
 
-func (t *TrackAlbum) BindProtoAlbumTrack(track *proto.AlbumTrack) {
+func (t *TrackAlbum) BindProto(track *proto.AlbumTrack) {
 	bindedTrack := &TrackAlbum{
 		ID:          track.ID,
 		Title:       track.Title,
@@ -50,7 +50,7 @@ func (t *TrackAlbum) BindProtoAlbumTrack(track *proto.AlbumTrack) {
 	*t = *bindedTrack
 }
 
-func (t *Track) BindProtoTrack(track *proto.Track) {
+func (t *Track) BindProto(track *proto.Track) {
 	bindedTrack := &Track{
 		ID:          track.ID,
 		Title:       track.Title,

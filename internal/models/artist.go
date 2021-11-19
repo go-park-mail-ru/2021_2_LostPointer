@@ -11,18 +11,18 @@ type Artist struct {
 	Albums []Album `json:"albums,omitempty"`
 }
 
-func (a *Artist) BindProtoArtist(artist *proto.Artist) {
+func (a *Artist) BindProto(artist *proto.Artist) {
 	tracks := make([]Track, 0)
 	for _, t := range artist.Tracks {
 		var track Track
-		track.BindProtoTrack(t)
+		track.BindProto(t)
 		tracks = append(tracks, track)
 	}
 
 	albums := make([]Album, 0)
 	for _, alb := range artist.Albums {
 		var album Album
-		album.BindProtoAlbum(alb)
+		album.BindProto(alb)
 		albums = append(albums, album)
 	}
 

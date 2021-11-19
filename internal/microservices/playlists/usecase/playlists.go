@@ -1,13 +1,12 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/internal/constants"
 	"context"
-	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/playlists/proto"
 	"2021_2_LostPointer/internal/microservices/playlists/repository"
 	"2021_2_LostPointer/pkg/validation"
@@ -31,13 +30,13 @@ func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto
 	}
 
 	if len(data.Artwork) == 0 {
-		data.Artwork = "default_playlist_artwork"
+		data.Artwork = constants.PlaylistArtworkDefaultFilename
+		data.ArtworkColor = constants.PlaylistArtworkDefaultColor
 	}
 	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork, data.ArtworkColor)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	log.Println("usecase:", response)
 
 	return response, nil
 }

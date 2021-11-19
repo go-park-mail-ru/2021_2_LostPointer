@@ -24,7 +24,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			email:                  "qwerty@qw.com",
 			password:               "Qwerty1111",
 			nickname:               "Qwerty!",
-			expectedInvalidMessage: constants.InvalidNicknameMessage,
+			expectedInvalidMessage: constants.NicknameInvalidSyntaxMessage,
 		},
 	}
 

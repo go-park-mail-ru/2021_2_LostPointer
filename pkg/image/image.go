@@ -57,17 +57,17 @@ func (service *ImagesService) CreateAvatar(file *multipart.FileHeader) (string, 
 	fileName := uuid.NewV4().String()
 	// Resizing image
 	if height < width {
-		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigAvatarHeight})
+		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.UserAvatarHeight500px})
 	} else {
-		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.BigAvatarHeight})
+		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.UserAvatarHeight500px})
 	}
 	// Cropping image
-	avatarLarge, err := cutter.Crop(src, cutter.Config{Width: constants.BigAvatarHeight, Height: constants.BigAvatarHeight, Mode: cutter.Centered})
+	avatarLarge, err := cutter.Crop(src, cutter.Config{Width: constants.UserAvatarHeight500px, Height: constants.UserAvatarHeight500px, Mode: cutter.Centered})
 	if err != nil {
 		return "", err
 	}
 	// Create image and encode it into WEBP
-	out, err := os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.BigAvatarPostfix)
+	out, err := os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.UserAvatarExtension500px)
 	if err != nil {
 		return "", err
 	}
@@ -77,15 +77,15 @@ func (service *ImagesService) CreateAvatar(file *multipart.FileHeader) (string, 
 	}
 
 	if height < width {
-		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittleAvatarHeight})
+		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.UserAvatarHeight150px})
 	} else {
-		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.LittleAvatarHeight})
+		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.UserAvatarHeight150px})
 	}
-	avatarSmall, err := cutter.Crop(src, cutter.Config{Width: constants.LittleAvatarHeight, Height: constants.LittleAvatarHeight, Mode: cutter.Centered})
+	avatarSmall, err := cutter.Crop(src, cutter.Config{Width: constants.UserAvatarHeight150px, Height: constants.UserAvatarHeight150px, Mode: cutter.Centered})
 	if err != nil {
 		return "", err
 	}
-	out, err = os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.LittleAvatarPostfix)
+	out, err = os.Create(os.Getenv("USERS_FULL_PREFIX") + fileName + constants.UserAvatarExtension150px)
 	if err != nil {
 		return "", err
 	}
@@ -128,17 +128,17 @@ func (service *ImagesService) CreatePlaylistArtwork(file *multipart.FileHeader) 
 	fileName := uuid.NewV4().String()
 	// Resizing image
 	if height < width {
-		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.BigPlaylistArtworkHeight})
+		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.PlaylistArtworkHeight384px})
 	} else {
-		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.BigPlaylistArtworkHeight})
+		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.PlaylistArtworkHeight384px})
 	}
 	// Cropping image
-	avatarLarge, err := cutter.Crop(src, cutter.Config{Width: constants.BigPlaylistArtworkHeight, Height: constants.BigPlaylistArtworkHeight, Mode: cutter.Centered})
+	avatarLarge, err := cutter.Crop(src, cutter.Config{Width: constants.PlaylistArtworkHeight384px, Height: constants.PlaylistArtworkHeight384px, Mode: cutter.Centered})
 	if err != nil {
 		return "", "", err
 	}
 	// Create image and encode it into WEBP
-	out, err := os.Create(os.Getenv("PLAYLIST_FULL_PREFIX") + fileName + constants.BigPlaylistArtworkPostfix)
+	out, err := os.Create(os.Getenv("PLAYLIST_FULL_PREFIX") + fileName + constants.PlaylistArtworkExtension384px)
 	if err != nil {
 		return "", "", err
 	}
@@ -148,15 +148,15 @@ func (service *ImagesService) CreatePlaylistArtwork(file *multipart.FileHeader) 
 	}
 
 	if height < width {
-		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.LittlePlaylistArtworkHeight})
+		src = imgconv.Resize(src, imgconv.ResizeOption{Height: constants.PlaylistArtworkHeight100px})
 	} else {
-		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.LittlePlaylistArtworkHeight})
+		src = imgconv.Resize(src, imgconv.ResizeOption{Width: constants.PlaylistArtworkHeight100px})
 	}
-	avatarSmall, err := cutter.Crop(src, cutter.Config{Width: constants.LittlePlaylistArtworkHeight, Height: constants.LittlePlaylistArtworkHeight, Mode: cutter.Centered})
+	avatarSmall, err := cutter.Crop(src, cutter.Config{Width: constants.PlaylistArtworkHeight100px, Height: constants.PlaylistArtworkHeight100px, Mode: cutter.Centered})
 	if err != nil {
 		return "", "", err
 	}
-	out, err = os.Create(os.Getenv("PLAYLIST_FULL_PREFIX") + fileName + constants.LittlePlaylistArtworkPostfix)
+	out, err = os.Create(os.Getenv("PLAYLIST_FULL_PREFIX") + fileName + constants.PlaylistArtworkExtension100px)
 	if err != nil {
 		return "", "", err
 	}
@@ -173,16 +173,16 @@ func (service *ImagesService) CreatePlaylistArtwork(file *multipart.FileHeader) 
 //nolint:dupl
 func (service *ImagesService) DeletePlaylistArtwork(filename string) error {
 	doesFileExist := true
-	if _, err := os.Stat(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.LittlePlaylistArtworkPostfix); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.PlaylistArtworkExtension100px); os.IsNotExist(err) {
 		doesFileExist = false
 	}
 
 	if filename != constants.PlaylistArtworkDefaultFilename && doesFileExist {
-		err := os.Remove(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.LittlePlaylistArtworkPostfix)
+		err := os.Remove(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.PlaylistArtworkExtension100px)
 		if err != nil {
 			return err
 		}
-		err = os.Remove(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.BigPlaylistArtworkPostfix)
+		err = os.Remove(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.PlaylistArtworkExtension384px)
 		if err != nil {
 			return err
 		}
@@ -194,16 +194,16 @@ func (service *ImagesService) DeletePlaylistArtwork(filename string) error {
 //nolint:dupl
 func (service *ImagesService) DeleteAvatar(filename string) error {
 	doesFileExist := true
-	if _, err := os.Stat(os.Getenv("USERS_FULL_PREFIX") + filename + constants.LittleAvatarPostfix); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("USERS_FULL_PREFIX") + filename + constants.UserAvatarExtension150px); os.IsNotExist(err) {
 		doesFileExist = false
 	}
 
 	if filename != constants.AvatarDefaultFileName && doesFileExist {
-		err := os.Remove(os.Getenv("USERS_FULL_PREFIX") + filename + constants.LittleAvatarPostfix)
+		err := os.Remove(os.Getenv("USERS_FULL_PREFIX") + filename + constants.UserAvatarExtension150px)
 		if err != nil {
 			return err
 		}
-		err = os.Remove(os.Getenv("USERS_FULL_PREFIX") + filename + constants.BigAvatarPostfix)
+		err = os.Remove(os.Getenv("USERS_FULL_PREFIX") + filename + constants.UserAvatarExtension500px)
 		if err != nil {
 			return err
 		}

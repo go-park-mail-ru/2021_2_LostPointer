@@ -2,12 +2,12 @@ package image
 
 import (
 	"bufio"
-	"github.com/cenkalti/dominantcolor"
 	"io"
 	"mime/multipart"
 	"os"
 
 	"github.com/CapsLock-Studio/go-webpbin"
+	"github.com/cenkalti/dominantcolor"
 	"github.com/oliamb/cutter"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sunshineplan/imgconv"
@@ -20,14 +20,14 @@ type Service interface {
 	DeleteAvatar(string) error
 }
 
-type ImageService struct{}
+type ImagesService struct{}
 
-func NewImageService() ImageService {
-	return ImageService{}
+func NewImagesService() ImagesService {
+	return ImagesService{}
 }
 
 //nolint:cyclop
-func (service *ImageService) CreateAvatar(file *multipart.FileHeader) (string, error) {
+func (service *ImagesService) CreateAvatar(file *multipart.FileHeader) (string, error) {
 	// Open image and decode it into image.Image type
 	f, err := file.Open()
 	if err != nil {
@@ -97,7 +97,8 @@ func (service *ImageService) CreateAvatar(file *multipart.FileHeader) (string, e
 	return fileName, nil
 }
 
-func (service *ImageService) CreatePlaylistArtwork(file *multipart.FileHeader) (string, string, error) {
+//nolint:cyclop
+func (service *ImagesService) CreatePlaylistArtwork(file *multipart.FileHeader) (string, string, error) {
 	// Open image and decode it into image.Image type
 	f, err := file.Open()
 	if err != nil {
@@ -169,7 +170,8 @@ func (service *ImageService) CreatePlaylistArtwork(file *multipart.FileHeader) (
 	return fileName, artworkColor, nil
 }
 
-func (service *ImageService) DeletePlaylistArtwork(filename string) error {
+//nolint:dupl
+func (service *ImagesService) DeletePlaylistArtwork(filename string) error {
 	doesFileExist := true
 	if _, err := os.Stat(os.Getenv("PLAYLIST_FULL_PREFIX") + filename + constants.LittlePlaylistArtworkPostfix); os.IsNotExist(err) {
 		doesFileExist = false
@@ -189,7 +191,8 @@ func (service *ImageService) DeletePlaylistArtwork(filename string) error {
 	return nil
 }
 
-func (service *ImageService) DeleteAvatar(filename string) error {
+//nolint:dupl
+func (service *ImagesService) DeleteAvatar(filename string) error {
 	doesFileExist := true
 	if _, err := os.Stat(os.Getenv("USERS_FULL_PREFIX") + filename + constants.LittleAvatarPostfix); os.IsNotExist(err) {
 		doesFileExist = false

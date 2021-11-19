@@ -585,10 +585,11 @@ func (storage *MusicStorage) GetPlaylistTracks(playlistID int64) ([]*proto.Track
 }
 
 func (storage *MusicStorage) GetPlaylistInfo(playlistID int64) (*proto.PlaylistData, error) {
-	query := `SELECT title, artwork FROM playlists WHERE id=$1`
+	query := `SELECT id, title, artwork, artwork_color FROM playlists WHERE id=$1`
 
 	playlistInfo := &proto.PlaylistData{}
-	err := storage.db.QueryRow(query, playlistID).Scan(&playlistInfo.Title, &playlistInfo.Artwork)
+	err := storage.db.QueryRow(query, playlistID).Scan(
+		&playlistInfo.PlaylistID, &playlistInfo.Title, &playlistInfo.Artwork, &playlistInfo.ArtworkColor)
 	if err != nil {
 		return nil, err
 	}
@@ -627,4 +628,28 @@ func (storage *MusicStorage) GetUserPlaylists(userID int64) ([]*proto.PlaylistDa
 	}
 
 	return playlists, nil
+}
+
+func (storage *MusicStorage) DoesPlaylistExist(playlistID int64) (bool, error) {
+	query := `SELECT * FROM playlists WHERE id=$1`
+
+	rows, err := storage.db.Query(query, playlistID)
+	if err != nil {
+		return true, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return true, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	if rows.Next() {
+		return true, nil
+	}
+	return false, nil
 }

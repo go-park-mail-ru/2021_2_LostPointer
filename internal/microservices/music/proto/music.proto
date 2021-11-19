@@ -93,6 +93,7 @@ message PlaylistData {
   int64 PlaylistID = 1;
   string Title = 2;
   string Artwork = 3;
+  string ArtworkColor = 4;
 }
 
 message AlbumPageResponse {
@@ -133,7 +134,8 @@ message PlaylistPageResponse {
   int64 PlaylistID = 1;
   string Title = 2;
   string Artwork = 3;
-  repeated Track Tracks = 4;
+  string ArtworkColor = 4;
+  repeated Track Tracks = 5;
 }
 
 message IncrementListenCountEmpty {}

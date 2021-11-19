@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"2021_2_LostPointer/internal/microservices/profile/proto"
 	"database/sql"
 	"log"
 	"os"
@@ -11,7 +12,6 @@ import (
 
 	"2021_2_LostPointer/internal/constants"
 	customErrors "2021_2_LostPointer/internal/errors"
-	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/pkg/utils"
 )
 
@@ -23,7 +23,7 @@ func NewUserSettingsStorage(db *sql.DB) *UserSettingsStorage {
 	return &UserSettingsStorage{db: db}
 }
 
-func (storage *UserSettingsStorage) GetSettings(userID int64) (*models.UserSettings, error) {
+func (storage *UserSettingsStorage) GetSettings(userID int64) (*proto.UserSettings, error) {
 	query := `SELECT email, avatar, nickname FROM users WHERE id=$1`
 
 	rows, err := storage.db.Query(query, userID)
@@ -45,17 +45,15 @@ func (storage *UserSettingsStorage) GetSettings(userID int64) (*models.UserSetti
 		return nil, customErrors.ErrUserNotFound
 	}
 
-	var (
-		avatar   string
-		settings models.UserSettings
-	)
+	var avatar   string
+	settings := &proto.UserSettings{}
 	if err = rows.Scan(&settings.Email, &avatar, &settings.Nickname); err != nil {
 		return nil, err
 	}
 	settings.BigAvatar = os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.UserAvatarExtension500px
 	settings.SmallAvatar = os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.UserAvatarExtension150px
 
-	return &settings, nil
+	return settings, nil
 }
 
 func (storage *UserSettingsStorage) UpdateEmail(userID int64, email string) error {

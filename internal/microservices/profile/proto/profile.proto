@@ -19,17 +19,13 @@ message UploadSettings {
   UserSettings OldSettings = 7;
 }
 
-message ProfileUserID {
+message GetSettingsOptions {
   int64 ID = 1;
-}
-
-message Avatar {
-  string Filename = 1;
 }
 
 message EmptyProfile {}
 
 service Profile {
-  rpc GetSettings(ProfileUserID) returns(UserSettings) {}
+  rpc GetSettings(GetSettingsOptions) returns(UserSettings) {}
   rpc UpdateSettings(UploadSettings) returns(EmptyProfile) {}
 }

@@ -295,21 +295,20 @@ func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
 		})
 	}
 
-	settings, err := api.profileMicroservice.GetSettings(context.Background(), &profile.ProfileUserID{ID: int64(userID)})
+	settingsProto, err := api.profileMicroservice.GetSettings(context.Background(), &profile.GetSettingsOptions{ID: int64(userID)})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
+
+	var settings models.UserSettings
+	settings.BindProto(settingsProto)
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
 
-	return ctx.JSON(http.StatusOK, &models.UserSettings{
-		Email:       settings.Email,
-		Nickname:    settings.Nickname,
-		SmallAvatar: settings.SmallAvatar,
-		BigAvatar:   settings.BigAvatar,
-	})
+	return ctx.JSON(http.StatusOK, settings)
 }
 
 func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
@@ -339,7 +338,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 		})
 	}
 
-	oldSettings, err := api.profileMicroservice.GetSettings(context.Background(), &profile.ProfileUserID{ID: int64(userID)})
+	oldSettings, err := api.profileMicroservice.GetSettings(context.Background(), &profile.GetSettingsOptions{ID: int64(userID)})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
@@ -471,7 +470,7 @@ func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
 	tracks := make([]models.Track, 0, constants.HomePageTracksSelectionAmount)
 	for _, current := range tracksListProto.Tracks {
 		var track models.Track
-		track.BindProtoTrack(current)
+		track.BindProto(current)
 		tracks = append(tracks, track)
 	}
 	api.logger.Info(
@@ -500,7 +499,7 @@ func (api *APIMicroservices) GetHomeAlbums(ctx echo.Context) error {
 	albums := make([]models.Album, 0, constants.HomePageAlbumsSelectionAmount)
 	for _, current := range albumsListProto.Albums {
 		var album models.Album
-		album.BindProtoAlbum(current)
+		album.BindProto(current)
 		albums = append(albums, album)
 	}
 	api.logger.Info(
@@ -529,7 +528,7 @@ func (api *APIMicroservices) GetHomeArtists(ctx echo.Context) error {
 	artists := make([]models.Artist, 0, constants.HomePageArtistsSelectionAmount)
 	for _, current := range artistsListProto.Artists {
 		var artist models.Artist
-		artist.BindProtoArtist(current)
+		artist.BindProto(current)
 		artists = append(artists, artist)
 	}
 	api.logger.Info(
@@ -579,7 +578,7 @@ func (api *APIMicroservices) GetArtistProfile(ctx echo.Context) error {
 	}
 
 	var artistData models.Artist
-	artistData.BindProtoArtist(artistDataProto)
+	artistData.BindProto(artistDataProto)
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
@@ -663,7 +662,7 @@ func (api *APIMicroservices) GetAlbumPage(ctx echo.Context) error {
 	}
 
 	var albumData models.AlbumPage
-	albumData.BindProtoAlbumPage(albumDataProto)
+	albumData.BindProto(albumDataProto)
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
@@ -701,7 +700,7 @@ func (api *APIMicroservices) SearchMusic(ctx echo.Context) error {
 	}
 
 	var searchResult models.SearchResult
-	searchResult.BindProtoSearchResponse(searchResultProto)
+	searchResult.BindProto(searchResultProto)
 
 	api.logger.Info(
 		zap.String("ID", requestID),

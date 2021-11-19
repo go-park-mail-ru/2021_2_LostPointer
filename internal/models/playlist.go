@@ -36,7 +36,7 @@ func (p *PlaylistPage) BindProto(playlistPage *music.PlaylistPageResponse) {
 	bindedTracks := make([]Track, 0)
 	for _, track := range playlistPage.Tracks {
 		var bindedTrack Track
-		bindedTrack.BindProtoTrack(track)
+		bindedTrack.BindProto(track)
 		bindedTracks = append(bindedTracks, bindedTrack)
 	}
 

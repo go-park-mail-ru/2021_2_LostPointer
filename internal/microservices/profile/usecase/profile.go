@@ -25,7 +25,7 @@ func NewProfileService(storage repository.UserSettingsStorage) *ProfileService {
 	return &ProfileService{storage: storage}
 }
 
-func (service *ProfileService) GetSettings(ctx context.Context, user *proto.ProfileUserID) (*proto.UserSettings, error) {
+func (service *ProfileService) GetSettings(ctx context.Context, user *proto.GetSettingsOptions) (*proto.UserSettings, error) {
 	settings, err := service.storage.GetSettings(user.ID)
 	if err != nil {
 		if errors.Is(err, customErrors.ErrUserNotFound) {
@@ -34,12 +34,7 @@ func (service *ProfileService) GetSettings(ctx context.Context, user *proto.Prof
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &proto.UserSettings{
-		Email:       settings.Email,
-		Nickname:    settings.Nickname,
-		SmallAvatar: settings.SmallAvatar,
-		BigAvatar:   settings.BigAvatar,
-	}, nil
+	return settings, nil
 }
 
 //nolint:cyclop

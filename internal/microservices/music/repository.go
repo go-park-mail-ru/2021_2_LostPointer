@@ -22,4 +22,5 @@ type Storage interface {
 	IsPlaylistOwner(int64, int64) (bool, error)
 	GetPlaylistTracks(int64) ([]*proto.Track, error)
 	GetPlaylistInfo(int64) (*proto.PlaylistData, error)
+	DoesPlaylistExist(int64) (bool, error)
 }

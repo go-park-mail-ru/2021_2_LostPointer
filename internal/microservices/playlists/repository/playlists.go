@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"2021_2_LostPointer/internal/constants"
 	"database/sql"
 	"log"
 
@@ -30,28 +31,16 @@ func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artw
 	return &proto.CreatePlaylistResponse{PlaylistID: id}, nil
 }
 
-func (storage *PlaylistsStorage) GetOldArtwork(playlistID int64) (string, string, error) {
-	query := `SELECT artwork, artwork_color FROM playlists WHERE id=$1`
+func (storage *PlaylistsStorage) GetOldArtwork(playlistID int64) (string, error) {
+	query := `SELECT artwork FROM playlists WHERE id=$1`
 
-	var artwork, artworkColor string
-	err := storage.db.QueryRow(query, playlistID).Scan(&artwork, &artworkColor)
+	var artwork string
+	err := storage.db.QueryRow(query, playlistID).Scan(&artwork)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	return artwork, artworkColor, nil
-}
-
-func (storage *PlaylistsStorage) UpdatePlaylist(playlistID int64, title string, artwork string, artworkColor string) error {
-	query := `UPDATE playlists SET title=$1, artwork=$2, artwork_color=$3 WHERE id=$4`
-
-	title = sanitize.HTML(title)
-	err := storage.db.QueryRow(query, title, artwork, artworkColor, playlistID).Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return artwork, nil
 }
 
 func (storage *PlaylistsStorage) DeletePlaylist(playlistID int64) error {
@@ -133,4 +122,62 @@ func (storage *PlaylistsStorage) IsOwner(playlistID int64, userID int64) (bool, 
 		return true, nil
 	}
 	return false, nil
+}
+
+func (storage *PlaylistsStorage) DoesPlaylistExist(playlistID int64) (bool, error) {
+	query := `SELECT * FROM playlists WHERE id=$1`
+
+	rows, err := storage.db.Query(query, playlistID)
+	if err != nil {
+		return true, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return true, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	if rows.Next() {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (storage *PlaylistsStorage) UpdatePlaylistTitle(playlistID int64, title string) error {
+	query := `UPDATE playlists SET title=$1 WHERE id=$2`
+
+	title = sanitize.HTML(title)
+	err := storage.db.QueryRow(query, title, playlistID).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (storage *PlaylistsStorage) UpdatePlaylistArtwork(playlistID int64, artwork string, artworkColor string) error {
+	query := `UPDATE playlists SET artwork=$1, artwork_color=$2 WHERE id=$3`
+
+	err := storage.db.QueryRow(query, artwork, artworkColor, playlistID).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (storage *PlaylistsStorage) DeletePlaylistArtwork(playlistID int64) error {
+	query := `UPDATE playlists SET artwork=$1, artwork_color=$2 WHERE id=$3`
+
+	err := storage.db.QueryRow(query, constants.PlaylistArtworkDefaultFilename, constants.DefaultPlaylistArtworkColor, playlistID).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

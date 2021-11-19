@@ -35,13 +35,15 @@ const (
 	UserAuthorizedMessage                  = "User is authorized"
 	RequestIDTypeAssertionFailed           = "Type assertion for \"REQUEST_ID\" failed"
 	UserIDTypeAssertionFailed              = "Type assertion for \"USER_ID\" failed"
-	PlaylistTitleUpdatedMessage            = "Playlist title was updated successfully"
+	PlaylistTitleUpdatedMessage            = "Playlist was updated successfully"
 	PlaylistDeletedMessage                 = "Playlist deleted"
 	TrackAddedToPlaylistMessage            = "Track was successfully added to playlist"
 	TrackAlreadyInPlaylistMessage          = "Track was already added to playlist"
 	TrackDeletedFromPlaylistMessage        = "Track was successfully deleted from playlist"
 	NotPlaylistOwnerMessage                = "You are not owner of this playlist"
 	DefaultPlaylistArtworkColor            = "#8071c2"
+	PlaylistNotFoundMessage                = "Playlist doesn't exist"
+	PlaylistArtworkDeletedMessage          = "Artwork was successfully deleted"
 
 	SaltLength                   = 8
 	BigAvatarHeight              = 500

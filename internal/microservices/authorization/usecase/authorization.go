@@ -79,7 +79,7 @@ func (service *AuthService) Register(ctx context.Context, registerData *proto.Re
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isEmailUnique {
-		return nil, status.Error(codes.InvalidArgument, constants.NotUniqueEmailMessage)
+		return nil, status.Error(codes.InvalidArgument, constants.EmailNotUniqueMessage)
 	}
 
 	isNicknameUnique, err := service.storage.IsNicknameUnique(registerData.Nickname)
@@ -87,7 +87,7 @@ func (service *AuthService) Register(ctx context.Context, registerData *proto.Re
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !isNicknameUnique {
-		return nil, status.Error(codes.InvalidArgument, constants.NotUniqueNicknameMessage)
+		return nil, status.Error(codes.InvalidArgument, constants.NicknameNotUniqueMessage)
 	}
 
 	isValidCredentials, message, err := validation.ValidateRegisterCredentials(registerData.Email, registerData.Password, registerData.Nickname)
@@ -121,7 +121,7 @@ func (service *AuthService) GetAvatar(ctx context.Context, user *proto.UserID) (
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &proto.Avatar{Filename: os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.LittleAvatarPostfix}, nil
+	return &proto.Avatar{Filename: os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.UserAvatarExtension150px}, nil
 }
 
 func (service *AuthService) Logout(ctx context.Context, cookies *proto.Cookie) (*proto.Empty, error) {

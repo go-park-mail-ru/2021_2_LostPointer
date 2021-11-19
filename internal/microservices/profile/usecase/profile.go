@@ -47,7 +47,7 @@ func (service *ProfileService) UpdateSettings(ctx context.Context, settings *pro
 	if strings.ToLower(settings.Email) != settings.OldSettings.Email && len(settings.Email) != 0 {
 		isEmailValid := govalidator.IsEmail(settings.Email)
 		if !isEmailValid {
-			return nil, status.Error(codes.InvalidArgument, constants.InvalidEmailMessage)
+			return nil, status.Error(codes.InvalidArgument, constants.EmailInvalidSyntaxMessage)
 		}
 
 		isEmailUnique, err := service.storage.IsEmailUnique(settings.Email)
@@ -55,7 +55,7 @@ func (service *ProfileService) UpdateSettings(ctx context.Context, settings *pro
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 		if !isEmailUnique {
-			return nil, status.Error(codes.InvalidArgument, constants.NotUniqueEmailMessage)
+			return nil, status.Error(codes.InvalidArgument, constants.EmailNotUniqueMessage)
 		}
 
 		err = service.storage.UpdateEmail(settings.UserID, settings.Email)
@@ -70,7 +70,7 @@ func (service *ProfileService) UpdateSettings(ctx context.Context, settings *pro
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 		if !isNicknameValid {
-			return nil, status.Error(codes.InvalidArgument, constants.InvalidNicknameMessage)
+			return nil, status.Error(codes.InvalidArgument, constants.NicknameInvalidSyntaxMessage)
 		}
 
 		isNicknameUnique, err := service.storage.IsNicknameUnique(settings.Nickname)
@@ -78,7 +78,7 @@ func (service *ProfileService) UpdateSettings(ctx context.Context, settings *pro
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 		if !isNicknameUnique {
-			return nil, status.Error(codes.InvalidArgument, constants.InvalidNicknameMessage)
+			return nil, status.Error(codes.InvalidArgument, constants.NicknameInvalidSyntaxMessage)
 		}
 
 		err = service.storage.UpdateNickname(settings.UserID, settings.Nickname)

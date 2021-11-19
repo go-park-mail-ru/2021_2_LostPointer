@@ -52,8 +52,8 @@ func (storage *UserSettingsStorage) GetSettings(userID int64) (*models.UserSetti
 	if err = rows.Scan(&settings.Email, &avatar, &settings.Nickname); err != nil {
 		return nil, err
 	}
-	settings.BigAvatar = os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.BigAvatarPostfix
-	settings.SmallAvatar = os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.LittleAvatarPostfix
+	settings.BigAvatar = os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.UserAvatarExtension500px
+	settings.SmallAvatar = os.Getenv("USERS_ROOT_PREFIX") + avatar + constants.UserAvatarExtension150px
 
 	return &settings, nil
 }

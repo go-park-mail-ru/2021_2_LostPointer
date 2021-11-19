@@ -365,7 +365,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
-		oldAvatarFilename := oldSettings.BigAvatar[len(os.Getenv("USERS_ROOT_PREFIX")) : len(oldSettings.BigAvatar)-len(constants.LittleAvatarPostfix)]
+		oldAvatarFilename := oldSettings.BigAvatar[len(os.Getenv("USERS_ROOT_PREFIX")) : len(oldSettings.BigAvatar)-len(constants.UserAvatarExtension150px)]
 		err = api.imageService.DeleteAvatar(oldAvatarFilename)
 		if err != nil {
 			api.logger.Error(
@@ -463,12 +463,12 @@ func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
 	}
 
 	tracksListProto, err := api.musicMicroservice.RandomTracks(context.Background(),
-		&music.RandomTracksOptions{Amount: constants.TracksCollectionLimit, IsAuthorized: isAuthorized})
+		&music.RandomTracksOptions{Amount: constants.HomePageTracksSelectionAmount, IsAuthorized: isAuthorized})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
-	tracks := make([]models.Track, 0, constants.TracksCollectionLimit)
+	tracks := make([]models.Track, 0, constants.HomePageTracksSelectionAmount)
 	for _, current := range tracksListProto.Tracks {
 		var track models.Track
 		track.BindProtoTrack(current)
@@ -492,12 +492,12 @@ func (api *APIMicroservices) GetHomeAlbums(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	albumsListProto, err := api.musicMicroservice.RandomAlbums(context.Background(), &music.RandomAlbumsOptions{Amount: constants.AlbumCollectionLimit})
+	albumsListProto, err := api.musicMicroservice.RandomAlbums(context.Background(), &music.RandomAlbumsOptions{Amount: constants.HomePageAlbumsSelectionAmount})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
-	albums := make([]models.Album, 0, constants.AlbumCollectionLimit)
+	albums := make([]models.Album, 0, constants.HomePageAlbumsSelectionAmount)
 	for _, current := range albumsListProto.Albums {
 		var album models.Album
 		album.BindProtoAlbum(current)
@@ -521,12 +521,12 @@ func (api *APIMicroservices) GetHomeArtists(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	artistsListProto, err := api.musicMicroservice.RandomArtists(context.Background(), &music.RandomArtistsOptions{Amount: constants.ArtistsCollectionLimit})
+	artistsListProto, err := api.musicMicroservice.RandomArtists(context.Background(), &music.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
-	artists := make([]models.Artist, 0, constants.ArtistsCollectionLimit)
+	artists := make([]models.Artist, 0, constants.HomePageArtistsSelectionAmount)
 	for _, current := range artistsListProto.Artists {
 		var artist models.Artist
 		artist.BindProtoArtist(current)
@@ -740,13 +740,13 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 
 	title := ctx.FormValue("title")
 	artwork, err := ctx.FormFile("artwork")
-	var artworkFilename string
+	var artworkFilename, artworkColor string
 	if err != nil {
 		artworkFilename = ""
 	} else {
 		artworkFilename = artwork.Filename
 	}
-	artworkColor := constants.DefaultPlaylistArtworkColor
+
 	if len(artworkFilename) != 0 {
 		artworkFilename, artworkColor, err = api.imageService.CreatePlaylistArtwork(artwork)
 		if err != nil {

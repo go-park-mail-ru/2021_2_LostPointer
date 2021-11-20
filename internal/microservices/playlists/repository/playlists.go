@@ -18,12 +18,12 @@ func NewPlaylistsStorage(db *sql.DB) *PlaylistsStorage {
 	return &PlaylistsStorage{db: db}
 }
 
-func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artwork string, artworkColor string) (*proto.CreatePlaylistResponse, error) {
-	query := `INSERT INTO playlists(title, user_id, artwork, artwork_color) VALUES ($1, $2, $3, $4) RETURNING id`
+func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artwork string, artworkColor string, isPublic bool) (*proto.CreatePlaylistResponse, error) {
+	query := `INSERT INTO playlists(title, user_id, artwork, artwork_color, is_public) VALUES ($1, $2, $3, $4, $5) RETURNING id`
 
 	var id int64
 	title = sanitize.HTML(title)
-	err := storage.db.QueryRow(query, title, userID, artwork, artworkColor).Scan(&id)
+	err := storage.db.QueryRow(query, title, userID, artwork, artworkColor, isPublic).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (storage *PlaylistsStorage) DeleteTrack(playlistID int64, trackID int64) er
 }
 
 func (storage *PlaylistsStorage) IsOwner(playlistID int64, userID int64) (bool, error) {
-	query := `SELECT * FROM playlists WHERE id=$1 AND user_id=$2`
+	query := `SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`
 
 	rows, err := storage.db.Query(query, playlistID, userID)
 	if err != nil {

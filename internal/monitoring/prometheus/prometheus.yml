@@ -6,14 +6,14 @@ scrape_configs:
   - job_name: "server"
     scrape_interval: 5s
     static_configs:
-      - targets: [ "localhost:3030" ]
+      - targets: ['localhost:3030']
         labels:
           group: 'main_server'
 
   - job_name: "system_status"
     scrape_interval: 5s
     static_configs:
-      - targets: [ 'localhost:3030' ]
+      - targets: [ 'localhost:9100' ]
 
 
 rule_files:

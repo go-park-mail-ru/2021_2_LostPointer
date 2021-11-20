@@ -169,6 +169,7 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 		Artwork:      playlistInfo.Artwork,
 		ArtworkColor: playlistInfo.ArtworkColor,
 		Tracks:       playlistTracks,
+		IsPublic:     playlistInfo.IsPublic,
 	}
 
 	return playlistData, nil

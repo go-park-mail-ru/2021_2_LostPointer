@@ -31,7 +31,7 @@ func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto
 		data.Artwork = constants.PlaylistArtworkDefaultFilename
 		data.ArtworkColor = constants.PlaylistArtworkDefaultColor
 	}
-	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork, data.ArtworkColor)
+	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork, data.ArtworkColor, data.IsPublic)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

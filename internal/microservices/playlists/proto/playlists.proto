@@ -7,6 +7,7 @@ message CreatePlaylistOptions {
   string Title = 2;
   string Artwork = 3;
   string ArtworkColor = 4;
+  bool IsPublic = 5;
 }
 
 message UpdatePlaylistOptions {

@@ -399,7 +399,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 		oldAvatarFilename,
 		[]string{constants.UserAvatarExtension150px, constants.UserAvatarExtension500px},
 		constants.AvatarDefaultFileName,
-		)
+	)
 	if err != nil {
 		api.logger.Error(
 			zap.String("ID", requestID),
@@ -754,6 +754,7 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 
 	var artworkFilename, artworkColor string
 	title := ctx.FormValue("title")
+	isPublic, _ := strconv.ParseBool(ctx.FormValue("is_public"))
 	artwork, err := ctx.FormFile("artwork")
 	if err != nil {
 		artworkFilename = ""
@@ -784,6 +785,7 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 	playlistIDProto, err := api.playlistsMicroservice.CreatePlaylist(context.Background(), &playlists.CreatePlaylistOptions{
 		UserID:       int64(userID),
 		Title:        title,
+		IsPublic:     isPublic,
 		Artwork:      artworkFilename,
 		ArtworkColor: artworkColor,
 	})
@@ -1239,7 +1241,7 @@ func (api *APIMicroservices) DeletePlaylistArtwork(ctx echo.Context) error {
 		oldArtworkProto.OldArtworkFilename,
 		[]string{constants.PlaylistArtworkExtension100px, constants.PlaylistArtworkExtension384px},
 		constants.PlaylistArtworkDefaultFilename,
-		)
+	)
 	if err != nil {
 		api.logger.Error(
 			zap.String("ID", requestID),

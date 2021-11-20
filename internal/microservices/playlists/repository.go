@@ -14,4 +14,5 @@ type Storage interface {
 	UpdatePlaylistTitle(int64, string) error
 	UpdatePlaylistArtwork(int64, string, string) error
 	DeletePlaylistArtwork(int64) error
+	UpdatePlaylistAccess(int64, bool) error
 }

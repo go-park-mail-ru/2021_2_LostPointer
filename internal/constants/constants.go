@@ -64,7 +64,7 @@ const (
 	HomePageTracksSelectionAmount  = 10
 	HomePageAlbumsSelectionAmount  = 4
 	HomePageArtistsSelectionAmount = 4
-	SearchTracksAmount             = 10
+	SearchTracksAmount             = 4
 	SearchArtistsAmount            = 5
 	SearchAlbumsAmount             = 5
 

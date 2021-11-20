@@ -511,7 +511,7 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 }
 
 func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bool, error) {
-	query := `SELECT * FROM playlists WHERE id=$1 AND user_id=$2`
+	query := `SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`
 
 	rows, err := storage.db.Query(query, playlistID, userID)
 	if err != nil {
@@ -585,11 +585,11 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64) ([]*proto.Track, e
 }
 
 func (storage *MusicStorage) PlaylistInfo(playlistID int64) (*proto.PlaylistData, error) {
-	query := `SELECT id, title, artwork, artwork_color FROM playlists WHERE id=$1`
+	query := `SELECT id, title, artwork, artwork_color, is_public FROM playlists WHERE id=$1`
 
 	playlistInfo := &proto.PlaylistData{}
 	err := storage.db.QueryRow(query, playlistID).Scan(
-		&playlistInfo.PlaylistID, &playlistInfo.Title, &playlistInfo.Artwork, &playlistInfo.ArtworkColor)
+		&playlistInfo.PlaylistID, &playlistInfo.Title, &playlistInfo.Artwork, &playlistInfo.ArtworkColor, &playlistInfo.IsPublic)
 	if err != nil {
 		return nil, err
 	}
@@ -600,7 +600,7 @@ func (storage *MusicStorage) PlaylistInfo(playlistID int64) (*proto.PlaylistData
 }
 
 func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData, error) {
-	query := `SELECT id, title, artwork FROM playlists WHERE user_id=$1`
+	query := `SELECT id, title, artwork, is_public FROM playlists WHERE user_id=$1 OR is_public=true`
 
 	rows, err := storage.db.Query(query, userID)
 	if err != nil {
@@ -620,7 +620,7 @@ func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData,
 	playlists := make([]*proto.PlaylistData, 0)
 	for rows.Next() {
 		playlist := &proto.PlaylistData{}
-		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork); err != nil {
+		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork, &playlist.IsPublic); err != nil {
 			return nil, err
 		}
 		playlist.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlist.Artwork + constants.PlaylistArtworkExtension100px

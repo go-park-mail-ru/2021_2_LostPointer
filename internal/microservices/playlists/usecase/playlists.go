@@ -1,15 +1,13 @@
 package usecase
 
 import (
-	"context"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/playlists/proto"
 	"2021_2_LostPointer/internal/microservices/playlists/repository"
 	"2021_2_LostPointer/pkg/validation"
+	"context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type PlaylistsService struct {
@@ -33,7 +31,7 @@ func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto
 		data.Artwork = constants.PlaylistArtworkDefaultFilename
 		data.ArtworkColor = constants.PlaylistArtworkDefaultColor
 	}
-	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork, data.ArtworkColor)
+	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork, data.ArtworkColor, data.IsPublic)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -75,6 +73,10 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		if err = service.storage.UpdatePlaylistTitle(data.PlaylistID, data.Title); err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
+	}
+
+	if err = service.storage.UpdatePlaylistAccess(data.PlaylistID, data.IsPublic); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	if err != nil {

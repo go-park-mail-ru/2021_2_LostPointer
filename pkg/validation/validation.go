@@ -62,7 +62,8 @@ func ValidateRegisterCredentials(email string, password string, nickname string)
 func ValidatePlaylistTitle(title string) (bool, string, error) {
 	minLength, _ := strconv.Atoi(constants.MinPlaylistTitleLength)
 	maxLength, _ := strconv.Atoi(constants.MaxPlaylistTitleLength)
-	if len(title) < minLength && len(title) > maxLength {
+
+	if len(title) < minLength || len(title) > maxLength {
 		return false, constants.PlaylistTitleInvalidLengthMessage, nil
 	}
 

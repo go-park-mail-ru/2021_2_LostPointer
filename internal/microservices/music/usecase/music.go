@@ -103,7 +103,7 @@ func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) 
 	}
 
 	for _, track := range FindTracksByPartial {
-		if !contains(tracks, track.ID) {
+		if !contains(tracks, track.ID) && len(tracks) < constants.SearchTracksAmount {
 			tracks = append(tracks, track)
 		}
 	}
@@ -169,6 +169,7 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 		Artwork:      playlistInfo.Artwork,
 		ArtworkColor: playlistInfo.ArtworkColor,
 		Tracks:       playlistTracks,
+		IsPublic:     playlistInfo.IsPublic,
 	}
 
 	return playlistData, nil

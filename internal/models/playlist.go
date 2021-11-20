@@ -18,6 +18,7 @@ type UserPlaylist struct {
 	PlaylistID int64  `json:"id,omitempty"`
 	Title      string `json:"title,omitempty"`
 	Artwork    string `json:"artwork,omitempty"`
+	IsPublic   bool   `json:"is_public,omitempty"`
 }
 
 type UserPlaylists struct {
@@ -30,6 +31,7 @@ type PlaylistPage struct {
 	Artwork      string  `json:"artwork,omitempty"`
 	ArtworkColor string  `json:"artwork_color,omitempty"`
 	Tracks       []Track `json:"tracks,omitempty"`
+	IsPublic     bool    `json:"is_public,omitempty"`
 }
 
 type PlaylistArtworkColor struct {
@@ -50,6 +52,7 @@ func (p *PlaylistPage) BindProto(playlistPage *music.PlaylistPageResponse) {
 		Artwork:      playlistPage.Artwork,
 		ArtworkColor: playlistPage.ArtworkColor,
 		Tracks:       bindedTracks,
+		IsPublic:     playlistPage.IsPublic,
 	}
 
 	*p = bindedPlaylistPage
@@ -62,6 +65,7 @@ func (u *UserPlaylists) BindProto(playlists *music.PlaylistsData) {
 			PlaylistID: playlist.PlaylistID,
 			Title:      playlist.Title,
 			Artwork:    playlist.Artwork,
+			IsPublic:   playlist.IsPublic,
 		}
 		bindedPlaylists = append(bindedPlaylists, bindedPlaylist)
 	}

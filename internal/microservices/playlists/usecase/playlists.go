@@ -1,15 +1,13 @@
 package usecase
 
 import (
-	"context"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/playlists/proto"
 	"2021_2_LostPointer/internal/microservices/playlists/repository"
 	"2021_2_LostPointer/pkg/validation"
+	"context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type PlaylistsService struct {

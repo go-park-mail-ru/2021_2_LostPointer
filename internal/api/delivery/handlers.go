@@ -788,6 +788,19 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 		ArtworkColor: artworkColor,
 	})
 	if err != nil {
+		deleteErr := api.imageService.DeleteImages(
+			os.Getenv("PLAYLIST_FULL_PREFIX"),
+			artworkFilename,
+			[]string{constants.PlaylistArtworkExtension100px, constants.PlaylistArtworkExtension384px},
+			constants.PlaylistArtworkDefaultFilename,
+		)
+		if deleteErr != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", deleteErr.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
@@ -873,16 +886,16 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 		ArtworkColor: artworkColor,
 	})
 	if err != nil {
-		err = api.imageService.DeleteImages(
+		deleteErr := api.imageService.DeleteImages(
 			os.Getenv("PLAYLIST_FULL_PREFIX"),
 			artworkFilename,
 			[]string{constants.PlaylistArtworkExtension100px, constants.PlaylistArtworkExtension384px},
 			constants.PlaylistArtworkDefaultFilename,
 		)
-		if err != nil {
+		if deleteErr != nil {
 			api.logger.Error(
 				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
+				zap.String("ERROR", deleteErr.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}

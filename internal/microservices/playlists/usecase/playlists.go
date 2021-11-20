@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -59,7 +60,8 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
-	if len(data.Title) != 0 {
+	oldArtwork, oldTitle, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
+	if len(data.Title) != 0 && data.Title != oldTitle {
 		var (
 			isTitleValid bool
 			msg          string
@@ -76,7 +78,6 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		}
 	}
 
-	oldArtwork, err := service.storage.GetOldArtwork(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -87,6 +88,8 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
+	log.Println("OLD ARTWORK:", response.OldArtworkFilename)
 
 	return response, nil
 }
@@ -109,7 +112,7 @@ func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
-	oldArtwork, err := service.storage.GetOldArtwork(data.PlaylistID)
+	oldArtwork, _, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -197,7 +200,7 @@ func (service *PlaylistsService) DeletePlaylistArtwork(ctx context.Context, data
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
-	oldArtwork, err := service.storage.GetOldArtwork(data.PlaylistID)
+	oldArtwork, _, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

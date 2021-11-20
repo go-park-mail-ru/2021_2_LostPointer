@@ -45,6 +45,7 @@ message CreatePlaylistResponse {
 
 message UpdatePlaylistResponse {
   string OldArtworkFilename = 1;
+  string ArtworkColor = 2;
 }
 
 message DeletePlaylistResponse {

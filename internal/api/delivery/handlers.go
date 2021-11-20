@@ -268,6 +268,7 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 	})
 }
 
+//nolint:dupl
 func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -814,13 +815,12 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 	}
 	title := ctx.FormValue("title")
 	artwork, err := ctx.FormFile("artwork")
-	var artworkFilename string
+	var artworkFilename, artworkColor string
 	if err != nil {
 		artworkFilename = ""
 	} else {
 		artworkFilename = artwork.Filename
 	}
-	var artworkColor string
 	if len(artworkFilename) != 0 {
 		artworkFilename, artworkColor, err = api.imageService.CreatePlaylistArtwork(artwork)
 		if err != nil {
@@ -832,7 +832,7 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 		}
 	}
 
-	oldArtworkProto, err := api.playlistsMicroservice.UpdatePlaylist(context.Background(), &playlists.UpdatePlaylistOptions{
+	artworkProto, err := api.playlistsMicroservice.UpdatePlaylist(context.Background(), &playlists.UpdatePlaylistOptions{
 		PlaylistID:   int64(playlistID),
 		Title:        title,
 		UserID:       int64(userID),
@@ -843,16 +843,13 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 		_ = api.imageService.DeletePlaylistArtwork(artworkFilename)
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
-	_ = api.imageService.DeletePlaylistArtwork(oldArtworkProto.OldArtworkFilename)
+	_ = api.imageService.DeletePlaylistArtwork(artworkProto.OldArtworkFilename)
 
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status:  http.StatusOK,
-		Message: constants.PlaylistTitleUpdatedMessage,
-	})
+	return ctx.JSON(http.StatusOK, &models.PlaylistArtworkColor{ArtworkColor: artworkProto.ArtworkColor})
 }
 
 func (api *APIMicroservices) DeletePlaylist(ctx echo.Context) error {
@@ -1022,6 +1019,7 @@ func (api *APIMicroservices) DeleteTrack(ctx echo.Context) error {
 	})
 }
 
+//nolint:dupl
 func (api *APIMicroservices) GetUserPlaylists(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -1160,10 +1158,7 @@ func (api *APIMicroservices) DeletePlaylistArtwork(ctx echo.Context) error {
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status:  http.StatusOK,
-		Message: constants.PlaylistArtworkDeletedMessage,
-	})
+	return ctx.JSON(http.StatusOK, &models.PlaylistArtworkColor{ArtworkColor: constants.PlaylistArtworkDefaultColor})
 }
 
 func (api *APIMicroservices) Init(server *echo.Echo) {

@@ -767,8 +767,8 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 			artwork,
 			os.Getenv("PLAYLIST_FULL_PREFIX"),
 			map[int]string{
-				100: constants.PlaylistArtworkExtension384px,
-				384: constants.PlaylistArtworkExtension100px,
+				100: constants.PlaylistArtworkExtension100px,
+				384: constants.PlaylistArtworkExtension384px,
 			})
 		if err != nil {
 			api.logger.Error(
@@ -851,8 +851,8 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 			artwork,
 			os.Getenv("PLAYLIST_FULL_PREFIX"),
 			map[int]string{
-				100: constants.PlaylistArtworkExtension384px,
-				384: constants.PlaylistArtworkExtension100px,
+				100: constants.PlaylistArtworkExtension100px,
+				384: constants.PlaylistArtworkExtension384px,
 			})
 		if err != nil {
 			api.logger.Error(

@@ -5,6 +5,7 @@ import (
 	"bufio"
 	image2 "image"
 	"io"
+	"log"
 	"mime/multipart"
 	"os"
 
@@ -13,8 +14,6 @@ import (
 	"github.com/oliamb/cutter"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sunshineplan/imgconv"
-
-	"2021_2_LostPointer/internal/constants"
 )
 
 type Service interface {
@@ -60,6 +59,7 @@ func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, pat
 	imageFilename := uuid.NewV4().String()
 	var artworkColor string
 	for size, extension := range extensions {
+		log.Println(size, ": ", extension)
 		var (
 			img image2.Image
 			out *os.File
@@ -71,7 +71,7 @@ func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, pat
 			src = imgconv.Resize(src, imgconv.ResizeOption{Width: size})
 		}
 
-		img, err = cutter.Crop(src, cutter.Config{Width: constants.UserAvatarHeight500px, Height: constants.UserAvatarHeight500px, Mode: cutter.Centered})
+		img, err = cutter.Crop(src, cutter.Config{Width: size, Height: size, Mode: cutter.Centered})
 		if err != nil {
 			return nil, err
 		}

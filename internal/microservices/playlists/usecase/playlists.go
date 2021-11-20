@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -60,8 +59,8 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
-	oldArtwork, oldTitle, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
-	if len(data.Title) != 0 && data.Title != oldTitle {
+	oldArtwork, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
+	if len(data.Title) != 0 {
 		var (
 			isTitleValid bool
 			msg          string
@@ -81,15 +80,16 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	response := &proto.UpdatePlaylistResponse{}
+	response := &proto.UpdatePlaylistResponse{
+		ArtworkColor: "",
+	}
 	if len(data.Artwork) != 0 {
 		response.OldArtworkFilename = oldArtwork
+		response.ArtworkColor = data.ArtworkColor
 		if err = service.storage.UpdatePlaylistArtwork(data.PlaylistID, data.Artwork, data.ArtworkColor); err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
-
-	log.Println("OLD ARTWORK:", response.OldArtworkFilename)
 
 	return response, nil
 }
@@ -112,7 +112,7 @@ func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
-	oldArtwork, _, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
+	oldArtwork, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -200,7 +200,7 @@ func (service *PlaylistsService) DeletePlaylistArtwork(ctx context.Context, data
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
-	oldArtwork, _, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
+	oldArtwork, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

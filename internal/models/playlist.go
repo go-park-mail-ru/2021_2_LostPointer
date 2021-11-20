@@ -32,6 +32,10 @@ type PlaylistPage struct {
 	Tracks       []Track `json:"tracks,omitempty"`
 }
 
+type PlaylistArtworkColor struct {
+	ArtworkColor string `json:"artwork_color"`
+}
+
 func (p *PlaylistPage) BindProto(playlistPage *music.PlaylistPageResponse) {
 	bindedTracks := make([]Track, 0)
 	for _, track := range playlistPage.Tracks {

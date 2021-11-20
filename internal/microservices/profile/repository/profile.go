@@ -45,7 +45,7 @@ func (storage *UserSettingsStorage) GetSettings(userID int64) (*proto.UserSettin
 		return nil, customErrors.ErrUserNotFound
 	}
 
-	var avatar   string
+	var avatar string
 	settings := &proto.UserSettings{}
 	if err = rows.Scan(&settings.Email, &avatar, &settings.Nickname); err != nil {
 		return nil, err

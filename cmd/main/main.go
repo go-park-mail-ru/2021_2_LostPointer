@@ -1,6 +1,7 @@
 package main
 
 import (
+	"2021_2_LostPointer/internal/monitoring"
 	"fmt"
 	"log"
 	"os"
@@ -97,7 +98,9 @@ func main() {
 	}()
 	imageServices := image.NewImagesService()
 	appHandler := api.NewAPIMicroservices(logger, imageServices, auth, profile, music, playlists)
-	middlewareHandler := middleware.NewMiddlewareHandler(auth, logger)
+
+	monitor := monitoring.RegisterMonitoring(server)
+	middlewareHandler := middleware.NewMiddlewareHandler(auth, logger, monitor)
 
 	appHandler.Init(server)
 	middlewareHandler.InitMiddlewareHandlers(server)

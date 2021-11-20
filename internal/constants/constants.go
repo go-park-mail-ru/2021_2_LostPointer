@@ -42,6 +42,7 @@ const (
 	TrackDeletedFromPlaylistMessage        = "Track was successfully deleted from playlist"
 	NotPlaylistOwnerMessage                = "You are not owner of this playlist"
 	DefaultPlaylistArtworkColor            = "#8071c2"
+	PanicRecover                           = "Panic"
 
 	SaltLength                   = 8
 	BigAvatarHeight              = 500

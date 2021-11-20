@@ -47,17 +47,17 @@ func (service *MusicService) RandomArtists(ctx context.Context, metadata *proto.
 }
 
 func (service *MusicService) ArtistProfile(ctx context.Context, metadata *proto.ArtistProfileOptions) (*proto.Artist, error) {
-	artistData, err := service.storage.GetArtistInfo(metadata.ArtistID)
+	artistData, err := service.storage.ArtistInfo(metadata.ArtistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	artistData.Tracks, err = service.storage.GetArtistTracks(metadata.ArtistID, metadata.IsAuthorized, constants.ArtistTracksSelectionAmount)
+	artistData.Tracks, err = service.storage.ArtistTracks(metadata.ArtistID, metadata.IsAuthorized, constants.ArtistTracksSelectionAmount)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	artistData.Albums, err = service.storage.GetArtistAlbums(metadata.ArtistID, constants.ArtistAlbumsSelectionAmount)
+	artistData.Albums, err = service.storage.ArtistAlbums(metadata.ArtistID, constants.ArtistAlbumsSelectionAmount)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -128,7 +128,7 @@ func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) 
 }
 
 func (service *MusicService) UserPlaylists(ctx context.Context, data *proto.UserPlaylistsOptions) (*proto.PlaylistsData, error) {
-	playlists, err := service.storage.GetUserPlaylists(data.UserID)
+	playlists, err := service.storage.UserPlaylists(data.UserID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -153,12 +153,12 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
-	playlistInfo, err := service.storage.GetPlaylistInfo(data.PlaylistID)
+	playlistInfo, err := service.storage.PlaylistInfo(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	playlistTracks, err := service.storage.GetPlaylistTracks(data.PlaylistID)
+	playlistTracks, err := service.storage.PlaylistTracks(data.PlaylistID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

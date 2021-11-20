@@ -3,7 +3,7 @@ package image
 import (
 	"2021_2_LostPointer/internal/models"
 	"bufio"
-	image2 "image"
+	"image"
 	"io"
 	"log"
 	"mime/multipart"
@@ -61,17 +61,17 @@ func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, pat
 	for size, extension := range extensions {
 		log.Println(size, ": ", extension)
 		var (
-			img image2.Image
+			newSrc image.Image
 			out *os.File
 		)
 
 		if height < width {
-			src = imgconv.Resize(src, imgconv.ResizeOption{Height: size})
+			newSrc = imgconv.Resize(src, imgconv.ResizeOption{Height: size})
 		} else {
-			src = imgconv.Resize(src, imgconv.ResizeOption{Width: size})
+			newSrc = imgconv.Resize(src, imgconv.ResizeOption{Width: size})
 		}
 
-		img, err = cutter.Crop(src, cutter.Config{Width: size, Height: size, Mode: cutter.Centered})
+		img, err := cutter.Crop(newSrc, cutter.Config{Width: size, Height: size, Mode: cutter.Centered})
 		if err != nil {
 			return nil, err
 		}

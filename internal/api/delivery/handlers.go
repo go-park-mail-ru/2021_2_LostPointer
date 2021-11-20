@@ -853,8 +853,10 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 	}
 
 	var artworkFilename, artworkColor string
+	var isPublic bool
 	title := ctx.FormValue("title")
 	artwork, err := ctx.FormFile("artwork")
+	isPublic, _ = strconv.ParseBool(ctx.FormValue("is_public"))
 	if err != nil {
 		artworkFilename = ""
 	} else {
@@ -886,6 +888,7 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 		UserID:       int64(userID),
 		Artwork:      artworkFilename,
 		ArtworkColor: artworkColor,
+		IsPublic:     isPublic,
 	})
 	if err != nil {
 		deleteErr := api.imageService.DeleteImages(

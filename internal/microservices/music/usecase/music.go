@@ -103,7 +103,7 @@ func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) 
 	}
 
 	for _, track := range FindTracksByPartial {
-		if !contains(tracks, track.ID) {
+		if !contains(tracks, track.ID) && len(tracks) < constants.SearchTracksAmount {
 			tracks = append(tracks, track)
 		}
 	}

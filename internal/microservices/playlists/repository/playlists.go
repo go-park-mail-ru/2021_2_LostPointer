@@ -31,16 +31,16 @@ func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artw
 	return &proto.CreatePlaylistResponse{PlaylistID: id}, nil
 }
 
-func (storage *PlaylistsStorage) GetOldArtwork(playlistID int64) (string, error) {
-	query := `SELECT artwork FROM playlists WHERE id=$1`
+func (storage *PlaylistsStorage) GetOldPlaylistSettings(playlistID int64) (string, string, error) {
+	query := `SELECT artwork, title FROM playlists WHERE id=$1`
 
-	var artwork string
-	err := storage.db.QueryRow(query, playlistID).Scan(&artwork)
+	var artwork, title string
+	err := storage.db.QueryRow(query, playlistID).Scan(&artwork, &title)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return artwork, nil
+	return artwork, title, nil
 }
 
 func (storage *PlaylistsStorage) DeletePlaylist(playlistID int64) error {

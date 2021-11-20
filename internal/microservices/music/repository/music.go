@@ -147,7 +147,7 @@ func (storage *MusicStorage) RandomArtists(amount int64) (*proto.Artists, error)
 	return artistsList, nil
 }
 
-func (storage *MusicStorage) GetArtistInfo(artistID int64) (*proto.Artist, error) {
+func (storage *MusicStorage) ArtistInfo(artistID int64) (*proto.Artist, error) {
 	query := `
 		SELECT id, name, avatar, video
 		FROM artists
@@ -169,7 +169,7 @@ func (storage *MusicStorage) GetArtistInfo(artistID int64) (*proto.Artist, error
 	return artist, nil
 }
 
-func (storage *MusicStorage) GetArtistTracks(artistID int64, isAuthorized bool, amount int64) ([]*proto.Track, error) {
+func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amount int64) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
@@ -215,7 +215,7 @@ func (storage *MusicStorage) GetArtistTracks(artistID int64, isAuthorized bool, 
 	return tracks, nil
 }
 
-func (storage *MusicStorage) GetArtistAlbums(artistID int64, amount int64) ([]*proto.Album, error) {
+func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*proto.Album, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb") + ", SUM(t.duration) AS tracksDuration" +
 		`
@@ -534,7 +534,7 @@ func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bo
 	return false, nil
 }
 
-func (storage *MusicStorage) GetPlaylistTracks(playlistID int64) ([]*proto.Track, error) {
+func (storage *MusicStorage) PlaylistTracks(playlistID int64) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
@@ -584,7 +584,7 @@ func (storage *MusicStorage) GetPlaylistTracks(playlistID int64) ([]*proto.Track
 	return tracks, nil
 }
 
-func (storage *MusicStorage) GetPlaylistInfo(playlistID int64) (*proto.PlaylistData, error) {
+func (storage *MusicStorage) PlaylistInfo(playlistID int64) (*proto.PlaylistData, error) {
 	query := `SELECT id, title, artwork, artwork_color FROM playlists WHERE id=$1`
 
 	playlistInfo := &proto.PlaylistData{}
@@ -599,7 +599,7 @@ func (storage *MusicStorage) GetPlaylistInfo(playlistID int64) (*proto.PlaylistD
 	return playlistInfo, nil
 }
 
-func (storage *MusicStorage) GetUserPlaylists(userID int64) ([]*proto.PlaylistData, error) {
+func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData, error) {
 	query := `SELECT id, title, artwork FROM playlists WHERE user_id=$1`
 
 	rows, err := storage.db.Query(query, userID)

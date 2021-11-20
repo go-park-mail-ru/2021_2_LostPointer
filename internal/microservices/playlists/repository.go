@@ -4,8 +4,7 @@ import "2021_2_LostPointer/internal/microservices/playlists/proto"
 
 type Storage interface {
 	CreatePlaylist(int64, string, string, string) (*proto.CreatePlaylistResponse, error)
-	UpdatePlaylist(int64, string, string, string) error
-	GetOldPlaylistSettings(int64) (string, string, error)
+	GetOldPlaylistSettings(int64) (string, error)
 	DeletePlaylist(int64) error
 	AddTrack(int64, int64) error
 	DeleteTrack(int64, int64) error

@@ -16,6 +16,7 @@ message UpdatePlaylistOptions {
   int64 UserID = 3;
   string Artwork = 4;
   string ArtworkColor = 5;
+  bool IsPublic = 6;
 }
 
 message DeletePlaylistOptions {

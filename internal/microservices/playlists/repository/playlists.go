@@ -181,3 +181,14 @@ func (storage *PlaylistsStorage) DeletePlaylistArtwork(playlistID int64) error {
 
 	return nil
 }
+
+func (storage *PlaylistsStorage) UpdatePlaylistAccess(playlistID int64, isPublic bool) error {
+	query := `UPDATE playlists SET is_public=$1 WHERE id=$2`
+
+	err := storage.db.QueryRow(query, isPublic, playlistID).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

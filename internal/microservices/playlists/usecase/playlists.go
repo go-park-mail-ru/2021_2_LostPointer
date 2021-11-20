@@ -75,6 +75,10 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		}
 	}
 
+	if err = service.storage.UpdatePlaylistAccess(data.PlaylistID, data.IsPublic); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

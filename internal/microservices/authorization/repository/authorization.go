@@ -17,7 +17,7 @@ import (
 	"2021_2_LostPointer/pkg/utils"
 )
 
-type AuthStorage struct {
+type  AuthStorage struct {
 	db    *sql.DB
 	redis *redis.Client
 }

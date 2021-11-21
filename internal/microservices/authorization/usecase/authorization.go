@@ -3,10 +3,10 @@ package usecase
 import (
 	"2021_2_LostPointer/internal/constants"
 	customErrors "2021_2_LostPointer/internal/errors"
+	"2021_2_LostPointer/internal/microservices/authorization"
 	"2021_2_LostPointer/pkg/validation"
 	"context"
 	"errors"
-	"log"
 	"os"
 
 	uuid "github.com/satori/go.uuid"
@@ -14,14 +14,13 @@ import (
 	"google.golang.org/grpc/status"
 
 	"2021_2_LostPointer/internal/microservices/authorization/proto"
-	"2021_2_LostPointer/internal/microservices/authorization/repository"
 )
 
 type AuthService struct {
-	storage repository.AuthStorage
+	storage authorization.AuthStorage
 }
 
-func NewAuthService(storage repository.AuthStorage) *AuthService {
+func NewAuthService(storage authorization.AuthStorage) *AuthService {
 	return &AuthService{storage: storage}
 }
 
@@ -36,7 +35,7 @@ func (service *AuthService) CreateSession(ctx context.Context, data *proto.Sessi
 func (service *AuthService) GetUserByCookie(ctx context.Context, cookie *proto.Cookie) (*proto.UserID, error) {
 	id, err := service.storage.GetUserByCookie(cookie.Cookies)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &proto.UserID{ID: id}, nil
@@ -51,8 +50,6 @@ func (service *AuthService) DeleteSession(ctx context.Context, cookie *proto.Coo
 }
 
 func (service *AuthService) Login(ctx context.Context, authData *proto.AuthData) (*proto.Cookie, error) {
-	log.Println("Running in Docker")
-
 	userID, err := service.storage.GetUserByPassword(authData)
 	if err != nil {
 		if errors.Is(err, customErrors.ErrWrongCredentials) {

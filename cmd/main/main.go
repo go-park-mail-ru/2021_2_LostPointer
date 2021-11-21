@@ -96,7 +96,7 @@ func main() {
 			}
 		}
 	}()
-	imageServices := image.NewImageService()
+	imageServices := image.NewImagesService()
 	appHandler := api.NewAPIMicroservices(logger, imageServices, auth, profile, music, playlists)
 
 	monitor := monitoring.RegisterMonitoring(server)

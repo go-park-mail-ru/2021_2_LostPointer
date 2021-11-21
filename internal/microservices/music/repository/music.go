@@ -147,7 +147,7 @@ func (storage *MusicStorage) RandomArtists(amount int64) (*proto.Artists, error)
 	return artistsList, nil
 }
 
-func (storage *MusicStorage) GetArtistInfo(artistID int64) (*proto.Artist, error) {
+func (storage *MusicStorage) ArtistInfo(artistID int64) (*proto.Artist, error) {
 	query := `
 		SELECT id, name, avatar, video
 		FROM artists
@@ -160,16 +160,16 @@ func (storage *MusicStorage) GetArtistInfo(artistID int64) (*proto.Artist, error
 		return nil, err
 	}
 
-	artist.Avatar = os.Getenv("ARTISTS_ROOT_PREFIX") + artist.Avatar + constants.BigArtistPostfix
+	artist.Avatar = os.Getenv("ARTISTS_ROOT_PREFIX") + artist.Avatar + constants.ImageExtension
 
 	if len(video) != 1 {
-		artist.Video = os.Getenv("MOV_ROOT_PREFIX") + video + constants.VideoPostfix
+		artist.Video = os.Getenv("MOV_ROOT_PREFIX") + video + constants.VideoExtension
 	}
 
 	return artist, nil
 }
 
-func (storage *MusicStorage) GetArtistTracks(artistID int64, isAuthorized bool, amount int64) ([]*proto.Track, error) {
+func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amount int64) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
@@ -215,7 +215,7 @@ func (storage *MusicStorage) GetArtistTracks(artistID int64, isAuthorized bool, 
 	return tracks, nil
 }
 
-func (storage *MusicStorage) GetArtistAlbums(artistID int64, amount int64) ([]*proto.Album, error) {
+func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*proto.Album, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb") + ", SUM(t.duration) AS tracksDuration" +
 		`
@@ -347,7 +347,7 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, isAuthorized bool
 		    WHERE concatenation @@ plainto_tsquery($1)
 		)
 		ORDER BY t.listen_count DESC LIMIT $2`
-	rows, err := storage.db.Query(query, text, constants.TracksSearchAmount)
+	rows, err := storage.db.Query(query, text, constants.SearchTracksAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, isAuthorized bool
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.TracksSearchAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -399,7 +399,7 @@ func (storage *MusicStorage) FindTracksByPartial(text string, isAuthorized bool)
 		    WHERE concat ILIKE $1
 		)
 		ORDER BY t.listen_count DESC LIMIT $2`
-	rows, err := storage.db.Query(query, "%"+text+"%", constants.TracksSearchAmount)
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchTracksAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -414,7 +414,7 @@ func (storage *MusicStorage) FindTracksByPartial(text string, isAuthorized bool)
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.TracksSearchAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -440,7 +440,7 @@ func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
 		WHERE name ILIKE $1
 		LIMIT $2
 	`
-	rows, err := storage.db.Query(query, "%"+text+"%", constants.ArtistsSearchAmount)
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchArtistsAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -455,7 +455,7 @@ func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
 		}
 	}()
 
-	artists := make([]*proto.Artist, 0, constants.ArtistsSearchAmount)
+	artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
 	for rows.Next() {
 		artist := &proto.Artist{}
 		artist.Tracks = []*proto.Track{}
@@ -482,7 +482,7 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 		ORDER BY year DESC
 		LIMIT $2
 		`
-	rows, err := storage.db.Query(query, "%"+text+"%", constants.AlbumsSearchAmount)
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchAlbumsAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +497,7 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 		}
 	}()
 
-	albums := make([]*proto.Album, 0, constants.AlbumsSearchAmount)
+	albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
 	for rows.Next() {
 		album := &proto.Album{}
 		if err = rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.TracksAmount, &album.ArtworkColor, &album.Artist,
@@ -511,7 +511,7 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 }
 
 func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bool, error) {
-	query := `SELECT * FROM playlists WHERE id=$1 AND user_id=$2`
+	query := `SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`
 
 	rows, err := storage.db.Query(query, playlistID, userID)
 	if err != nil {
@@ -534,7 +534,7 @@ func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bo
 	return false, nil
 }
 
-func (storage *MusicStorage) GetPlaylistTracks(playlistID int64) ([]*proto.Track, error) {
+func (storage *MusicStorage) PlaylistTracks(playlistID int64) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
@@ -566,7 +566,7 @@ func (storage *MusicStorage) GetPlaylistTracks(playlistID int64) ([]*proto.Track
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.TracksSearchAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -584,22 +584,23 @@ func (storage *MusicStorage) GetPlaylistTracks(playlistID int64) ([]*proto.Track
 	return tracks, nil
 }
 
-func (storage *MusicStorage) GetPlaylistInfo(playlistID int64) (*proto.PlaylistData, error) {
-	query := `SELECT title, artwork FROM playlists WHERE id=$1`
+func (storage *MusicStorage) PlaylistInfo(playlistID int64) (*proto.PlaylistData, error) {
+	query := `SELECT id, title, artwork, artwork_color, is_public FROM playlists WHERE id=$1`
 
 	playlistInfo := &proto.PlaylistData{}
-	err := storage.db.QueryRow(query, playlistID).Scan(&playlistInfo.Title, &playlistInfo.Artwork)
+	err := storage.db.QueryRow(query, playlistID).Scan(
+		&playlistInfo.PlaylistID, &playlistInfo.Title, &playlistInfo.Artwork, &playlistInfo.ArtworkColor, &playlistInfo.IsPublic)
 	if err != nil {
 		return nil, err
 	}
 
-	playlistInfo.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlistInfo.Artwork + constants.BigPlaylistArtworkPostfix
+	playlistInfo.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlistInfo.Artwork + constants.PlaylistArtworkExtension384px
 
 	return playlistInfo, nil
 }
 
-func (storage *MusicStorage) GetUserPlaylists(userID int64) ([]*proto.PlaylistData, error) {
-	query := `SELECT id, title, artwork FROM playlists WHERE user_id=$1`
+func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData, error) {
+	query := `SELECT id, title, artwork, is_public FROM playlists WHERE user_id=$1 OR is_public=true`
 
 	rows, err := storage.db.Query(query, userID)
 	if err != nil {
@@ -619,12 +620,36 @@ func (storage *MusicStorage) GetUserPlaylists(userID int64) ([]*proto.PlaylistDa
 	playlists := make([]*proto.PlaylistData, 0)
 	for rows.Next() {
 		playlist := &proto.PlaylistData{}
-		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork); err != nil {
+		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork, &playlist.IsPublic); err != nil {
 			return nil, err
 		}
-		playlist.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlist.Artwork + constants.LittlePlaylistArtworkPostfix
+		playlist.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlist.Artwork + constants.PlaylistArtworkExtension100px
 		playlists = append(playlists, playlist)
 	}
 
 	return playlists, nil
+}
+
+func (storage *MusicStorage) DoesPlaylistExist(playlistID int64) (bool, error) {
+	query := `SELECT * FROM playlists WHERE id=$1`
+
+	rows, err := storage.db.Query(query, playlistID)
+	if err != nil {
+		return true, err
+	}
+	err = rows.Err()
+	if err != nil {
+		return true, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	if rows.Next() {
+		return true, nil
+	}
+	return false, nil
 }

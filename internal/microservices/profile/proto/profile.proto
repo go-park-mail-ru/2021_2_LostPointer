@@ -9,7 +9,7 @@ message UserSettings {
   string BigAvatar = 4;
 }
 
-message UploadSettings {
+message UpdateSettingsOptions {
   int64 UserID = 1;
   string Email = 2;
   string Nickname = 3;
@@ -19,17 +19,13 @@ message UploadSettings {
   UserSettings OldSettings = 7;
 }
 
-message ProfileUserID {
+message GetSettingsOptions {
   int64 ID = 1;
-}
-
-message Avatar {
-  string Filename = 1;
 }
 
 message EmptyProfile {}
 
 service Profile {
-  rpc GetSettings(ProfileUserID) returns(UserSettings) {}
-  rpc UpdateSettings(UploadSettings) returns(EmptyProfile) {}
+  rpc GetSettings(GetSettingsOptions) returns(UserSettings) {}
+  rpc UpdateSettings(UpdateSettingsOptions) returns(EmptyProfile) {}
 }

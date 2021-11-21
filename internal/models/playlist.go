@@ -15,9 +15,10 @@ type PlaylistTrack struct {
 }
 
 type UserPlaylist struct {
-	PlaylistID int64  `json:"playlist_id,omitempty"`
+	PlaylistID int64  `json:"id,omitempty"`
 	Title      string `json:"title,omitempty"`
 	Artwork    string `json:"artwork,omitempty"`
+	IsPublic   bool   `json:"is_public,omitempty"`
 }
 
 type UserPlaylists struct {
@@ -25,23 +26,33 @@ type UserPlaylists struct {
 }
 
 type PlaylistPage struct {
-	Title      string  `json:"title,omitempty"`
-	Artwork    string  `json:"artwork,omitempty"`
-	Tracks     []Track `json:"tracks,omitempty"`
+	ID           int64   `json:"id,omitempty"`
+	Title        string  `json:"title,omitempty"`
+	Artwork      string  `json:"artwork,omitempty"`
+	ArtworkColor string  `json:"artwork_color,omitempty"`
+	Tracks       []Track `json:"tracks,omitempty"`
+	IsPublic     bool    `json:"is_public,omitempty"`
+}
+
+type PlaylistArtworkColor struct {
+	ArtworkColor string `json:"artwork_color"`
 }
 
 func (p *PlaylistPage) BindProto(playlistPage *music.PlaylistPageResponse) {
 	bindedTracks := make([]Track, 0)
 	for _, track := range playlistPage.Tracks {
 		var bindedTrack Track
-		bindedTrack.BindProtoTrack(track)
+		bindedTrack.BindProto(track)
 		bindedTracks = append(bindedTracks, bindedTrack)
 	}
 
 	bindedPlaylistPage := PlaylistPage{
-		Title: playlistPage.Title,
-		Artwork: playlistPage.Artwork,
-		Tracks: bindedTracks,
+		ID:           playlistPage.PlaylistID,
+		Title:        playlistPage.Title,
+		Artwork:      playlistPage.Artwork,
+		ArtworkColor: playlistPage.ArtworkColor,
+		Tracks:       bindedTracks,
+		IsPublic:     playlistPage.IsPublic,
 	}
 
 	*p = bindedPlaylistPage
@@ -54,11 +65,12 @@ func (u *UserPlaylists) BindProto(playlists *music.PlaylistsData) {
 			PlaylistID: playlist.PlaylistID,
 			Title:      playlist.Title,
 			Artwork:    playlist.Artwork,
+			IsPublic:   playlist.IsPublic,
 		}
 		bindedPlaylists = append(bindedPlaylists, bindedPlaylist)
 	}
 
-	(*u).Playlists = bindedPlaylists
+	u.Playlists = bindedPlaylists
 }
 
 func (p *PlaylistID) BindProto(playlist *playlists.CreatePlaylistResponse) {

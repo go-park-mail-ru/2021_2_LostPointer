@@ -27,11 +27,11 @@ type AlbumPage struct {
 	Tracks         []TrackAlbum `json:"tracks,omitempty"`
 }
 
-func (a *AlbumPage) BindProtoAlbumPage(album *proto.AlbumPageResponse) {
+func (a *AlbumPage) BindProto(album *proto.AlbumPageResponse) {
 	tracks := make([]TrackAlbum, 0)
 	for _, t := range album.Tracks {
 		var track TrackAlbum
-		track.BindProtoAlbumTrack(t)
+		track.BindProto(t)
 		tracks = append(tracks, track)
 	}
 
@@ -53,7 +53,7 @@ func (a *AlbumPage) BindProtoAlbumPage(album *proto.AlbumPageResponse) {
 	*a = *bindedAlbum
 }
 
-func (a *Album) BindProtoAlbum(album *proto.Album) {
+func (a *Album) BindProto(album *proto.Album) {
 	bindedAlbum := &Album{
 		ID:             album.ID,
 		Title:          album.Title,

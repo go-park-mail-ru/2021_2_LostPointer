@@ -11,9 +11,9 @@ import (
 
 func ValidatePassword(password string) (bool, string, error) {
 	patterns := map[string]string{
-		`^.{` + constants.PasswordRequiredLength + `,}$`: constants.PasswordValidationInvalidLengthMessage,
-		`[0-9]`:    constants.PasswordValidationNoDigitMessage,
-		`[a-zA-Z]`: constants.PasswordValidationNoLetterMessage,
+		`^.{` + constants.PasswordRequiredLength + `,}$`: constants.PasswordInvalidLengthMessage,
+		`[0-9]`:    constants.PasswordNoDigitMessage,
+		`[a-zA-Z]`: constants.PasswordNoLetterMessage,
 	}
 
 	for pattern, errorMessage := range patterns {
@@ -32,7 +32,7 @@ func ValidatePassword(password string) (bool, string, error) {
 func ValidateRegisterCredentials(email string, password string, nickname string) (bool, string, error) {
 	isEmailValid := govalidator.IsEmail(email)
 	if !isEmailValid {
-		return false, constants.InvalidEmailMessage, nil
+		return false, constants.EmailInvalidSyntaxMessage, nil
 	}
 
 	isNicknameValid, err := regexp.MatchString(`^([\wА-Яа-я]+)$`, nickname)
@@ -40,12 +40,12 @@ func ValidateRegisterCredentials(email string, password string, nickname string)
 		return false, "", err
 	}
 	if !isNicknameValid {
-		return false, constants.InvalidNicknameMessage, nil
+		return false, constants.NicknameInvalidSyntaxMessage, nil
 	}
 	minLength, _ := strconv.Atoi(constants.MinNicknameLength)
 	maxLength, _ := strconv.Atoi(constants.MaxNicknameLength)
 	if len(nickname) < minLength && len(nickname) > maxLength {
-		return false, constants.InvalidNicknameLengthMessage, nil
+		return false, constants.NicknameInvalidLengthMessage, nil
 	}
 
 	passwordValid, message, err := ValidatePassword(password)
@@ -62,8 +62,9 @@ func ValidateRegisterCredentials(email string, password string, nickname string)
 func ValidatePlaylistTitle(title string) (bool, string, error) {
 	minLength, _ := strconv.Atoi(constants.MinPlaylistTitleLength)
 	maxLength, _ := strconv.Atoi(constants.MaxPlaylistTitleLength)
-	if len(title) < minLength && len(title) > maxLength {
-		return false, constants.InvalidPlaylistTitleLengthMessage, nil
+
+	if len(title) < minLength || len(title) > maxLength {
+		return false, constants.PlaylistTitleInvalidLengthMessage, nil
 	}
 
 	return true, "", nil

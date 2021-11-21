@@ -57,6 +57,7 @@ const (
 	NotPlaylistOwnerMessage         = "You are not owner of this playlist"
 	PlaylistNotFoundMessage         = "Playlist doesn't exist"
 	PlaylistArtworkDeletedMessage   = "Artwork was successfully deleted"
+	PanicRecover                    = "Panic!"
 
 	// Ограничения/лимиты
 	ArtistTracksSelectionAmount    = 10

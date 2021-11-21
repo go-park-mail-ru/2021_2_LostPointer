@@ -399,7 +399,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 		oldAvatarFilename,
 		[]string{constants.UserAvatarExtension150px, constants.UserAvatarExtension500px},
 		constants.AvatarDefaultFileName,
-		)
+	)
 	if err != nil {
 		api.logger.Error(
 			zap.String("ID", requestID),
@@ -754,6 +754,7 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 
 	var artworkFilename, artworkColor string
 	title := ctx.FormValue("title")
+	isPublic, _ := strconv.ParseBool(ctx.FormValue("is_public"))
 	artwork, err := ctx.FormFile("artwork")
 	if err != nil {
 		artworkFilename = ""
@@ -767,8 +768,8 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 			artwork,
 			os.Getenv("PLAYLIST_FULL_PREFIX"),
 			map[int]string{
-				100: constants.PlaylistArtworkExtension384px,
-				384: constants.PlaylistArtworkExtension100px,
+				100: constants.PlaylistArtworkExtension100px,
+				384: constants.PlaylistArtworkExtension384px,
 			})
 		if err != nil {
 			api.logger.Error(
@@ -784,10 +785,24 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 	playlistIDProto, err := api.playlistsMicroservice.CreatePlaylist(context.Background(), &playlists.CreatePlaylistOptions{
 		UserID:       int64(userID),
 		Title:        title,
+		IsPublic:     isPublic,
 		Artwork:      artworkFilename,
 		ArtworkColor: artworkColor,
 	})
 	if err != nil {
+		deleteErr := api.imageService.DeleteImages(
+			os.Getenv("PLAYLIST_FULL_PREFIX"),
+			artworkFilename,
+			[]string{constants.PlaylistArtworkExtension100px, constants.PlaylistArtworkExtension384px},
+			constants.PlaylistArtworkDefaultFilename,
+		)
+		if deleteErr != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", deleteErr.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
@@ -838,8 +853,10 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 	}
 
 	var artworkFilename, artworkColor string
+	var isPublic bool
 	title := ctx.FormValue("title")
 	artwork, err := ctx.FormFile("artwork")
+	isPublic, _ = strconv.ParseBool(ctx.FormValue("is_public"))
 	if err != nil {
 		artworkFilename = ""
 	} else {
@@ -851,8 +868,8 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 			artwork,
 			os.Getenv("PLAYLIST_FULL_PREFIX"),
 			map[int]string{
-				100: constants.PlaylistArtworkExtension384px,
-				384: constants.PlaylistArtworkExtension100px,
+				100: constants.PlaylistArtworkExtension100px,
+				384: constants.PlaylistArtworkExtension384px,
 			})
 		if err != nil {
 			api.logger.Error(
@@ -871,18 +888,19 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 		UserID:       int64(userID),
 		Artwork:      artworkFilename,
 		ArtworkColor: artworkColor,
+		IsPublic:     isPublic,
 	})
 	if err != nil {
-		err = api.imageService.DeleteImages(
+		deleteErr := api.imageService.DeleteImages(
 			os.Getenv("PLAYLIST_FULL_PREFIX"),
 			artworkFilename,
 			[]string{constants.PlaylistArtworkExtension100px, constants.PlaylistArtworkExtension384px},
 			constants.PlaylistArtworkDefaultFilename,
 		)
-		if err != nil {
+		if deleteErr != nil {
 			api.logger.Error(
 				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
+				zap.String("ERROR", deleteErr.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
@@ -1226,7 +1244,7 @@ func (api *APIMicroservices) DeletePlaylistArtwork(ctx echo.Context) error {
 		oldArtworkProto.OldArtworkFilename,
 		[]string{constants.PlaylistArtworkExtension100px, constants.PlaylistArtworkExtension384px},
 		constants.PlaylistArtworkDefaultFilename,
-		)
+	)
 	if err != nil {
 		api.logger.Error(
 			zap.String("ID", requestID),

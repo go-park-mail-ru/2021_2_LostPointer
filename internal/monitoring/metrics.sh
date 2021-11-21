@@ -4,7 +4,7 @@
 # shellcheck disable=SC2046
 #sudo docker rm -vf $(docker ps -a -q)
 
-echo "running prometheus on port 9091"
+echo "running prometheus on port 9090"
 # shellcheck disable=SC2154
 sudo docker run -p 9091:9090 -d --name prometheus --net=host -v $PWD/prometheus:/etc/config prom/prometheus --config.file=/etc/config/prometheus.yml
 echo "running node exporter on port 9100"

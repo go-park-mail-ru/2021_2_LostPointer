@@ -65,14 +65,11 @@ func (storage *PlaylistsStorage) AddTrack(playlistID int64, trackID int64) error
 	return nil
 }
 
+//nolint:rowserrcheck
 func (storage *PlaylistsStorage) IsAdded(playlistID int64, trackID int64) (bool, error) {
 	query := `SELECT * FROM playlist_tracks WHERE playlist=$1 AND track=$2`
 
 	rows, err := storage.db.Query(query, playlistID, trackID)
-	if err != nil {
-		return true, err
-	}
-	err = rows.Err()
 	if err != nil {
 		return true, err
 	}
@@ -100,14 +97,12 @@ func (storage *PlaylistsStorage) DeleteTrack(playlistID int64, trackID int64) er
 	return nil
 }
 
+
+//nolint:rowserrcheck
 func (storage *PlaylistsStorage) IsOwner(playlistID int64, userID int64) (bool, error) {
 	query := `SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`
 
 	rows, err := storage.db.Query(query, playlistID, userID)
-	if err != nil {
-		return true, err
-	}
-	err = rows.Err()
 	if err != nil {
 		return true, err
 	}

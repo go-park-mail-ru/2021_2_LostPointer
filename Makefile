@@ -14,7 +14,7 @@ endif
 
 .PHONY: test
 test:
-	go test ./... -covermode=atomic -v -race
+	go test ./... -covermode=atomic -v -race -coverprofile cover.out
 
 .PHONY: build
 build:

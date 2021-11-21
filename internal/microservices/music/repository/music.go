@@ -34,10 +34,6 @@ func (storage *MusicStorage) RandomTracks(amount int64, isAuthorized bool) (*pro
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -61,6 +57,10 @@ func (storage *MusicStorage) RandomTracks(amount int64, isAuthorized bool) (*pro
 		}
 		tracks = append(tracks, track)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	tracksList := &proto.Tracks{Tracks: tracks}
 	return tracksList, nil
@@ -83,10 +83,6 @@ func (storage *MusicStorage) RandomAlbums(amount int64) (*proto.Albums, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -102,6 +98,10 @@ func (storage *MusicStorage) RandomAlbums(amount int64) (*proto.Albums, error) {
 			return nil, err
 		}
 		albums = append(albums, album)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	albumsList := &proto.Albums{Albums: albums}
@@ -121,10 +121,7 @@ func (storage *MusicStorage) RandomArtists(amount int64) (*proto.Artists, error)
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
+
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -141,6 +138,10 @@ func (storage *MusicStorage) RandomArtists(amount int64) (*proto.Artists, error)
 			return nil, err
 		}
 		artists = append(artists, artist)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	artistsList := &proto.Artists{Artists: artists}
@@ -162,7 +163,7 @@ func (storage *MusicStorage) ArtistInfo(artistID int64) (*proto.Artist, error) {
 
 	artist.Avatar = os.Getenv("ARTISTS_ROOT_PREFIX") + artist.Avatar + constants.ImageExtension
 
-	if len(video) != 1 {
+	if len(video) > 1 {
 		artist.Video = os.Getenv("MOV_ROOT_PREFIX") + video + constants.VideoExtension
 	}
 
@@ -186,10 +187,7 @@ func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amo
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
+
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -211,6 +209,10 @@ func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amo
 		}
 		tracks = append(tracks, track)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	return tracks, nil
 }
@@ -230,10 +232,6 @@ func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*prot
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -248,6 +246,10 @@ func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*prot
 			return nil, err
 		}
 		albums = append(albums, album)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return albums, nil
@@ -287,7 +289,6 @@ func (storage *MusicStorage) AlbumData(albumID int64) (*proto.AlbumPageResponse,
 }
 
 func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*proto.AlbumTrack, error) {
-
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"name"}, "g") +
@@ -300,10 +301,6 @@ func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*p
 		ORDER BY t.listen_count DESC
 		`
 	rows, err := storage.db.Query(query, albumID)
-	if err != nil {
-		return nil, err
-	}
-	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}
@@ -326,6 +323,11 @@ func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*p
 		}
 		tracks = append(tracks, track)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return tracks, nil
 }
 
@@ -351,10 +353,6 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, isAuthorized bool
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -376,6 +374,10 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, isAuthorized bool
 			track.File = ""
 		}
 		tracks = append(tracks, track)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return tracks, nil
@@ -403,10 +405,6 @@ func (storage *MusicStorage) FindTracksByPartial(text string, isAuthorized bool)
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -429,6 +427,10 @@ func (storage *MusicStorage) FindTracksByPartial(text string, isAuthorized bool)
 		}
 		tracks = append(tracks, track)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	return tracks, nil
 }
@@ -441,10 +443,6 @@ func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
 		LIMIT $2
 	`
 	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchArtistsAmount)
-	if err != nil {
-		return nil, err
-	}
-	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}
@@ -464,6 +462,10 @@ func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
 			return nil, err
 		}
 		artists = append(artists, artist)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return artists, nil
@@ -486,10 +488,6 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -506,6 +504,10 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 		}
 		albums = append(albums, album)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	return albums, nil
 }
@@ -514,10 +516,6 @@ func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bo
 	query := `SELECT * FROM playlists WHERE id=$1 AND user_id=$2`
 
 	rows, err := storage.db.Query(query, playlistID, userID)
-	if err != nil {
-		return true, err
-	}
-	err = rows.Err()
 	if err != nil {
 		return true, err
 	}
@@ -531,6 +529,7 @@ func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bo
 	if rows.Next() {
 		return true, nil
 	}
+
 	return false, nil
 }
 
@@ -555,10 +554,6 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64) ([]*proto.Track, e
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -578,8 +573,10 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64) ([]*proto.Track, e
 		}
 		tracks = append(tracks, track)
 	}
-
-	log.Println("Tracks repos: ", tracks)
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	return tracks, nil
 }
@@ -606,10 +603,6 @@ func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData,
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -626,6 +619,10 @@ func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData,
 		playlist.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlist.Artwork + constants.PlaylistArtworkExtension100px
 		playlists = append(playlists, playlist)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	return playlists, nil
 }
@@ -638,18 +635,15 @@ func (storage *MusicStorage) DoesPlaylistExist(playlistID int64) (bool, error) {
 		return true, err
 	}
 	err = rows.Err()
-	if err != nil {
-		return true, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
 			log.Fatal("Error occurred during closing rows")
 		}
 	}()
-
 	if rows.Next() {
 		return true, nil
 	}
+
 	return false, nil
 }

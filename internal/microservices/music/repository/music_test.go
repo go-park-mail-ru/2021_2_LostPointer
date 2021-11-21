@@ -1,0 +1,2814 @@
+package repository
+
+import (
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jinzhu/copier"
+	"github.com/stretchr/testify/assert"
+
+	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/microservices/music/proto"
+	"2021_2_LostPointer/pkg/wrapper"
+	"database/sql"
+	"database/sql/driver"
+	"errors"
+	"log"
+	"os"
+	"regexp"
+	"testing"
+)
+
+var mock sqlmock.Sqlmock
+var repository *MusicStorage
+
+func TestMain(m *testing.M) {
+	var (
+		db  *sql.DB
+		err error
+	)
+	db, mock, err = sqlmock.New()
+	if err != nil {
+		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		return
+	}
+	repository = NewMusicStorage(db)
+	runTests := m.Run()
+	os.Exit(runTests)
+}
+
+//nolint:cyclop
+func TestMusicStorage_RandomTracks(t *testing.T) {
+	track := &proto.Track{
+		ID:          1,
+		Title:       "testTrackTitle",
+		Explicit:    true,
+		Genre:       "testGenre",
+		Number:      2,
+		File:        "testFile",
+		ListenCount: 3,
+		Duration:    4,
+		Lossless:    true,
+		Album: &proto.Album{
+			ID:      5,
+			Title:   "testAlbumTitle",
+			Artwork: "testAlbumArtwork",
+		},
+		Artist: &proto.Artist{
+			ID:   6,
+			Name: "testArtistName",
+		},
+	}
+	trackWithoutFile := new(proto.Track)
+	_ = copier.Copy(trackWithoutFile, track)
+	trackWithoutFile.File = ""
+
+	tests := []struct {
+		name          string
+		amount        int64
+		isAuthorized  bool
+		mock          func()
+		expected      *proto.Tracks
+		expectedError bool
+	}{
+		{
+			name:         "get 4 random tracks",
+			amount:       4,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		ORDER BY RANDOM() DESC LIMIT $1`)).WithArgs(driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Tracks {
+				var amount = 4
+				var tracks = new(proto.Tracks)
+				tracks.Tracks = make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks.Tracks = append(tracks.Tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "get 10 random tracks",
+			amount:       10,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < 10; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		ORDER BY RANDOM() DESC LIMIT $1`)).WithArgs(driver.Value(10)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Tracks {
+				var amount = 10
+				var tracks = new(proto.Tracks)
+				tracks.Tracks = make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks.Tracks = append(tracks.Tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "get 100 random tracks",
+			amount:       100,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < 100; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		ORDER BY RANDOM() DESC LIMIT $1`)).WithArgs(driver.Value(100)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Tracks {
+				var amount = 100
+				var tracks = new(proto.Tracks)
+				tracks.Tracks = make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks.Tracks = append(tracks.Tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "query returns error",
+			amount:       1,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		ORDER BY RANDOM() DESC LIMIT $1`)).WithArgs(driver.Value(1)).WillReturnError(errors.New("error"))
+			},
+			expected: func() *proto.Tracks {
+				var tracks = new(proto.Tracks)
+				tracks.Tracks = make([]*proto.Track, 0, 1)
+				tracks.Tracks = append(tracks.Tracks, track)
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "scan returns error",
+			amount:       1,
+			isAuthorized: true,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name", "newArg"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		ORDER BY RANDOM() DESC LIMIT $1`)).WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Tracks {
+				var tracks = new(proto.Tracks)
+				tracks.Tracks = make([]*proto.Track, 0, 1)
+				tracks.Tracks = append(tracks.Tracks, track)
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "get 4 random tracks unauthorized",
+			amount:       4,
+			isAuthorized: false,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		ORDER BY RANDOM() DESC LIMIT $1`)).WithArgs(driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Tracks {
+				var amount = 4
+				var tracks = new(proto.Tracks)
+				tracks.Tracks = make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks.Tracks = append(tracks.Tracks, trackWithoutFile)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "rows.Err() returns error",
+			amount:       4,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"}).RowError(1, errors.New("error"))
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		ORDER BY RANDOM() DESC LIMIT $1`)).WithArgs(driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Tracks {
+				var amount = 4
+				var tracks = new(proto.Tracks)
+				tracks.Tracks = make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks.Tracks = append(tracks.Tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.RandomTracks(currentTest.amount, currentTest.isAuthorized)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_RandomAlbums(t *testing.T) {
+	album := &proto.Album{
+		ID:             1,
+		Title:          "testTitle",
+		Year:           2,
+		Artist:         "testArtist",
+		Artwork:        "testArtwork",
+		TracksAmount:   3,
+		TracksDuration: 4,
+		ArtworkColor:   "testArtWorkColor",
+	}
+
+	tests := []struct {
+		name          string
+		amount        int64
+		mock          func()
+		expected      *proto.Albums
+		expectedError bool
+	}{
+		{
+			name:   "get 4 random albums",
+			amount: 4,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY RANDOM()
+		LIMIT $1
+		`)).WithArgs(driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Albums {
+				var amount = 4
+				var albums = new(proto.Albums)
+				albums.Albums = make([]*proto.Album, 0, amount)
+				for i := 0; i < amount; i++ {
+					albums.Albums = append(albums.Albums, album)
+				}
+				return albums
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 10 random albums",
+			amount: 10,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"})
+				for i := 0; i < 10; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY RANDOM()
+		LIMIT $1
+		`)).WithArgs(driver.Value(10)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Albums {
+				var amount = 10
+				var albums = new(proto.Albums)
+				albums.Albums = make([]*proto.Album, 0, amount)
+				for i := 0; i < amount; i++ {
+					albums.Albums = append(albums.Albums, album)
+				}
+				return albums
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 100 random albums",
+			amount: 100,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"})
+				for i := 0; i < 100; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY RANDOM()
+		LIMIT $1
+		`)).WithArgs(driver.Value(100)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Albums {
+				var amount = 100
+				var albums = new(proto.Albums)
+				albums.Albums = make([]*proto.Album, 0, amount)
+				for i := 0; i < amount; i++ {
+					albums.Albums = append(albums.Albums, album)
+				}
+				return albums
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "query returns error",
+			amount: 1,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY RANDOM()
+		LIMIT $1
+		`)).WithArgs(driver.Value(1)).WillReturnError(errors.New("error"))
+			},
+			expected: func() *proto.Albums {
+				var albums = new(proto.Albums)
+				albums.Albums = make([]*proto.Album, 0, 1)
+				albums.Albums = append(albums.Albums, album)
+				return albums
+			}(),
+			expectedError: true,
+		},
+		{
+			name:   "scan returns error",
+			amount: 1,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration", "newArg"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY RANDOM()
+		LIMIT $1
+		`)).WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Albums {
+				var albums = new(proto.Albums)
+				albums.Albums = make([]*proto.Album, 0, 1)
+				albums.Albums = append(albums.Albums, album)
+				return albums
+			}(),
+			expectedError: true,
+		},
+		{
+			name:   "rows returns error",
+			amount: 4,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"}).RowError(1, errors.New("error"))
+				for i := 0; i < 4; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY RANDOM()
+		LIMIT $1
+		`)).WithArgs(driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Albums {
+				var amount = 4
+				var albums = new(proto.Albums)
+				albums.Albums = make([]*proto.Album, 0, amount)
+				for i := 0; i < amount; i++ {
+					albums.Albums = append(albums.Albums, album)
+				}
+				return albums
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.RandomAlbums(currentTest.amount)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_RandomArtists(t *testing.T) {
+	tracks := make([]*proto.Track, 0)
+	albums := make([]*proto.Album, 0)
+
+	artist := &proto.Artist{
+		ID:     1,
+		Name:   "testName",
+		Avatar: "testAvatar",
+		Video:  "",
+		Tracks: tracks,
+		Albums: albums,
+	}
+
+	tests := []struct {
+		name          string
+		amount        int64
+		mock          func()
+		expected      *proto.Artists
+		expectedError bool
+	}{
+		{
+			name:   "get 4 random artists",
+			amount: 4,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT
+		id, name, avatar
+		FROM artists
+		ORDER BY RANDOM()
+		LIMIT $1
+	`)).WithArgs(driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Artists {
+				var amount = 4
+				var artists = new(proto.Artists)
+				artists.Artists = make([]*proto.Artist, 0, amount)
+				for i := 0; i < amount; i++ {
+					artists.Artists = append(artists.Artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 10 random artists",
+			amount: 10,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < 10; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT
+		id, name, avatar
+		FROM artists
+		ORDER BY RANDOM()
+		LIMIT $1
+	`)).WithArgs(driver.Value(10)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Artists {
+				var amount = 10
+				var artists = new(proto.Artists)
+				artists.Artists = make([]*proto.Artist, 0, amount)
+				for i := 0; i < amount; i++ {
+					artists.Artists = append(artists.Artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 100 random artists",
+			amount: 100,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < 100; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT
+		id, name, avatar
+		FROM artists
+		ORDER BY RANDOM()
+		LIMIT $1
+	`)).WithArgs(driver.Value(100)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Artists {
+				var amount = 100
+				var artists = new(proto.Artists)
+				artists.Artists = make([]*proto.Artist, 0, amount)
+				for i := 0; i < amount; i++ {
+					artists.Artists = append(artists.Artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "query returns error",
+			amount: 1,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT
+		id, name, avatar
+		FROM artists
+		ORDER BY RANDOM()
+		LIMIT $1
+	`)).WithArgs(driver.Value(1)).WillReturnError(errors.New("error"))
+			},
+			expected: func() *proto.Artists {
+				var artists = new(proto.Artists)
+				artists.Artists = make([]*proto.Artist, 0, 1)
+				artists.Artists = append(artists.Artists, artist)
+				return artists
+			}(),
+			expectedError: true,
+		},
+		{
+			name:   "scan returns error",
+			amount: 1,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar", "newArg"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT
+		id, name, avatar
+		FROM artists
+		ORDER BY RANDOM()
+		LIMIT $1
+	`)).WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Artists {
+				var artists = new(proto.Artists)
+				artists.Artists = make([]*proto.Artist, 0, 1)
+				artists.Artists = append(artists.Artists, artist)
+				return artists
+			}(),
+			expectedError: true,
+		},
+		{
+			name:   "rows.Err() returns error",
+			amount: 4,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"}).RowError(1, errors.New("error"))
+				for i := 0; i < 4; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT
+		id, name, avatar
+		FROM artists
+		ORDER BY RANDOM()
+		LIMIT $1
+	`)).WithArgs(driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() *proto.Artists {
+				var amount = 4
+				var artists = new(proto.Artists)
+				artists.Artists = make([]*proto.Artist, 0, amount)
+				for i := 0; i < amount; i++ {
+					artists.Artists = append(artists.Artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.RandomArtists(currentTest.amount)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+func TestMusicStorage_ArtistInfo(t *testing.T) {
+	artist := &proto.Artist{
+		ID:     1,
+		Name:   "testName",
+		Avatar: "testAvatar",
+		Video:  "testVideo",
+	}
+	expectedArtistWithVideo := &proto.Artist{
+		ID:     1,
+		Name:   "testName",
+		Avatar: os.Getenv("ARTISTS_ROOT_PREFIX") + "testAvatar" + constants.ImageExtension,
+		Video:  os.Getenv("MOV_ROOT_PREFIX") + "testVideo" + constants.VideoExtension,
+	}
+	expectedArtistWithoutVideo := &proto.Artist{
+		ID:     1,
+		Name:   "testName",
+		Avatar: os.Getenv("ARTISTS_ROOT_PREFIX") + "testAvatar" + constants.ImageExtension,
+		Video:  "",
+	}
+	var artistID int64 = 1
+
+	tests := []struct {
+		name          string
+		mock          func()
+		expected      *proto.Artist
+		expectedError bool
+	}{
+		{
+			name: "get artist info with video",
+			mock: func() {
+				row := mock.NewRows([]string{"id", "name", "avatar", "video"})
+				row.AddRow(artist.ID, artist.Name, artist.Avatar, artist.Video)
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, name, avatar, video
+		FROM artists
+		WHERE id = $1
+	`)).WillReturnRows(row)
+			},
+			expected:      expectedArtistWithVideo,
+			expectedError: false,
+		},
+		{
+			name: "get artist info without video",
+			mock: func() {
+				video := ""
+				row := mock.NewRows([]string{"id", "name", "avatar", "video"})
+				row.AddRow(artist.ID, artist.Name, artist.Avatar, video)
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, name, avatar, video
+		FROM artists
+		WHERE id = $1
+	`)).WillReturnRows(row)
+			},
+			expected:      expectedArtistWithoutVideo,
+			expectedError: false,
+		},
+		{
+			name: "query returns error",
+			mock: func() {
+				row := mock.NewRows([]string{"id", "name", "avatar", "video"})
+				row.AddRow(artist.ID, artist.Name, artist.Avatar, artist.Video)
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, name, avatar, video
+		FROM artists
+		WHERE id = $1
+	`)).WillReturnError(errors.New("error"))
+			},
+			expected:      expectedArtistWithoutVideo,
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.ArtistInfo(artistID)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_ArtistTracks(t *testing.T) {
+	track := &proto.Track{
+		ID:          1,
+		Title:       "testTrackTitle",
+		Explicit:    true,
+		Genre:       "testGenre",
+		Number:      2,
+		File:        "testFile",
+		ListenCount: 3,
+		Duration:    4,
+		Lossless:    true,
+		Album: &proto.Album{
+			ID:      5,
+			Title:   "testAlbumTitle",
+			Artwork: "testAlbumArtwork",
+		},
+		Artist: new(proto.Artist),
+	}
+	trackWithoutFile := new(proto.Track)
+	_ = copier.Copy(trackWithoutFile, track)
+	trackWithoutFile.File = ""
+
+	var artistID int64 = 6
+
+	tests := []struct {
+		name          string
+		artistID      int64
+		amount        int64
+		isAuthorized  bool
+		mock          func()
+		expected      []*proto.Track
+		expectedError bool
+	}{
+		{
+			name:         "get 4 random tracks by artist ID",
+			amount:       4,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "g.name"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.artist = $1
+		ORDER BY t.listen_count DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				var amount = 4
+				tracks := make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "get 10 random tracks by artist ID",
+			amount:       10,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "g.name"})
+				for i := 0; i < 10; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.artist = $1
+		ORDER BY t.listen_count DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(10)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				var amount = 10
+				tracks := make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "get 100 random tracks by artist ID",
+			amount:       100,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "g.name"})
+				for i := 0; i < 100; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.artist = $1
+		ORDER BY t.listen_count DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(100)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				var amount = 100
+				tracks := make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "query returns error",
+			amount:       1,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "g.name"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.artist = $1
+		ORDER BY t.listen_count DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(1)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, 1)
+				tracks = append(tracks, track)
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "scan returns error",
+			amount:       1,
+			isAuthorized: true,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "g.name", "newArg"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Genre, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.artist = $1
+		ORDER BY t.listen_count DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(1)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, 1)
+				tracks = append(tracks, track)
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "get 4 random tracks unauthorized",
+			amount:       4,
+			isAuthorized: false,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "g.name"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.artist = $1
+		ORDER BY t.listen_count DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				var amount = 4
+				tracks := make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks = append(tracks, trackWithoutFile)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "rows.Err() returns error",
+			amount:       4,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "g.name"}).RowError(1, errors.New("error"))
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.artist = $1
+		ORDER BY t.listen_count DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				var amount = 4
+				tracks := make([]*proto.Track, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.ArtistTracks(artistID, currentTest.isAuthorized, currentTest.amount)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_ArtistAlbums(t *testing.T) {
+	album := &proto.Album{
+		ID:             1,
+		Title:          "testTitle",
+		Year:           2,
+		Artwork:        "testArtwork",
+		TracksDuration: 3,
+	}
+
+	var artistID int64 = 1
+
+	tests := []struct {
+		name          string
+		amount        int64
+		mock          func()
+		expected      []*proto.Album
+		expectedError bool
+	}{
+		{
+			name:   "get 4 random albums",
+			amount: 4,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "tracksDuration"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.artist = $1
+		GROUP BY alb.id, alb.title, alb.year, alb.artwork, alb.track_count
+		ORDER BY alb.year DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Album {
+				var amount = 4
+				albums := make([]*proto.Album, 0, amount)
+				for i := 0; i < amount; i++ {
+					albums = append(albums, album)
+				}
+				return albums
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 10 random albums",
+			amount: 10,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "tracksDuration"})
+				for i := 0; i < 10; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.artist = $1
+		GROUP BY alb.id, alb.title, alb.year, alb.artwork, alb.track_count
+		ORDER BY alb.year DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(10)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Album {
+				var amount = 10
+				albums := make([]*proto.Album, 0, amount)
+				for i := 0; i < amount; i++ {
+					albums = append(albums, album)
+				}
+				return albums
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "get 100 random albums",
+			amount: 100,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "tracksDuration"})
+				for i := 0; i < 100; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.artist = $1
+		GROUP BY alb.id, alb.title, alb.year, alb.artwork, alb.track_count
+		ORDER BY alb.year DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(100)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Album {
+				var amount = 100
+				albums := make([]*proto.Album, 0, amount)
+				for i := 0; i < amount; i++ {
+					albums = append(albums, album)
+				}
+				return albums
+			}(),
+			expectedError: false,
+		},
+		{
+			name:   "query returns error",
+			amount: 1,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "tracksDuration"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.artist = $1
+		GROUP BY alb.id, alb.title, alb.year, alb.artwork, alb.track_count
+		ORDER BY alb.year DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(1)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.Album {
+				albums := make([]*proto.Album, 0, 1)
+				albums = append(albums, album)
+				return albums
+			}(),
+			expectedError: true,
+		},
+		{
+			name:   "scan returns error",
+			amount: 1,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "tracksDuration", "newArg"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksDuration, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.artist = $1
+		GROUP BY alb.id, alb.title, alb.year, alb.artwork, alb.track_count
+		ORDER BY alb.year DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(1)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Album {
+				albums := make([]*proto.Album, 0, 1)
+				albums = append(albums, album)
+				return albums
+			}(),
+			expectedError: true,
+		},
+		{
+			name:   "rows returns error",
+			amount: 4,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "tracksDuration"}).RowError(1, errors.New("error"))
+				for i := 0; i < 4; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.artist = $1
+		GROUP BY alb.id, alb.title, alb.year, alb.artwork, alb.track_count
+		ORDER BY alb.year DESC LIMIT $2
+		`)).WithArgs(driver.Value(artistID), driver.Value(4)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Album {
+				var amount = 4
+				albums := make([]*proto.Album, 0, amount)
+				for i := 0; i < amount; i++ {
+					albums = append(albums, album)
+				}
+				return albums
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.ArtistAlbums(artistID, currentTest.amount)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+func TestMusicStorage_IncrementListenCount(t *testing.T) {
+	var trackID int64 = 1
+
+	tests := []struct {
+		name          string
+		mock          func()
+		expectedError bool
+	}{
+		{
+			name: "increment listen count",
+			mock: func() {
+				row := mock.NewRows([]string{})
+				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE tracks SET listen_count = listen_count + 1 WHERE id=$1`)).WithArgs(driver.Value(trackID)).WillReturnRows(row)
+			},
+		},
+		{
+			name: "query returns error",
+			mock: func() {
+				mock.ExpectQuery(regexp.QuoteMeta(`UPDATE tracks SET listen_count = listen_count + 1 WHERE id=$1`)).WithArgs(driver.Value(trackID)).WillReturnError(errors.New("error"))
+			},
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			err := repository.IncrementListenCount(trackID)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestMusicStorage_AlbumData(t *testing.T) {
+	album := &proto.AlbumPageResponse{
+		AlbumID:      1,
+		Title:        "testTitle",
+		Year:         2,
+		Artwork:      "testArtwork",
+		ArtworkColor: "testArtWOrkColor",
+		TracksCount:  3,
+		Artist: &proto.Artist{
+			ID:   4,
+			Name: "testArtistName",
+		},
+		TracksDuration: 5,
+	}
+
+	var albumID int64 = 1
+
+	tests := []struct {
+		name          string
+		mock          func()
+		expected      *proto.AlbumPageResponse
+		expectedError bool
+	}{
+		{
+			name: "get album data",
+			mock: func() {
+				row := mock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "artwork_color", "a.track_count", "art.id", "art.name", "tracksDuration"})
+				row.AddRow(album.AlbumID, album.Title, album.Year, album.Artwork, album.ArtworkColor, album.TracksCount, album.Artist.ID, album.Artist.Name, album.TracksDuration)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "artwork_color", "track_count"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+					`
+		FROM albums alb
+		JOIN artists art ON alb.artist = art.id
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.id = $1
+		GROUP BY alb.id, art.id
+		`)).WithArgs(driver.Value(albumID)).WillReturnRows(row)
+			},
+			expected: album,
+		},
+		{
+			name: "query returns error",
+			mock: func() {
+				row := mock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "artwork_color", "a.track_count", "art.id", "art.name", "tracksDuration"})
+				row.AddRow(album.AlbumID, album.Title, album.Year, album.Artwork, album.ArtworkColor, album.TracksCount, album.Artist.ID, album.Artist.Name, album.TracksDuration)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "artwork_color", "track_count"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", SUM(t.duration) AS tracksDuration" +
+					`
+		FROM albums alb
+		JOIN artists art ON alb.artist = art.id
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.id = $1
+		GROUP BY alb.id, art.id
+		`)).WithArgs(driver.Value(albumID)).WillReturnError(errors.New("error"))
+			},
+			expected:      album,
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.AlbumData(albumID)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.Equal(t, currentTest.expected, result)
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_AlbumTracks(t *testing.T) {
+	track := &proto.AlbumTrack{
+		ID:          1,
+		Title:       "testTrackTitle",
+		Explicit:    true,
+		Genre:       "testGenre",
+		Number:      2,
+		File:        "testFile",
+		ListenCount: 3,
+		Duration:    4,
+		Lossless:    true,
+	}
+	trackWithoutFile := new(proto.AlbumTrack)
+	_ = copier.Copy(trackWithoutFile, track)
+	trackWithoutFile.File = ""
+
+	var albumID int64 = 1
+
+	tests := []struct {
+		name          string
+		amount        int64
+		isAuthorized  bool
+		mock          func()
+		expected      []*proto.AlbumTrack
+		expectedError bool
+	}{
+		{
+			name:         "get tracks by album",
+			amount:       4,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "g.name"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE alb.id = $1
+		ORDER BY t.listen_count DESC
+		`)).WithArgs(driver.Value(albumID)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.AlbumTrack {
+				var amount = 4
+				tracks := make([]*proto.AlbumTrack, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "query returns error",
+			amount:       1,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "g.name"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE alb.id = $1
+		ORDER BY t.listen_count DESC
+		`)).WithArgs(driver.Value(albumID)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.AlbumTrack {
+				tracks := make([]*proto.AlbumTrack, 0, 1)
+				tracks = append(tracks, track)
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "scan returns error",
+			amount:       1,
+			isAuthorized: true,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "g.name", "newArg"})
+				for i := 0; i < 1; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE alb.id = $1
+		ORDER BY t.listen_count DESC
+		`)).WithArgs(driver.Value(albumID)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.AlbumTrack {
+				tracks := make([]*proto.AlbumTrack, 0, 1)
+				tracks = append(tracks, track)
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "get tracks by album unauthorized",
+			amount:       4,
+			isAuthorized: false,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "g.name"})
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE alb.id = $1
+		ORDER BY t.listen_count DESC
+		`)).WithArgs(driver.Value(albumID)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.AlbumTrack {
+				var amount = 4
+				tracks := make([]*proto.AlbumTrack, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks = append(tracks, trackWithoutFile)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "rows.Err() returns error",
+			amount:       4,
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "g.name"}).RowError(1, errors.New("error"))
+				for i := 0; i < 4; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE alb.id = $1
+		ORDER BY t.listen_count DESC
+		`)).WithArgs(driver.Value(albumID)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.AlbumTrack {
+				var amount = 4
+				tracks := make([]*proto.AlbumTrack, 0, amount)
+				for i := 0; i < amount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.AlbumTracks(albumID, currentTest.isAuthorized)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
+	track := &proto.Track{
+		ID:          1,
+		Title:       "testTrackTitle",
+		Explicit:    true,
+		Genre:       "testGenre",
+		Number:      2,
+		File:        "testFile",
+		ListenCount: 3,
+		Duration:    4,
+		Lossless:    true,
+		Album: &proto.Album{
+			ID:      5,
+			Title:   "testAlbumTitle",
+			Artwork: "testAlbumArtwork",
+		},
+		Artist: &proto.Artist{
+			ID:   6,
+			Name: "testArtistName",
+		},
+	}
+	trackWithoutFile := new(proto.Track)
+	_ = copier.Copy(trackWithoutFile, track)
+	trackWithoutFile.File = ""
+
+	const text = "testText"
+
+	tests := []struct {
+		name          string
+		isAuthorized  bool
+		mock          func()
+		expected      []*proto.Track
+		expectedError bool
+	}{
+		{
+			name:         "find constants.SearchTracksAmount tracks with text",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+		    FROM search
+		    WHERE concatenation @@ plainto_tsquery($1)
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "query returns error",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+		    FROM search
+		    WHERE concatenation @@ plainto_tsquery($1)
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "scan returns error",
+			isAuthorized: true,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name", "newArg"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+		    FROM search
+		    WHERE concatenation @@ plainto_tsquery($1)
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "find tracks unauthorized",
+			isAuthorized: false,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+		    FROM search
+		    WHERE concatenation @@ plainto_tsquery($1)
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, trackWithoutFile)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "rows.Err() returns error",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"}).RowError(1, errors.New("error"))
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+		    FROM search
+		    WHERE concatenation @@ plainto_tsquery($1)
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.FindTracksByFullWord(text, currentTest.isAuthorized)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_FindTracksByPartial(t *testing.T) {
+	track := &proto.Track{
+		ID:          1,
+		Title:       "testTrackTitle",
+		Explicit:    true,
+		Genre:       "testGenre",
+		Number:      2,
+		File:        "testFile",
+		ListenCount: 3,
+		Duration:    4,
+		Lossless:    true,
+		Album: &proto.Album{
+			ID:      5,
+			Title:   "testAlbumTitle",
+			Artwork: "testAlbumArtwork",
+		},
+		Artist: &proto.Artist{
+			ID:   6,
+			Name: "testArtistName",
+		},
+	}
+	trackWithoutFile := new(proto.Track)
+	_ = copier.Copy(trackWithoutFile, track)
+	trackWithoutFile.File = ""
+
+	const text = "testText"
+	textArgument := "%" + text + "%"
+
+	tests := []struct {
+		name          string
+		isAuthorized  bool
+		mock          func()
+		expected      []*proto.Track
+		expectedError bool
+	}{
+		{
+			name:         "find constants.SearchTracksAmount tracks with text",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+		    SELECT track
+		    FROM test
+		    WHERE concat ILIKE $1
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "query returns error",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+		    SELECT track
+		    FROM test
+		    WHERE concat ILIKE $1
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "scan returns error",
+			isAuthorized: true,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name", "newArg"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+		    SELECT track
+		    FROM test
+		    WHERE concat ILIKE $1
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "find tracks unauthorized",
+			isAuthorized: false,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+		    SELECT track
+		    FROM test
+		    WHERE concat ILIKE $1
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, trackWithoutFile)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "rows.Err() returns error",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"}).RowError(1, errors.New("error"))
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb")+", "+
+					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
+					wrapper.Wrapper([]string{"name"}, "g")+
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+		    SELECT track
+		    FROM test
+		    WHERE concat ILIKE $1
+		)
+		ORDER BY t.listen_count DESC LIMIT $2`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.FindTracksByPartial(text, currentTest.isAuthorized)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_FindArtists(t *testing.T) {
+	tracks := make([]*proto.Track, 0)
+	albums := make([]*proto.Album, 0)
+
+	artist := &proto.Artist{
+		ID:     1,
+		Name:   "testName",
+		Avatar: "testAvatar",
+		Video:  "",
+		Tracks: tracks,
+		Albums: albums,
+	}
+
+	text := "testText"
+	textArgument := "%" + text + "%"
+
+	tests := []struct {
+		name          string
+		mock          func()
+		expected      []*proto.Artist
+		expectedError bool
+	}{
+		{
+			name: "find artists",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < constants.SearchArtistsAmount; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, name, avatar
+		FROM artists
+		WHERE name ILIKE $1
+		LIMIT $2
+	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchArtistsAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Artist {
+				artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
+				for i := 0; i < constants.SearchArtistsAmount; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: false,
+		},
+		{
+			name: "query returns error",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
+				for i := 0; i < constants.SearchArtistsAmount; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, name, avatar
+		FROM artists
+		WHERE name ILIKE $1
+		LIMIT $2
+	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchArtistsAmount)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.Artist {
+				artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
+				for i := 0; i < constants.SearchArtistsAmount; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: true,
+		},
+		{
+			name: "scan returns error",
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar", "newArg"})
+				for i := 0; i < constants.SearchArtistsAmount; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, name, avatar
+		FROM artists
+		WHERE name ILIKE $1
+		LIMIT $2
+	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchArtistsAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Artist {
+				artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
+				for i := 0; i < constants.SearchArtistsAmount; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: true,
+		},
+		{
+			name: "rows.Err() returns error",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"}).RowError(1, errors.New("error"))
+				for i := 0; i < constants.SearchArtistsAmount; i++ {
+					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT id, name, avatar
+		FROM artists
+		WHERE name ILIKE $1
+		LIMIT $2
+	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchArtistsAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Artist {
+				artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
+				for i := 0; i < constants.SearchArtistsAmount; i++ {
+					artists = append(artists, artist)
+				}
+				return artists
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.FindArtists(text)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_FindAlbums(t *testing.T) {
+	album := &proto.Album{
+		ID:             1,
+		Title:          "testTitle",
+		Year:           2,
+		Artist:         "testArtist",
+		Artwork:        "testArtwork",
+		TracksAmount:   3,
+		TracksDuration: 4,
+		ArtworkColor:   "testArtWorkColor",
+	}
+
+	text := "testText"
+	textArgument := "%" + text + "%"
+
+	tests := []struct {
+		name          string
+		mock          func()
+		expected      []*proto.Album
+		expectedError bool
+	}{
+		{
+			name: "find albums",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"})
+				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "art")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.title ILIKE $1
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY year DESC
+		LIMIT $2
+		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchAlbumsAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Album {
+				albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
+				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+					albums = append(albums, album)
+				}
+				return albums
+			}(),
+			expectedError: false,
+		},
+		{
+			name: "query returns error",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"})
+				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "art")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.title ILIKE $1
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY year DESC
+		LIMIT $2
+		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchAlbumsAmount)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.Album {
+				albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
+				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+					albums = append(albums, album)
+				}
+				return albums
+			}(),
+			expectedError: true,
+		},
+		{
+			name: "scan returns error",
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration", "newArg"})
+				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "art")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.title ILIKE $1
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY year DESC
+		LIMIT $2
+		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchAlbumsAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Album {
+				albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
+				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+					albums = append(albums, album)
+				}
+				return albums
+			}(),
+			expectedError: true,
+		},
+		{
+			name: "rows returns error",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"}).RowError(1, errors.New("error"))
+				for i := 0; i < 4; i++ {
+					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
+					wrapper.Wrapper([]string{"id", "title", "year", "artwork", "track_count", "artwork_color"}, "alb")+", "+
+					wrapper.Wrapper([]string{"name"}, "art")+", SUM(t.duration) AS tracksDuration"+
+					`
+		FROM albums alb
+		JOIN artists art ON art.id = alb.artist
+		JOIN tracks t ON alb.id = t.album
+		WHERE alb.title ILIKE $1
+		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
+		ORDER BY year DESC
+		LIMIT $2
+		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchAlbumsAmount)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Album {
+				albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
+				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+					albums = append(albums, album)
+				}
+				return albums
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.FindAlbums(text)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+func TestMusicStorage_IsPlaylistOwner(t *testing.T) {
+	var (
+		playlistID int64
+		userID     int64
+	)
+
+	tests := []struct {
+		name          string
+		isOwner       bool
+		mock          func()
+		expected      bool
+		expectedError bool
+	}{
+		{
+			name:    "user is owner",
+			isOwner: true,
+			mock: func() {
+				rows := mock.NewRows([]string{"isOwner"})
+				rows.AddRow("true")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND user_id=$2`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
+			},
+			expected: true,
+		},
+		{
+			name:    "user is not owner",
+			isOwner: true,
+			mock: func() {
+				rows := mock.NewRows([]string{"isOwner"})
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND user_id=$2`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
+			},
+			expected: false,
+		},
+		{
+			name:    "query returns error",
+			isOwner: true,
+			mock: func() {
+				rows := mock.NewRows([]string{"isOwner"})
+				rows.AddRow("true")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND user_id=$2`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnError(errors.New("error"))
+			},
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.IsPlaylistOwner(playlistID, userID)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_PlaylistTracks(t *testing.T) {
+	track := &proto.Track{
+		ID:          1,
+		Title:       "testTrackTitle",
+		Explicit:    true,
+		Genre:       "testGenre",
+		Number:      2,
+		File:        "testFile",
+		ListenCount: 3,
+		Duration:    4,
+		Lossless:    true,
+		Album:       &proto.Album{},
+		Artist:      &proto.Artist{},
+	}
+	trackWithoutFile := new(proto.Track)
+	_ = copier.Copy(trackWithoutFile, track)
+	trackWithoutFile.File = ""
+
+	var playlistID int64 = 1
+
+	tests := []struct {
+		name          string
+		isAuthorized  bool
+		mock          func()
+		expected      []*proto.Track
+		expectedError bool
+	}{
+		{
+			name:         "get playlist tracks",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+			FROM playlist_tracks
+			WHERE playlist=$1
+		)`)).WithArgs(driver.Value(playlistID)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "query returns error",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+			FROM playlist_tracks
+			WHERE playlist=$1
+		)`)).WithArgs(driver.Value(playlistID)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "scan returns error",
+			isAuthorized: true,
+			mock: func() {
+				var newArg = 1
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name", "newArg"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+			FROM playlist_tracks
+			WHERE playlist=$1
+		)`)).WithArgs(driver.Value(playlistID)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+		{
+			name:         "find tracks unauthorized",
+			isAuthorized: false,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"})
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+			FROM playlist_tracks
+			WHERE playlist=$1
+		)`)).WithArgs(driver.Value(playlistID)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, trackWithoutFile)
+				}
+				return tracks
+			}(),
+			expectedError: false,
+		},
+		{
+			name:         "rows.Err() returns error",
+			isAuthorized: true,
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "art.id", "art.name", "g.name"}).RowError(1, errors.New("error"))
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Artist.ID, track.Artist.Name, track.Genre)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+					wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track
+			FROM playlist_tracks
+			WHERE playlist=$1
+		)`)).WithArgs(driver.Value(playlistID)).WillReturnRows(rows)
+			},
+			expected: func() []*proto.Track {
+				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+				for i := 0; i < constants.SearchTracksAmount; i++ {
+					tracks = append(tracks, track)
+				}
+				return tracks
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.PlaylistTracks(playlistID)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+func TestMusicStorage_PlaylistInfo(t *testing.T) {
+	playlist := &proto.PlaylistData{
+		PlaylistID:   1,
+		Title:        "testTitle",
+		Artwork:      "testArtWork",
+		ArtworkColor: "testArtWorkColor",
+	}
+
+	expectedPlaylist := &proto.PlaylistData{
+		PlaylistID:   1,
+		Title:        "testTitle",
+		Artwork:      os.Getenv("PLAYLIST_ROOT_PREFIX") + "testArtWork" + constants.PlaylistArtworkExtension384px,
+		ArtworkColor: "testArtWorkColor",
+	}
+
+	var playlistID int64 = 1
+
+	tests := []struct {
+		name          string
+		mock          func()
+		expected      *proto.PlaylistData
+		expectedError bool
+	}{
+		{
+			name: "get playlist info",
+			mock: func() {
+				row := mock.NewRows([]string{"playlistID", "title", "artwork", "artworkColor"})
+				row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.ArtworkColor)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, artwork_color FROM playlists WHERE id=$1`)).WithArgs(driver.Value(playlistID)).WillReturnRows(row)
+			},
+			expected: expectedPlaylist,
+		},
+		{
+			name: "query returns error",
+			mock: func() {
+				row := mock.NewRows([]string{"playlistID", "title", "artwork", "artworkColor"})
+				row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.ArtworkColor)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, artwork_color FROM playlists WHERE id=$1`)).WithArgs(driver.Value(playlistID)).WillReturnError(errors.New("error"))
+			},
+			expected:      expectedPlaylist,
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.PlaylistInfo(playlistID)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+//nolint:cyclop
+func TestMusicStorage_UserPlaylists(t *testing.T) {
+	playlist := &proto.PlaylistData{
+		PlaylistID: 1,
+		Title:      "testTitle",
+		Artwork:    "testArtWork",
+	}
+
+	expectedPlaylist := &proto.PlaylistData{
+		PlaylistID: 1,
+		Title:      "testTitle",
+		Artwork:    os.Getenv("PLAYLIST_ROOT_PREFIX") + "testArtWork" + constants.PlaylistArtworkExtension100px,
+	}
+
+	var (
+		userID          int64 = 1
+		playlistsAmount       = 4
+	)
+
+	tests := []struct {
+		name          string
+		mock          func()
+		expected      []*proto.PlaylistData
+		expectedError bool
+	}{
+		{
+			name: "get playlist info",
+			mock: func() {
+				row := mock.NewRows([]string{"playlistID", "title", "artwork"})
+				for i := 0; i < playlistsAmount; i++ {
+					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork FROM playlists WHERE user_id=$1`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
+			},
+			expected: func() []*proto.PlaylistData {
+				playlists := make([]*proto.PlaylistData, 0, playlistsAmount)
+				for i := 0; i < playlistsAmount; i++ {
+					playlists = append(playlists, expectedPlaylist)
+				}
+				return playlists
+			}(),
+		},
+		{
+			name: "query returns error",
+			mock: func() {
+				row := mock.NewRows([]string{"playlistID", "title", "artwork"})
+				for i := 0; i < playlistsAmount; i++ {
+					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork FROM playlists WHERE user_id=$1`)).WithArgs(driver.Value(userID)).WillReturnError(errors.New("error"))
+			},
+			expected: func() []*proto.PlaylistData {
+				playlists := make([]*proto.PlaylistData, 0, playlistsAmount)
+				for i := 0; i < playlistsAmount; i++ {
+					playlists = append(playlists, expectedPlaylist)
+				}
+				return playlists
+			}(),
+			expectedError: true,
+		},
+		{
+			name: "scan returns error",
+			mock: func() {
+				newArg := 1
+				row := mock.NewRows([]string{"playlistID", "title", "artwork", "newArg"})
+				for i := 0; i < playlistsAmount; i++ {
+					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, newArg)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork FROM playlists WHERE user_id=$1`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
+			},
+			expected: func() []*proto.PlaylistData {
+				playlists := make([]*proto.PlaylistData, 0, playlistsAmount)
+				for i := 0; i < playlistsAmount; i++ {
+					playlists = append(playlists, expectedPlaylist)
+				}
+				return playlists
+			}(),
+			expectedError: true,
+		},
+		{
+			name: "rows.Err() returns error",
+			mock: func() {
+				row := mock.NewRows([]string{"playlistID", "title", "artwork"}).RowError(1, errors.New("error"))
+				for i := 0; i < playlistsAmount; i++ {
+					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork)
+				}
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork FROM playlists WHERE user_id=$1`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
+			},
+			expected: func() []*proto.PlaylistData {
+				playlists := make([]*proto.PlaylistData, 0, playlistsAmount)
+				for i := 0; i < playlistsAmount; i++ {
+					playlists = append(playlists, expectedPlaylist)
+				}
+				return playlists
+			}(),
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.UserPlaylists(userID)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}
+
+func TestMusicStorage_DoesPlaylistExist(t *testing.T) {
+	var playlistID int64 = 1
+
+	tests := []struct {
+		name          string
+		mock          func()
+		expected      bool
+		expectedError bool
+	}{
+		{
+			name: "playlist exist",
+			mock: func() {
+				row := mock.NewRows([]string{"playlist_exist"})
+				row.AddRow("true")
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1`)).WithArgs(driver.Value(playlistID)).WillReturnRows(row)
+			},
+			expected: true,
+		},
+		{
+			name: "playlist does not exist",
+			mock: func() {
+				row := mock.NewRows([]string{"playlist_exist"})
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1`)).WithArgs(driver.Value(playlistID)).WillReturnRows(row)
+			},
+			expected: false,
+		},
+		{
+			name: "query returns error",
+			mock: func() {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1`)).WithArgs(driver.Value(playlistID)).WillReturnError(errors.New("error"))
+			},
+			expected:      false,
+			expectedError: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			result, err := repository.DoesPlaylistExist(playlistID)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, result)
+			}
+		})
+	}
+}

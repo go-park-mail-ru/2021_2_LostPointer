@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package authorization;
+
 option go_package = "microservices/authorization/proto";
 
 message Cookie {

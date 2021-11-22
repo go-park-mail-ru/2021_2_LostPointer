@@ -513,9 +513,30 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 }
 
 func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bool, error) {
-	query := `SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`
+	query := `SELECT * FROM playlists WHERE id=$1 AND user_id=$2`
 
 	rows, err := storage.db.Query(query, playlistID, userID)
+	if err != nil {
+		return true, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	if rows.Next() {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (storage *MusicStorage) IsPlaylistPublic(playlistID int64) (bool, error) {
+	query := `SELECT * FROM playlists WHERE id=$1 AND is_public=true`
+
+	rows, err := storage.db.Query(query, playlistID)
 	if err != nil {
 		return true, err
 	}

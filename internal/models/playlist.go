@@ -32,6 +32,7 @@ type PlaylistPage struct {
 	ArtworkColor string  `json:"artwork_color,omitempty"`
 	Tracks       []Track `json:"tracks,omitempty"`
 	IsPublic     bool    `json:"is_public,omitempty"`
+	IsOwn        bool    `json:"is_own,omitempty"`
 }
 
 type PlaylistArtworkColor struct {
@@ -53,6 +54,7 @@ func (p *PlaylistPage) BindProto(playlistPage *music.PlaylistPageResponse) {
 		ArtworkColor: playlistPage.ArtworkColor,
 		Tracks:       bindedTracks,
 		IsPublic:     playlistPage.IsPublic,
+		IsOwn:        playlistPage.IsOwn,
 	}
 
 	*p = bindedPlaylistPage

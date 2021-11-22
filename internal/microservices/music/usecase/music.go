@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"2021_2_LostPointer/internal/microservices/music"
 	"context"
 
 	"google.golang.org/grpc/codes"
@@ -8,14 +9,13 @@ import (
 
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/music/proto"
-	"2021_2_LostPointer/internal/microservices/music/repository"
 )
 
 type MusicService struct {
-	storage repository.MusicStorage
+	storage music.MusicStorage
 }
 
-func NewMusicService(storage repository.MusicStorage) *MusicService {
+func NewMusicService(storage music.MusicStorage) *MusicService {
 	return &MusicService{storage: storage}
 }
 

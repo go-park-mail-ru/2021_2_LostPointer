@@ -10,10 +10,6 @@ const (
 	UserAvatarExtension150px      = "_150px.webp"
 	PlaylistArtworkExtension384px = "_384px.webp"
 	PlaylistArtworkExtension100px = "_100px.webp"
-	UserAvatarHeight500px         = 500
-	UserAvatarHeight150px         = 150
-	PlaylistArtworkHeight384px    = 384
-	PlaylistArtworkHeight100px    = 100
 
 	// Atoi
 	PasswordRequiredLength = "8"
@@ -49,14 +45,12 @@ const (
 	UserAuthorizedMessage           = "User is authorized"
 	RequestIDTypeAssertionFailed    = "Type assertion for \"REQUEST_ID\" failed"
 	UserIDTypeAssertionFailed       = "Type assertion for \"USER_ID\" failed"
-	PlaylistTitleUpdatedMessage     = "Playlist was updated successfully"
 	PlaylistDeletedMessage          = "Playlist deleted"
 	TrackAddedToPlaylistMessage     = "Track was successfully added to playlist"
 	TrackAlreadyInPlaylistMessage   = "Track was already added to playlist"
 	TrackDeletedFromPlaylistMessage = "Track was successfully deleted from playlist"
 	NotPlaylistOwnerMessage         = "You are not owner of this playlist"
 	PlaylistNotFoundMessage         = "Playlist doesn't exist"
-	PlaylistArtworkDeletedMessage   = "Artwork was successfully deleted"
 	PanicRecover                    = "Panic!"
 
 	// Ограничения/лимиты

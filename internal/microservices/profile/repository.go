@@ -4,6 +4,7 @@ import (
 	"2021_2_LostPointer/internal/microservices/profile/proto"
 )
 
+//go:generate moq -out ./mock/profile_repo_mock.go -pkg mock . UserSettingsStorage:MockUserSettingsStorage
 type UserSettingsStorage interface {
 	GetSettings(int64) (*proto.UserSettings, error)
 	UpdateEmail(int64, string) error

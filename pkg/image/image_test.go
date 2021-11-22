@@ -56,8 +56,8 @@ func TestCreateImages(t *testing.T) {
 			384: constants.PlaylistArtworkExtension384px,
 		})
 	_ = os.Remove(filename)
-	_ = os.Remove(avatar.Filename + constants.UserAvatarExtension150px)
-	_ = os.Remove(avatar.Filename + constants.UserAvatarExtension500px)
+	_ = os.Remove(avatar.Filename + constants.PlaylistArtworkExtension100px)
+	_ = os.Remove(avatar.Filename + constants.PlaylistArtworkExtension384px)
 	assert.NoError(t, err)
 
 	// Пришла форма с пустой картинкой

@@ -1,9 +1,7 @@
 package image
 
 import (
-	"2021_2_LostPointer/internal/constants"
 	"bytes"
-	"github.com/stretchr/testify/assert"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -13,6 +11,10 @@ import (
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"2021_2_LostPointer/internal/constants"
 )
 
 func TestCreateImages(t *testing.T) {
@@ -86,7 +88,7 @@ func TestCreateImages(t *testing.T) {
 
 	r = NewImagesService()
 
-	avatar, err = r.CreateImages(
+	_, err = r.CreateImages(
 		req.MultipartForm.File["photo"][0],
 		os.Getenv("PLAYLIST_FULL_PREFIX"), map[int]string{
 			100: constants.PlaylistArtworkExtension100px,

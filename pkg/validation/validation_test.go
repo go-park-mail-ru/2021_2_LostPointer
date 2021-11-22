@@ -47,13 +47,14 @@ func TestValidatePassword(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			isValid, errMsg, err := ValidatePassword(test.password)
-			if test.expectedError {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			isValid, errMsg, err := ValidatePassword(currentTest.password)
+			if currentTest.expectedError {
 				assert.Error(t, err)
 			} else {
-				assert.Equal(t, test.expectedValid, isValid)
-				assert.Equal(t, test.expectedErrorMsg, errMsg)
+				assert.Equal(t, currentTest.expectedValid, isValid)
+				assert.Equal(t, currentTest.expectedErrorMsg, errMsg)
 				assert.NoError(t, err)
 			}
 		})
@@ -77,6 +78,15 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			},
 			expectedValid:    true,
 			expectedErrorMsg: "",
+		},
+		{
+			name: "wrong name",
+			userData: User{
+				Email:    "test@test.com",
+				Password: "Qwerty123$",
+				Nickname: "1321!#23@#E123123",
+			},
+			expectedErrorMsg: constants.NicknameInvalidSyntaxMessage,
 		},
 		{
 			name: "name too short",
@@ -126,11 +136,11 @@ func TestValidateRegisterCredentials(t *testing.T) {
 		{
 			name: "wrong password",
 			userData: User{
-				Email:    "test@test",
+				Email:    "test@test.ru",
 				Password: "Qwerty",
 				Nickname: "test",
 			},
-			expectedErrorMsg: constants.EmailInvalidSyntaxMessage,
+			expectedErrorMsg: constants.PasswordInvalidLengthMessage,
 		},
 	}
 
@@ -143,6 +153,57 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			} else {
 				assert.Equal(t, currentTest.expectedValid, isValid)
 				assert.Equal(t, currentTest.expectedErrorMsg, errMsg)
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+//func ValidatePlaylistTitle(title string) (bool, string, error) {
+//	minLength, _ := strconv.Atoi(constants.MinPlaylistTitleLength)
+//	maxLength, _ := strconv.Atoi(constants.MaxPlaylistTitleLength)
+//
+//	if len(title) < minLength || len(title) > maxLength {
+//		return false, constants.PlaylistTitleInvalidLengthMessage, nil
+//	}
+//
+//	return true, "", nil
+//}
+
+func TestValidatePlaylistTitle(t *testing.T) {
+	tests := []struct{
+		name string
+		title string
+		expected bool
+		expectedErrorMessage string
+		expectedError bool
+	}{
+		{
+			name:                 "valid title length",
+			title:                "test",
+			expected:             true,
+		},
+		{
+			name:                 "invalid title length - less then 3 symbols",
+			title:                "t",
+			expectedErrorMessage: constants.PlaylistTitleInvalidLengthMessage,
+		},
+		{
+			name:                 "invalid title length - more then 30 symbols",
+			title:                "tttttttttttttttttttttttttttttttttttttttt",
+			expectedErrorMessage: constants.PlaylistTitleInvalidLengthMessage,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			isValid, errMsg, err := ValidatePlaylistTitle(currentTest.title)
+			if currentTest.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.Equal(t, currentTest.expected, isValid)
+				assert.Equal(t, currentTest.expectedErrorMessage, errMsg)
 				assert.NoError(t, err)
 			}
 		})

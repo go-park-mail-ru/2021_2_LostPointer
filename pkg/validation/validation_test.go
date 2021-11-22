@@ -34,8 +34,8 @@ func TestValidatePassword(t *testing.T) {
 			expectedErrorMsg: constants.PasswordNoDigitMessage,
 		},
 		{
-			name:             "no lowercase in password",
-			password:         "12312!",
+			name:             "no letters in password",
+			password:         "12312123123!",
 			expectedErrorMsg: constants.PasswordNoLetterMessage,
 		},
 		{

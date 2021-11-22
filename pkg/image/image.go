@@ -62,7 +62,7 @@ func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, pat
 		log.Println(size, ": ", extension)
 		var (
 			newSrc image.Image
-			out *os.File
+			out    *os.File
 		)
 
 		if height < width {
@@ -92,7 +92,7 @@ func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, pat
 	}
 
 	return &models.ImageData{
-		Filename: imageFilename,
+		Filename:     imageFilename,
 		ArtworkColor: artworkColor,
 	}, nil
 }
@@ -114,5 +114,3 @@ func (service *ImagesService) DeleteImages(path string, filename string, extensi
 
 	return nil
 }
-
-

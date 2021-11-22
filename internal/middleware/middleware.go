@@ -4,7 +4,7 @@ import (
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/internal/monitoring"
+	"2021_2_LostPointer/internal/monitoring/delivery"
 	"context"
 	"errors"
 	"fmt"
@@ -23,10 +23,10 @@ import (
 type Middleware struct {
 	logger           *zap.SugaredLogger
 	authMicroservice authorization.AuthorizationClient
-	metrics          *monitoring.PrometheusMetrics
+	metrics          *delivery.PrometheusMetrics
 }
 
-func NewMiddlewareHandler(authMicroservice authorization.AuthorizationClient, logger *zap.SugaredLogger, monitoring *monitoring.PrometheusMetrics) Middleware {
+func NewMiddlewareHandler(authMicroservice authorization.AuthorizationClient, logger *zap.SugaredLogger, monitoring *delivery.PrometheusMetrics) Middleware {
 	return Middleware{
 		logger:           logger,
 		authMicroservice: authMicroservice,

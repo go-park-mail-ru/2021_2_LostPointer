@@ -30,10 +30,7 @@ func (storage *UserSettingsStorage) GetSettings(userID int64) (*proto.UserSettin
 	if err != nil {
 		return nil, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
+
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -42,6 +39,10 @@ func (storage *UserSettingsStorage) GetSettings(userID int64) (*proto.UserSettin
 	}()
 
 	if !rows.Next() {
+		err = rows.Err()
+		if err != nil {
+			return nil, err
+		}
 		return nil, customErrors.ErrUserNotFound
 	}
 
@@ -106,14 +107,11 @@ func (storage *UserSettingsStorage) UpdatePassword(userID int64, password string
 	return nil
 }
 
+//nolint:rowserrcheck
 func (storage *UserSettingsStorage) IsEmailUnique(email string) (bool, error) {
 	query := `SELECT id FROM users WHERE lower(email)=$1`
 
 	rows, err := storage.db.Query(query, strings.ToLower(email))
-	if err != nil {
-		return false, err
-	}
-	err = rows.Err()
 	if err != nil {
 		return false, err
 	}
@@ -129,14 +127,11 @@ func (storage *UserSettingsStorage) IsEmailUnique(email string) (bool, error) {
 	return true, nil
 }
 
+//nolint:rowserrcheck
 func (storage *UserSettingsStorage) IsNicknameUnique(nickname string) (bool, error) {
 	query := `SELECT id FROM users WHERE lower(nickname)=$1`
 
 	rows, err := storage.db.Query(query, strings.ToLower(nickname))
-	if err != nil {
-		return false, err
-	}
-	err = rows.Err()
 	if err != nil {
 		return false, err
 	}
@@ -160,10 +155,7 @@ func (storage *UserSettingsStorage) CheckPasswordByUserID(userID int64, oldPassw
 	if err != nil {
 		return false, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return false, err
-	}
+
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -171,6 +163,10 @@ func (storage *UserSettingsStorage) CheckPasswordByUserID(userID int64, oldPassw
 		}
 	}()
 	if !rows.Next() {
+		err = rows.Err()
+		if err != nil {
+			return false, err
+		}
 		return false, nil
 	}
 
@@ -178,6 +174,7 @@ func (storage *UserSettingsStorage) CheckPasswordByUserID(userID int64, oldPassw
 	if err = rows.Scan(&password, &salt); err != nil {
 		return false, err
 	}
+
 	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(oldPassword+salt)); err != nil {
 		return false, customErrors.ErrWrongCredentials
 	}

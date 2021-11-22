@@ -16,10 +16,11 @@ func RegisterMonitoring(server *echo.Echo) *PrometheusMetrics {
 
 	metrics.Hits = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "hits",
+		Help: "help",
 	}, []string{"status", "path", "method"})
-
 	metrics.Duration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "duration",
+		Help: "help",
 	}, []string{"status", "path", "method"})
 
 	prometheus.MustRegister(metrics.Hits, metrics.Duration)

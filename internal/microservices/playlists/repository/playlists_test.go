@@ -1,12 +1,13 @@
 package repository
 
 import (
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/playlists/proto"
 	"database/sql/driver"
 	"errors"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"regexp"
 	"testing"
@@ -556,8 +557,8 @@ func TestPlaylistsStorage_UpdatePlaylistArtwork(t *testing.T) {
 	repository := NewPlaylistsStorage(db)
 
 	const (
-		playlistID = 1
-		artWork    = "testArtWork"
+		playlistID   = 1
+		artWork      = "testArtWork"
 		artWorkColor = "testArtWorkColor"
 	)
 

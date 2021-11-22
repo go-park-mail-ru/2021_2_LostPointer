@@ -618,7 +618,7 @@ func (storage *MusicStorage) PlaylistInfo(playlistID int64) (*proto.PlaylistData
 }
 
 func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData, error) {
-	query := `SELECT id, title, artwork, is_public FROM playlists WHERE user_id=$1 OR is_public=true`
+	query := `SELECT id, title, artwork, is_public, user_id=$1 AS is_own FROM playlists WHERE user_id=$1 OR is_public=true`
 
 	rows, err := storage.db.Query(query, userID)
 	if err != nil {
@@ -634,7 +634,7 @@ func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData,
 	playlists := make([]*proto.PlaylistData, 0)
 	for rows.Next() {
 		playlist := &proto.PlaylistData{}
-		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork, &playlist.IsPublic); err != nil {
+		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork, &playlist.IsPublic, &playlist.IsOwn); err != nil {
 			return nil, err
 		}
 		playlist.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlist.Artwork + constants.PlaylistArtworkExtension100px

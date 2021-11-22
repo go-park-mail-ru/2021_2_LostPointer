@@ -19,6 +19,7 @@ type UserPlaylist struct {
 	Title      string `json:"title,omitempty"`
 	Artwork    string `json:"artwork,omitempty"`
 	IsPublic   bool   `json:"is_public,omitempty"`
+	IsOwn      bool   `json:"is_own,omitempty"`
 }
 
 type UserPlaylists struct {
@@ -68,6 +69,7 @@ func (u *UserPlaylists) BindProto(playlists *music.PlaylistsData) {
 			Title:      playlist.Title,
 			Artwork:    playlist.Artwork,
 			IsPublic:   playlist.IsPublic,
+			IsOwn:      playlist.IsOwn,
 		}
 		bindedPlaylists = append(bindedPlaylists, bindedPlaylist)
 	}

@@ -53,7 +53,7 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	proto.RegisterPlaylistsServer(server, usecase.NewPlaylistsService(*storage))
+	proto.RegisterPlaylistsServer(server, usecase.NewPlaylistsService(storage))
 	log.Printf("STARTED PLAYLISTS MICROSERVICE ON %s", port)
 	err = server.Serve(listen)
 	if err != nil {

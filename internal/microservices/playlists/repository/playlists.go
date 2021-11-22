@@ -97,7 +97,6 @@ func (storage *PlaylistsStorage) DeleteTrack(playlistID int64, trackID int64) er
 	return nil
 }
 
-
 //nolint:rowserrcheck
 func (storage *PlaylistsStorage) IsOwner(playlistID int64, userID int64) (bool, error) {
 	query := `SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`

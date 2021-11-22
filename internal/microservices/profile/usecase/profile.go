@@ -12,16 +12,16 @@ import (
 
 	"2021_2_LostPointer/internal/constants"
 	customErrors "2021_2_LostPointer/internal/errors"
+	"2021_2_LostPointer/internal/microservices/profile"
 	"2021_2_LostPointer/internal/microservices/profile/proto"
-	"2021_2_LostPointer/internal/microservices/profile/repository"
 	"2021_2_LostPointer/pkg/validation"
 )
 
 type ProfileService struct {
-	storage repository.UserSettingsStorage
+	storage profile.UserSettingsStorage
 }
 
-func NewProfileService(storage repository.UserSettingsStorage) *ProfileService {
+func NewProfileService(storage profile.UserSettingsStorage) *ProfileService {
 	return &ProfileService{storage: storage}
 }
 
@@ -73,7 +73,7 @@ func (service *ProfileService) UpdateSettings(ctx context.Context, settings *pro
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 		if !isNicknameUnique {
-			return nil, status.Error(codes.InvalidArgument, constants.NicknameInvalidSyntaxMessage)
+			return nil, status.Error(codes.InvalidArgument, constants.NicknameNotUniqueMessage)
 		}
 
 		err = service.storage.UpdateNickname(settings.UserID, settings.Nickname)

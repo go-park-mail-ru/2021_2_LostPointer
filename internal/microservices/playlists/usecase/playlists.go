@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/microservices/playlists"
 	"2021_2_LostPointer/internal/microservices/playlists/proto"
-	"2021_2_LostPointer/internal/microservices/playlists/repository"
 	"2021_2_LostPointer/pkg/validation"
 	"context"
 	"google.golang.org/grpc/codes"
@@ -11,10 +11,10 @@ import (
 )
 
 type PlaylistsService struct {
-	storage repository.PlaylistsStorage
+	storage playlists.PlaylistsStorage
 }
 
-func NewPlaylistsService(storage repository.PlaylistsStorage) *PlaylistsService {
+func NewPlaylistsService(storage playlists.PlaylistsStorage) *PlaylistsService {
 	return &PlaylistsService{storage: storage}
 }
 
@@ -76,10 +76,6 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 	}
 
 	if err = service.storage.UpdatePlaylistAccess(data.PlaylistID, data.IsPublic); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	response := &proto.UpdatePlaylistResponse{

@@ -2,8 +2,9 @@ package playlists
 
 import "2021_2_LostPointer/internal/microservices/playlists/proto"
 
-type Storage interface {
-	CreatePlaylist(int64, string, string, string) (*proto.CreatePlaylistResponse, error)
+//go:generate moq -out ./mock/playlists_repo_mock.go -pkg mock . PlaylistsStorage:MockPlaylistsStorage
+type PlaylistsStorage interface {
+	CreatePlaylist(int64, string, string, string, bool) (*proto.CreatePlaylistResponse, error)
 	GetOldPlaylistSettings(int64) (string, error)
 	DeletePlaylist(int64) error
 	AddTrack(int64, int64) error

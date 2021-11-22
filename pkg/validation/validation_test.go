@@ -9,9 +9,9 @@ import (
 )
 
 type User struct {
-	Email    	 string `json:"email" form:"email" query:"email"`
-	Password 	 string `json:"password" form:"password" query:"password"`
-	Nickname     string `json:"nickname" form:"nickname" query:"nickname"`
+	Email    string `json:"email" form:"email" query:"email"`
+	Password string `json:"password" form:"password" query:"password"`
+	Nickname string `json:"nickname" form:"nickname" query:"nickname"`
 }
 
 //nolint:scopelint
@@ -137,7 +137,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			name: "wrong password",
 			userData: User{
 				Email:    "test@test.ru",
-				Password: "Qwerty",
+				Password: "Qwert1",
 				Nickname: "test",
 			},
 			expectedErrorMsg: constants.PasswordInvalidLengthMessage,
@@ -159,29 +159,18 @@ func TestValidateRegisterCredentials(t *testing.T) {
 	}
 }
 
-//func ValidatePlaylistTitle(title string) (bool, string, error) {
-//	minLength, _ := strconv.Atoi(constants.MinPlaylistTitleLength)
-//	maxLength, _ := strconv.Atoi(constants.MaxPlaylistTitleLength)
-//
-//	if len(title) < minLength || len(title) > maxLength {
-//		return false, constants.PlaylistTitleInvalidLengthMessage, nil
-//	}
-//
-//	return true, "", nil
-//}
-
 func TestValidatePlaylistTitle(t *testing.T) {
-	tests := []struct{
-		name string
-		title string
-		expected bool
+	tests := []struct {
+		name                 string
+		title                string
+		expected             bool
 		expectedErrorMessage string
-		expectedError bool
+		expectedError        bool
 	}{
 		{
-			name:                 "valid title length",
-			title:                "test",
-			expected:             true,
+			name:     "valid title length",
+			title:    "test",
+			expected: true,
 		},
 		{
 			name:                 "invalid title length - less then 3 symbols",
@@ -209,4 +198,3 @@ func TestValidatePlaylistTitle(t *testing.T) {
 		})
 	}
 }
-

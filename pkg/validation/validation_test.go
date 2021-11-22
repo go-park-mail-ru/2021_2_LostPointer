@@ -137,7 +137,7 @@ func TestValidateRegisterCredentials(t *testing.T) {
 			name: "wrong password",
 			userData: User{
 				Email:    "test@test.ru",
-				Password: "Qwerty",
+				Password: "Qwert1",
 				Nickname: "test",
 			},
 			expectedErrorMsg: constants.PasswordInvalidLengthMessage,
@@ -158,17 +158,6 @@ func TestValidateRegisterCredentials(t *testing.T) {
 		})
 	}
 }
-
-//func ValidatePlaylistTitle(title string) (bool, string, error) {
-//	minLength, _ := strconv.Atoi(constants.MinPlaylistTitleLength)
-//	maxLength, _ := strconv.Atoi(constants.MaxPlaylistTitleLength)
-//
-//	if len(title) < minLength || len(title) > maxLength {
-//		return false, constants.PlaylistTitleInvalidLengthMessage, nil
-//	}
-//
-//	return true, "", nil
-//}
 
 func TestValidatePlaylistTitle(t *testing.T) {
 	tests := []struct{

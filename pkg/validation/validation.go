@@ -44,7 +44,7 @@ func ValidateRegisterCredentials(email string, password string, nickname string)
 	}
 	minLength, _ := strconv.Atoi(constants.MinNicknameLength)
 	maxLength, _ := strconv.Atoi(constants.MaxNicknameLength)
-	if len(nickname) < minLength && len(nickname) > maxLength {
+	if len(nickname) < minLength || len(nickname) > maxLength {
 		return false, constants.NicknameInvalidLengthMessage, nil
 	}
 

@@ -17,7 +17,7 @@ import (
 	"2021_2_LostPointer/pkg/utils"
 )
 
-type  AuthStorage struct {
+type AuthStorage struct {
 	db    *sql.DB
 	redis *redis.Client
 }
@@ -51,10 +51,6 @@ func (storage *AuthStorage) GetUserByPassword(authData *proto.AuthData) (int64, 
 	if err != nil {
 		return 0, err
 	}
-	err = rows.Err()
-	if err != nil {
-		return 0, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -63,6 +59,10 @@ func (storage *AuthStorage) GetUserByPassword(authData *proto.AuthData) (int64, 
 	}()
 
 	if !rows.Next() {
+		err = rows.Err()
+		if err != nil {
+			return 0, err
+		}
 		return 0, errors.ErrWrongCredentials
 	}
 	var (
@@ -72,6 +72,7 @@ func (storage *AuthStorage) GetUserByPassword(authData *proto.AuthData) (int64, 
 	if err = rows.Scan(&dbUserID, &dbPassword, &dbSalt); err != nil {
 		return 0, err
 	}
+
 	if err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(authData.Password+dbSalt)); err != nil {
 		return 0, errors.ErrWrongCredentials
 	}
@@ -102,6 +103,7 @@ func (storage *AuthStorage) CreateUser(registerData *proto.RegisterData) (int64,
 	return id, nil
 }
 
+//nolint:rowserrcheck
 func (storage *AuthStorage) IsEmailUnique(email string) (bool, error) {
 	query := `SELECT id FROM users WHERE lower(email)=$1`
 
@@ -110,9 +112,6 @@ func (storage *AuthStorage) IsEmailUnique(email string) (bool, error) {
 		return false, err
 	}
 	err = rows.Err()
-	if err != nil {
-		return false, err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -125,14 +124,11 @@ func (storage *AuthStorage) IsEmailUnique(email string) (bool, error) {
 	return true, nil
 }
 
+//nolint:rowserrcheck
 func (storage *AuthStorage) IsNicknameUnique(nickname string) (bool, error) {
 	query := `SELECT id FROM users WHERE lower(nickname)=$1`
 
 	rows, err := storage.db.Query(query, strings.ToLower(nickname))
-	if err != nil {
-		return false, err
-	}
-	err = rows.Err()
 	if err != nil {
 		return false, err
 	}
@@ -156,10 +152,6 @@ func (storage *AuthStorage) GetAvatar(userID int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = rows.Err()
-	if err != nil {
-		return "", err
-	}
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -168,6 +160,10 @@ func (storage *AuthStorage) GetAvatar(userID int64) (string, error) {
 	}()
 
 	if !rows.Next() {
+		err = rows.Err()
+		if err != nil {
+			return "", err
+		}
 		return "", nil
 	}
 

@@ -95,6 +95,7 @@ message PlaylistData {
   string Artwork = 3;
   string ArtworkColor = 4;
   bool IsPublic = 5;
+  bool IsOwn = 6;
 }
 
 message AlbumPageResponse {
@@ -138,6 +139,7 @@ message PlaylistPageResponse {
   string ArtworkColor = 4;
   repeated Track Tracks = 5;
   bool IsPublic = 6;
+  bool IsOwn = 7;
 }
 
 message IncrementListenCountEmpty {}

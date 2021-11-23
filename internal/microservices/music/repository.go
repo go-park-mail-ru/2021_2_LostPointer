@@ -21,6 +21,7 @@ type MusicStorage interface {
 	FindAlbums(string) ([]*proto.Album, error)
 	UserPlaylists(int64) ([]*proto.PlaylistData, error)
 	IsPlaylistOwner(int64, int64) (bool, error)
+	IsPlaylistPublic(int64) (bool, error)
 	PlaylistTracks(int64) ([]*proto.Track, error)
 	PlaylistInfo(int64) (*proto.PlaylistData, error)
 	DoesPlaylistExist(int64) (bool, error)

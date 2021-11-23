@@ -513,9 +513,30 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 }
 
 func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bool, error) {
-	query := `SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`
+	query := `SELECT * FROM playlists WHERE id=$1 AND user_id=$2`
 
 	rows, err := storage.db.Query(query, playlistID, userID)
+	if err != nil {
+		return true, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	if rows.Next() {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (storage *MusicStorage) IsPlaylistPublic(playlistID int64) (bool, error) {
+	query := `SELECT * FROM playlists WHERE id=$1 AND is_public=true`
+
+	rows, err := storage.db.Query(query, playlistID)
 	if err != nil {
 		return true, err
 	}
@@ -597,7 +618,7 @@ func (storage *MusicStorage) PlaylistInfo(playlistID int64) (*proto.PlaylistData
 }
 
 func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData, error) {
-	query := `SELECT id, title, artwork, is_public FROM playlists WHERE user_id=$1 OR is_public=true`
+	query := `SELECT id, title, artwork, is_public, user_id=$1 AS is_own FROM playlists WHERE user_id=$1 OR is_public=true`
 
 	rows, err := storage.db.Query(query, userID)
 	if err != nil {
@@ -613,7 +634,7 @@ func (storage *MusicStorage) UserPlaylists(userID int64) ([]*proto.PlaylistData,
 	playlists := make([]*proto.PlaylistData, 0)
 	for rows.Next() {
 		playlist := &proto.PlaylistData{}
-		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork, &playlist.IsPublic); err != nil {
+		if err = rows.Scan(&playlist.PlaylistID, &playlist.Title, &playlist.Artwork, &playlist.IsPublic, &playlist.IsOwn); err != nil {
 			return nil, err
 		}
 		playlist.Artwork = os.Getenv("PLAYLIST_ROOT_PREFIX") + playlist.Artwork + constants.PlaylistArtworkExtension100px

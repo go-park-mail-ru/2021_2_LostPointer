@@ -1318,8 +1318,8 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
+			expectedStatus:  http.StatusInternalServerError,
+			expectedJSON:    "",
 			doNotSetIDParam: true,
 		},
 	}
@@ -1428,85 +1428,42 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 		expectedStatus    int
 		expectedJSON      string
 		doNotSetRequestID bool
-		trackID int
+		trackID           int64
 	}{
 		{
 			name: "Handler returned status 200",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.IncrementListenCountOptions{ID: ID}).
+				moq.EXPECT().IncrementListenCount(gomock.Any(), &musicMicroservice.IncrementListenCountOptions{ID: ID}).
 					Return(&musicMicroservice.IncrementListenCountEmpty{}, nil)
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"name\":\"\"}\n",
-			trackID: 1,
+			expectedJSON:   "{\"status\":200,\"message\":\"Incremented track listen count\"}\n",
+			trackID:        ID,
 		},
 		{
 			name: "Handler returned status 400, Login error",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
-					ArtistID:     1,
-					IsAuthorized: true,
-				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
+				moq.EXPECT().IncrementListenCount(gomock.Any(), &musicMicroservice.IncrementListenCountOptions{ID: ID}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
 				return moq
 			},
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			trackID:        ID,
 		},
 		{
 			name: "No RequestID",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
-					ArtistID:     1,
-					IsAuthorized: true,
-				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.IncrementListenCountOptions{ID: ID}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
 			expectedJSON:      "",
 			doNotSetRequestID: true,
-		},
-		{
-			name: "User is unauthorized",
-			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
-				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
-					ArtistID:     1,
-					IsAuthorized: false,
-				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
-				return moq
-			},
-			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
-		},
-		{
-			name: "No userID",
-			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
-				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
-					ArtistID:     1,
-					IsAuthorized: false,
-				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
-				return moq
-			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
-		},
-		{
-			name: "No id param",
-			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
-				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
-					ArtistID:     1,
-					IsAuthorized: false,
-				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
-				return moq
-			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
+			trackID:           ID,
 		},
 	}
 
@@ -1514,8 +1471,8 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/home/artist/:id",
-				strings.NewReader(fmt.Sprintf(`{"trackID": "%d"}`, currentTest.trackID)))
+			req := httptest.NewRequest(echo.GET, "/api/v1/home/artist/:id",
+				strings.NewReader(fmt.Sprintf(`{"id": %d}`, currentTest.trackID)))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)

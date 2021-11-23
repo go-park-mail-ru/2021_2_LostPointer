@@ -36,7 +36,6 @@ func NewMiddlewareHandler(authMicroservice authorization.AuthorizationClient, lo
 
 func (middleware *Middleware) InitMiddlewareHandlers(server *echo.Echo) {
 	server.Use(middleware.AccessLog)
-	server.Use(middleware.PanicRecovering)
 	server.Use(middleware.CheckAuthorization)
 	server.Use(middleware.CORS)
 	server.Use(middleware.CSRF)
@@ -52,6 +51,12 @@ func (middleware *Middleware) CheckAuthorization(next echo.HandlerFunc) echo.Han
 			userID, err = middleware.authMicroservice.GetUserByCookie(context.Background(), &authorization.Cookie{
 				Cookies: cookie.Value,
 			})
+			if err != nil {
+				cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
+				ctx.SetCookie(cookie)
+				ctx.Set("USER_ID", -1)
+				return next(ctx)
+			}
 		}
 		if err != nil {
 			cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}

@@ -20,5 +20,6 @@
 *.DS_Store
 /log.txt
 *cover.out*
+*.bin
 *.webp
 /db/csv/

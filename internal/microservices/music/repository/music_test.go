@@ -2386,7 +2386,7 @@ func TestMusicStorage_IsPlaylistOwner(t *testing.T) {
 			mock: func() {
 				rows := mock.NewRows([]string{"isOwner"})
 				rows.AddRow("true")
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND user_id=$2`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
 			},
 			expected: true,
 		},
@@ -2395,7 +2395,7 @@ func TestMusicStorage_IsPlaylistOwner(t *testing.T) {
 			isOwner: true,
 			mock: func() {
 				rows := mock.NewRows([]string{"isOwner"})
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND user_id=$2`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
 			},
 		},
 		{
@@ -2404,7 +2404,7 @@ func TestMusicStorage_IsPlaylistOwner(t *testing.T) {
 			mock: func() {
 				rows := mock.NewRows([]string{"isOwner"})
 				rows.AddRow("true")
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND (user_id=$2 OR is_public=true)`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnError(errors.New("error"))
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM playlists WHERE id=$1 AND user_id=$2`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnError(errors.New("error"))
 			},
 			expectedError: true,
 		},
@@ -2722,6 +2722,7 @@ func TestMusicStorage_UserPlaylists(t *testing.T) {
 		Title:      "testTitle",
 		Artwork:    "testArtWork",
 		IsPublic:   true,
+		IsOwn:      true,
 	}
 
 	expectedPlaylist := &proto.PlaylistData{
@@ -2729,6 +2730,7 @@ func TestMusicStorage_UserPlaylists(t *testing.T) {
 		Title:      "testTitle",
 		Artwork:    os.Getenv("PLAYLIST_ROOT_PREFIX") + "testArtWork" + constants.PlaylistArtworkExtension100px,
 		IsPublic:   true,
+		IsOwn:      true,
 	}
 
 	var (
@@ -2745,11 +2747,11 @@ func TestMusicStorage_UserPlaylists(t *testing.T) {
 		{
 			name: "get playlist info",
 			mock: func() {
-				row := mock.NewRows([]string{"playlistID", "title", "artwork", "isPublic"})
+				row := mock.NewRows([]string{"playlistID", "title", "artwork", "isPublic", "is_own"})
 				for i := 0; i < playlistsAmount; i++ {
-					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.IsPublic)
+					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.IsPublic, playlist.IsOwn)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, is_public FROM playlists WHERE user_id=$1 OR is_public=true`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, is_public, user_id=$1 AS is_own FROM playlists WHERE user_id=$1 OR is_public=true`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
 			},
 			expected: func() []*proto.PlaylistData {
 				playlists := make([]*proto.PlaylistData, 0, playlistsAmount)
@@ -2762,11 +2764,11 @@ func TestMusicStorage_UserPlaylists(t *testing.T) {
 		{
 			name: "query returns error",
 			mock: func() {
-				row := mock.NewRows([]string{"playlistID", "title", "artwork", "isPublic"})
+				row := mock.NewRows([]string{"playlistID", "title", "artwork", "isPublic", "is_own"})
 				for i := 0; i < playlistsAmount; i++ {
-					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.IsPublic)
+					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.IsPublic, playlist.IsOwn)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, is_public FROM playlists WHERE user_id=$1 OR is_public=true`)).WithArgs(driver.Value(userID)).WillReturnError(errors.New("error"))
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, is_public, user_id=$1 AS is_own FROM playlists WHERE user_id=$1 OR is_public=true`)).WithArgs(driver.Value(userID)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []*proto.PlaylistData {
 				playlists := make([]*proto.PlaylistData, 0, playlistsAmount)
@@ -2781,11 +2783,11 @@ func TestMusicStorage_UserPlaylists(t *testing.T) {
 			name: "scan returns error",
 			mock: func() {
 				newArg := 1
-				row := mock.NewRows([]string{"playlistID", "title", "artwork", "isPublic", "newArg"})
+				row := mock.NewRows([]string{"playlistID", "title", "artwork", "isPublic", "is_own", "newArg"})
 				for i := 0; i < playlistsAmount; i++ {
-					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.IsPublic, newArg)
+					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.IsPublic, playlist.IsOwn, newArg)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, is_public FROM playlists WHERE user_id=$1 OR is_public=true`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, is_public, user_id=$1 AS is_own FROM playlists WHERE user_id=$1 OR is_public=true`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
 			},
 			expected: func() []*proto.PlaylistData {
 				playlists := make([]*proto.PlaylistData, 0, playlistsAmount)
@@ -2799,11 +2801,11 @@ func TestMusicStorage_UserPlaylists(t *testing.T) {
 		{
 			name: "rows.Err() returns error",
 			mock: func() {
-				row := mock.NewRows([]string{"playlistID", "title", "artwork", "isPublic"}).RowError(1, errors.New("error"))
+				row := mock.NewRows([]string{"playlistID", "title", "artwork", "isPublic", "is_own"}).RowError(1, errors.New("error"))
 				for i := 0; i < playlistsAmount; i++ {
-					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.IsPublic)
+					row.AddRow(playlist.PlaylistID, playlist.Title, playlist.Artwork, playlist.IsPublic, playlist.IsOwn)
 				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork FROM playlists WHERE user_id=$1`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, title, artwork, is_public, user_id=$1 AS is_own FROM playlists WHERE user_id=$1 OR is_public=true`)).WithArgs(driver.Value(userID)).WillReturnRows(row)
 			},
 			expected: func() []*proto.PlaylistData {
 				playlists := make([]*proto.PlaylistData, 0, playlistsAmount)

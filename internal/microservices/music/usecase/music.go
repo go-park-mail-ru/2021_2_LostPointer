@@ -149,7 +149,11 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	if !isOwner {
+	isPublic, err := service.storage.IsPlaylistPublic(data.PlaylistID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if !isOwner && !isPublic {
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
@@ -170,6 +174,7 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 		ArtworkColor: playlistInfo.ArtworkColor,
 		Tracks:       playlistTracks,
 		IsPublic:     playlistInfo.IsPublic,
+		IsOwn:        isOwner,
 	}
 
 	return playlistData, nil

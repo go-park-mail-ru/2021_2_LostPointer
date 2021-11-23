@@ -55,6 +55,9 @@ var _ music.MusicStorage = &MockMusicStorage{}
 // 			IsPlaylistOwnerFunc: func(n1 int64, n2 int64) (bool, error) {
 // 				panic("mock out the IsPlaylistOwner method")
 // 			},
+// 			IsPlaylistPublicFunc: func(n int64) (bool, error) {
+// 				panic("mock out the IsPlaylistPublic method")
+// 			},
 // 			PlaylistInfoFunc: func(n int64) (*proto.PlaylistData, error) {
 // 				panic("mock out the PlaylistInfo method")
 // 			},
@@ -115,6 +118,9 @@ type MockMusicStorage struct {
 
 	// IsPlaylistOwnerFunc mocks the IsPlaylistOwner method.
 	IsPlaylistOwnerFunc func(n1 int64, n2 int64) (bool, error)
+
+	// IsPlaylistPublicFunc mocks the IsPlaylistPublic method.
+	IsPlaylistPublicFunc func(n int64) (bool, error)
 
 	// PlaylistInfoFunc mocks the PlaylistInfo method.
 	PlaylistInfoFunc func(n int64) (*proto.PlaylistData, error)
@@ -210,6 +216,11 @@ type MockMusicStorage struct {
 			// N2 is the n2 argument value.
 			N2 int64
 		}
+		// IsPlaylistPublic holds details about calls to the IsPlaylistPublic method.
+		IsPlaylistPublic []struct {
+			// N is the n argument value.
+			N int64
+		}
 		// PlaylistInfo holds details about calls to the PlaylistInfo method.
 		PlaylistInfo []struct {
 			// N is the n argument value.
@@ -255,6 +266,7 @@ type MockMusicStorage struct {
 	lockFindTracksByPartial  sync.RWMutex
 	lockIncrementListenCount sync.RWMutex
 	lockIsPlaylistOwner      sync.RWMutex
+	lockIsPlaylistPublic     sync.RWMutex
 	lockPlaylistInfo         sync.RWMutex
 	lockPlaylistTracks       sync.RWMutex
 	lockRandomAlbums         sync.RWMutex
@@ -660,6 +672,37 @@ func (mock *MockMusicStorage) IsPlaylistOwnerCalls() []struct {
 	mock.lockIsPlaylistOwner.RLock()
 	calls = mock.calls.IsPlaylistOwner
 	mock.lockIsPlaylistOwner.RUnlock()
+	return calls
+}
+
+// IsPlaylistPublic calls IsPlaylistPublicFunc.
+func (mock *MockMusicStorage) IsPlaylistPublic(n int64) (bool, error) {
+	if mock.IsPlaylistPublicFunc == nil {
+		panic("MockMusicStorage.IsPlaylistPublicFunc: method is nil but MusicStorage.IsPlaylistPublic was just called")
+	}
+	callInfo := struct {
+		N int64
+	}{
+		N: n,
+	}
+	mock.lockIsPlaylistPublic.Lock()
+	mock.calls.IsPlaylistPublic = append(mock.calls.IsPlaylistPublic, callInfo)
+	mock.lockIsPlaylistPublic.Unlock()
+	return mock.IsPlaylistPublicFunc(n)
+}
+
+// IsPlaylistPublicCalls gets all the calls that were made to IsPlaylistPublic.
+// Check the length with:
+//     len(mockedMusicStorage.IsPlaylistPublicCalls())
+func (mock *MockMusicStorage) IsPlaylistPublicCalls() []struct {
+	N int64
+} {
+	var calls []struct {
+		N int64
+	}
+	mock.lockIsPlaylistPublic.RLock()
+	calls = mock.calls.IsPlaylistPublic
+	mock.lockIsPlaylistPublic.RUnlock()
 	return calls
 }
 

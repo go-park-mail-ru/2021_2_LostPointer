@@ -1458,7 +1458,7 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 		JOIN albums alb ON t.album = alb.id
 		JOIN artists art ON t.artist = art.id
 		WHERE alb.id = $1
-		ORDER BY t.listen_count DESC
+		ORDER BY t.number
 		`)).WithArgs(driver.Value(albumID)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.AlbumTrack {
@@ -1480,15 +1480,15 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-					wrapper.Wrapper([]string{"name"}, "g") +
-					`
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
 		JOIN artists art ON t.artist = art.id
 		WHERE alb.id = $1
-		ORDER BY t.listen_count DESC
+		ORDER BY t.number
 		`)).WithArgs(driver.Value(albumID)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []*proto.AlbumTrack {
@@ -1509,15 +1509,15 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre, newArg)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-					wrapper.Wrapper([]string{"name"}, "g") +
-					`
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
 		JOIN artists art ON t.artist = art.id
 		WHERE alb.id = $1
-		ORDER BY t.listen_count DESC
+		ORDER BY t.number
 		`)).WithArgs(driver.Value(albumID)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.AlbumTrack {
@@ -1536,15 +1536,15 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Genre)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-					wrapper.Wrapper([]string{"name"}, "g") +
-					`
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
 		JOIN artists art ON t.artist = art.id
 		WHERE alb.id = $1
-		ORDER BY t.listen_count DESC
+		ORDER BY t.number
 		`)).WithArgs(driver.Value(albumID)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.AlbumTrack {
@@ -1566,15 +1566,15 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-					wrapper.Wrapper([]string{"name"}, "g") +
-					`
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
 		JOIN artists art ON t.artist = art.id
 		WHERE alb.id = $1
-		ORDER BY t.listen_count DESC
+		ORDER BY t.number
 		`)).WithArgs(driver.Value(albumID)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.AlbumTrack {

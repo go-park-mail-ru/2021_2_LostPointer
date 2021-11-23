@@ -53,7 +53,7 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	proto.RegisterProfileServer(server, usecase.NewProfileService(*storage))
+	proto.RegisterProfileServer(server, usecase.NewProfileService(storage))
 	log.Printf("STARTED PROFILE MICROSERVICE ON %s", port)
 	err = server.Serve(listen)
 	if err != nil {

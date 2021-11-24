@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1363,42 +1364,6 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 	}
 }
 
-//func (api *APIMicroservices) IncrementListenCount(ctx echo.Context) error {
-//	requestID, ok := ctx.Get("REQUEST_ID").(string)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//
-//	var trackID models.TrackID
-//	err := ctx.Bind(&trackID)
-//	if err != nil {
-//		api.logger.Error(
-//			zap.String("ID", requestID),
-//			zap.String("ERROR", err.Error()),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-//		)
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//
-//	_, err = api.musicMicroservice.IncrementListenCount(context.Background(), &music.IncrementListenCountOptions{ID: trackID.ID})
-//	if err != nil {
-//		return api.ParseErrorByCode(ctx, requestID, err)
-//	}
-//
-//	api.logger.Info(
-//		zap.String("ID", requestID),
-//		zap.Int("ANSWER STATUS", http.StatusOK),
-//	)
-//
-//	return ctx.JSON(http.StatusOK, &models.Response{
-//		Status:  http.StatusOK,
-//		Message: "Incremented track listen count",
-//	})
-//}
-
 func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
@@ -1457,7 +1422,7 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 			name: "No RequestID",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.IncrementListenCountOptions{ID: ID}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				moq.EXPECT().IncrementListenCount(gomock.Any(), &musicMicroservice.IncrementListenCountOptions{ID: ID}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
@@ -1491,6 +1456,330 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 
 			r := NewAPIMicroservices(logger, imageServices, authManager, profileManager, musicManagerMock, playlistsManager)
 			if assert.NoError(t, r.IncrementListenCount(ctx)) {
+				assert.Equal(t, currentTest.expectedStatus, rec.Code)
+				assert.Equal(t, currentTest.expectedJSON, rec.Body.String())
+			}
+		})
+	}
+}
+
+//func (api *APIMicroservices) GetAlbumPage(ctx echo.Context) error {
+//	requestID, ok := ctx.Get("REQUEST_ID").(string)
+//	if !ok {
+//		api.logger.Error(
+//			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+//		return ctx.NoContent(http.StatusInternalServerError)
+//	}
+//	userID, ok := ctx.Get("USER_ID").(int)
+//	if !ok {
+//		api.logger.Error(
+//			zap.String("ID", requestID),
+//			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+//		return ctx.NoContent(http.StatusInternalServerError)
+//	}
+//	var isAuthorized bool
+//	if userID != -1 {
+//		isAuthorized = true
+//	}
+//	albumID, err := strconv.Atoi(ctx.Param("id"))
+//	if err != nil {
+//		api.logger.Error(
+//			zap.String("ID", requestID),
+//			zap.String("ERROR", err.Error()),
+//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+//		return ctx.NoContent(http.StatusInternalServerError)
+//	}
+//
+//	albumDataProto, err := api.musicMicroservice.AlbumPage(context.Background(), &music.AlbumPageOptions{
+//		AlbumID:      int64(albumID),
+//		IsAuthorized: isAuthorized,
+//	})
+//	if err != nil {
+//		return api.ParseErrorByCode(ctx, requestID, err)
+//	}
+//
+//	var albumData models.AlbumPage
+//	albumData.BindProto(albumDataProto)
+//	api.logger.Info(
+//		zap.String("ID", requestID),
+//		zap.Int("ANSWER STATUS", http.StatusOK),
+//	)
+//
+//	return ctx.JSON(http.StatusOK, albumData)
+//}
+
+func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer func(prLogger *zap.Logger) {
+		_ = prLogger.Sync()
+	}(prLogger)
+	authConn, _ := grpc.Dial(
+		os.Getenv("AUTH_HOST"),
+		grpc.WithInsecure(),
+	)
+	profileConn, _ := grpc.Dial(
+		os.Getenv("PROFILE_HOST"),
+		grpc.WithInsecure(),
+	)
+	playlistsConn, _ := grpc.Dial(
+		os.Getenv("PLAYLISTS_HOST"),
+		grpc.WithInsecure(),
+	)
+
+	//var ID int64 = 1
+
+	tests := []struct {
+		name              string
+		mock              func(*gomock.Controller) *musicMock.MockMusicClient
+		expectedStatus    int
+		expectedJSON      string
+		doNotSetRequestID bool
+		doNotSerUserID    bool
+		userID            int
+		albumID           int64
+		wrongTypeOfParameter bool
+	}{
+		{
+			name: "Handler returned status 200",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().AlbumPage(gomock.Any(), &musicMicroservice.AlbumPageOptions{
+					AlbumID:      0,
+					IsAuthorized: true,
+				}).
+					Return(&musicMicroservice.AlbumPageResponse{
+					AlbumID:        0,
+					Title:          "",
+					Year:           0,
+					Artwork:        "",
+					ArtworkColor:   "",
+					TracksCount:    0,
+					TracksDuration: 0,
+					Artist:         &musicMicroservice.Artist{},
+					Tracks:         []*musicMicroservice.AlbumTrack{},
+				}, nil)
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"artist\":{\"name\":\"\"}}\n",
+		},
+		{
+			name: "Handler returned status 400, Login error",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().AlbumPage(gomock.Any(), &musicMicroservice.AlbumPageOptions{
+					AlbumID:      0,
+					IsAuthorized: true,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+		},
+		{
+			name: "No RequestID",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().AlbumPage(gomock.Any(),&musicMicroservice.AlbumPageOptions{}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus:    http.StatusInternalServerError,
+			expectedJSON:      "",
+			doNotSetRequestID: true,
+		},
+		{
+			name: "No UserID",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().AlbumPage(gomock.Any(),&musicMicroservice.AlbumPageOptions{}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus:    http.StatusInternalServerError,
+			expectedJSON:      "",
+			doNotSerUserID: true,
+		},
+		{
+			name: "Wrong type of parameter",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().AlbumPage(gomock.Any(),&musicMicroservice.AlbumPageOptions{}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus:    http.StatusInternalServerError,
+			expectedJSON:      "",
+			wrongTypeOfParameter: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			server := echo.New()
+			req := httptest.NewRequest(echo.GET, "/api/v1/home/album/:id",
+				strings.NewReader(""))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+
+			ctx.SetParamNames("id")
+			if currentTest.wrongTypeOfParameter {
+				ctx.SetParamValues("qwe!123scd")
+			} else {
+				ctx.SetParamValues(strconv.FormatInt(currentTest.albumID, 10))
+			}
+
+			if !currentTest.doNotSetRequestID {
+				ctx.Set("REQUEST_ID", "1")
+			}
+			if !currentTest.doNotSerUserID {
+				ctx.Set("USER_ID", currentTest.userID)
+			}
+
+			profileManager := profileMicroservice.NewProfileClient(profileConn)
+			authManager := authMicroservice.NewAuthorizationClient(authConn)
+			playlistsManager := playlistsMicroservice.NewPlaylistsClient(playlistsConn)
+			imageServices := image.NewImagesService()
+
+			controller := gomock.NewController(t)
+			musicManagerMock := currentTest.mock(controller)
+
+			r := NewAPIMicroservices(logger, imageServices, authManager, profileManager, musicManagerMock, playlistsManager)
+			if assert.NoError(t, r.GetAlbumPage(ctx)) {
+				assert.Equal(t, currentTest.expectedStatus, rec.Code)
+				assert.Equal(t, currentTest.expectedJSON, rec.Body.String())
+			}
+		})
+	}
+}
+
+func TestAPIMicroservices_SearchMusic(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer func(prLogger *zap.Logger) {
+		_ = prLogger.Sync()
+	}(prLogger)
+	authConn, _ := grpc.Dial(
+		os.Getenv("AUTH_HOST"),
+		grpc.WithInsecure(),
+	)
+	profileConn, _ := grpc.Dial(
+		os.Getenv("PROFILE_HOST"),
+		grpc.WithInsecure(),
+	)
+	playlistsConn, _ := grpc.Dial(
+		os.Getenv("PLAYLISTS_HOST"),
+		grpc.WithInsecure(),
+	)
+
+	//var ID int64 = 1
+
+	tests := []struct {
+		name              string
+		mock              func(*gomock.Controller) *musicMock.MockMusicClient
+		expectedStatus    int
+		expectedJSON      string
+		doNotSetRequestID bool
+		doNotSerUserID    bool
+		userID            int
+		formValue string
+	}{
+		{
+			name: "Handler returned status 200",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().Find(gomock.Any(), &musicMicroservice.FindOptions{
+					Text:         "testText",
+					IsAuthorized: true,
+				}).
+					Return(&musicMicroservice.FindResponse{
+					Tracks:  []*musicMicroservice.Track{},
+					Albums:  []*musicMicroservice.Album{},
+					Artists: []*musicMicroservice.Artist{},
+				}, nil)
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{}\n",
+			formValue: "testText",
+		},
+		{
+			name: "Handler returned status 400, Login error",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().Find(gomock.Any(), &musicMicroservice.FindOptions{
+					IsAuthorized: true,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+		},
+		{
+			name: "No RequestID",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().AlbumPage(gomock.Any(),&musicMicroservice.FindOptions{
+					IsAuthorized: true,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus:    http.StatusInternalServerError,
+			expectedJSON:      "",
+			doNotSetRequestID: true,
+		},
+		{
+			name: "No UserID",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().AlbumPage(gomock.Any(),&musicMicroservice.FindOptions{
+					Text:         "testText",
+					IsAuthorized: true,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus:    http.StatusInternalServerError,
+			expectedJSON:      "",
+			doNotSerUserID: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			server := echo.New()
+			req := httptest.NewRequest(echo.GET, "/api/v1/home/album/:id",
+				strings.NewReader(""))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			req.PostFormValue("text")
+			req.Form.Add("text", currentTest.formValue)
+			ctx := server.NewContext(req, rec)
+
+
+			if !currentTest.doNotSetRequestID {
+				ctx.Set("REQUEST_ID", "1")
+			}
+			if !currentTest.doNotSerUserID {
+				ctx.Set("USER_ID", currentTest.userID)
+			}
+
+			profileManager := profileMicroservice.NewProfileClient(profileConn)
+			authManager := authMicroservice.NewAuthorizationClient(authConn)
+			playlistsManager := playlistsMicroservice.NewPlaylistsClient(playlistsConn)
+			imageServices := image.NewImagesService()
+
+			controller := gomock.NewController(t)
+			musicManagerMock := currentTest.mock(controller)
+
+			r := NewAPIMicroservices(logger, imageServices, authManager, profileManager, musicManagerMock, playlistsManager)
+			if assert.NoError(t, r.SearchMusic(ctx)) {
 				assert.Equal(t, currentTest.expectedStatus, rec.Code)
 				assert.Equal(t, currentTest.expectedJSON, rec.Body.String())
 			}

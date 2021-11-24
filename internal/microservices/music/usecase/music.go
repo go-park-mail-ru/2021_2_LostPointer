@@ -153,7 +153,7 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	if !isOwner && !isPublic {
+	if !isOwner || !isPublic {
 		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 

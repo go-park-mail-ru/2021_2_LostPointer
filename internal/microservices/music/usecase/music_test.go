@@ -691,6 +691,9 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 				PlaylistTracksFunc: func(int64) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
+				IsPlaylistPublicFunc: func(int64) (bool, error) {
+					return true, nil
+				},
 			},
 			input: &proto.PlaylistPageOptions{
 				PlaylistID: 1,
@@ -698,6 +701,7 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 			},
 			expected: &proto.PlaylistPageResponse{
 				Tracks: []*proto.Track{},
+				IsOwn: true,
 			},
 		},
 		{
@@ -754,6 +758,15 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 				IsPlaylistOwnerFunc: func(int64, int64) (bool, error) {
 					return false, nil
 				},
+				IsPlaylistPublicFunc: func(int64) (bool, error) {
+					return true, nil
+				},
+				PlaylistInfoFunc: func(int64) (*proto.PlaylistData, error) {
+					return &proto.PlaylistData{}, nil
+				},
+				PlaylistTracksFunc: func(int64) ([]*proto.Track, error) {
+					return []*proto.Track{}, nil
+				},
 			},
 			input: &proto.PlaylistPageOptions{
 				PlaylistID: 1,
@@ -773,6 +786,9 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 				},
 				PlaylistInfoFunc: func(int64) (*proto.PlaylistData, error) {
 					return nil, errors.New("error")
+				},
+				IsPlaylistPublicFunc: func(int64) (bool, error) {
+					return true, nil
 				},
 			},
 			input: &proto.PlaylistPageOptions{
@@ -796,6 +812,9 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 				},
 				PlaylistTracksFunc: func(int64) ([]*proto.Track, error) {
 					return nil, errors.New("error")
+				},
+				IsPlaylistPublicFunc: func(int64) (bool, error) {
+					return true, nil
 				},
 			},
 			input: &proto.PlaylistPageOptions{

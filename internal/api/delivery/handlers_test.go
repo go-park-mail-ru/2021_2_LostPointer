@@ -172,22 +172,20 @@ func TestAPIMicroservices_Register(t *testing.T) {
 		doNotSetRequestID bool
 	}{
 		{
-			name:     "Handler returned status 201",
+			name: "Handler returned status 201",
 			mock: func(controller *gomock.Controller) *authorizationMock.MockAuthorizationClient {
 				moq := authorizationMock.NewMockAuthorizationClient(controller)
-				moq.EXPECT().Register(gomock.Any(), &authorizationProto.RegisterData{
-				}).Return(&authorizationProto.Cookie{Cookies: "cookie"}, nil)
+				moq.EXPECT().Register(gomock.Any(), &authorizationProto.RegisterData{}).Return(&authorizationProto.Cookie{Cookies: "cookie"}, nil)
 				return moq
 			},
 			expectedStatus: http.StatusCreated,
 			expectedJSON:   "{\"status\":201,\"message\":\"User was created successfully\"}\n",
 		},
 		{
-			name:     "Handler returned status 400",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *authorizationMock.MockAuthorizationClient {
 				moq := authorizationMock.NewMockAuthorizationClient(controller)
-				moq.EXPECT().Register(gomock.Any(), &authorizationProto.RegisterData{
-				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
+				moq.EXPECT().Register(gomock.Any(), &authorizationProto.RegisterData{}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
 				return moq
 			},
 			expectedStatus: http.StatusOK,
@@ -442,9 +440,9 @@ func TestAPIMicroservices_Logout(t *testing.T) {
 
 			if !currentTest.doNotSetCookie {
 				req.AddCookie(&http.Cookie{
-					Name:       "Session_cookie",
-					Value:      "testCookie",
-					Expires:    time.Time{},
+					Name:    "Session_cookie",
+					Value:   "testCookie",
+					Expires: time.Time{},
 				})
 			}
 
@@ -725,8 +723,8 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 					Amount:       constants.HomePageTracksSelectionAmount,
 					IsAuthorized: true,
 				}).Return(&musicMicroservice.Tracks{Tracks: []*musicMicroservice.Track{&musicMicroservice.Track{
-					Album:       &musicMicroservice.Album{},
-					Artist:      &musicMicroservice.Artist{},
+					Album:  &musicMicroservice.Album{},
+					Artist: &musicMicroservice.Artist{},
 				}}}, nil)
 				return moq
 			},
@@ -771,7 +769,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomTracks(gomock.Any(), &musicMicroservice.RandomTracksOptions{
-					Amount:       constants.HomePageTracksSelectionAmount,
+					Amount: constants.HomePageTracksSelectionAmount,
 				}).Return(&musicMicroservice.Tracks{}, nil)
 				return moq
 			},
@@ -1081,7 +1079,7 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
-					ArtistID:     1,
+					ArtistID: 1,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
@@ -1094,7 +1092,7 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
-					ArtistID:     1,
+					ArtistID: 1,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
@@ -1106,7 +1104,7 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
-					ArtistID:     1,
+					ArtistID: 1,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
@@ -1294,8 +1292,8 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 					IsAuthorized: true,
 				}).
 					Return(&musicMicroservice.AlbumPageResponse{
-						Artist:         &musicMicroservice.Artist{},
-						Tracks:         []*musicMicroservice.AlbumTrack{},
+						Artist: &musicMicroservice.Artist{},
+						Tracks: []*musicMicroservice.AlbumTrack{},
 					}, nil)
 				return moq
 			},
@@ -2133,29 +2131,34 @@ func TestAPIMicroservices_ParseErrorByCode(t *testing.T) {
 		{
 			name:           "Parse 500 error",
 			expectedStatus: http.StatusInternalServerError,
-			requestID: "1",
-			error: status.Error(codes.Internal, errors.New("error").Error()),
+			requestID:      "1",
+			error:          status.Error(codes.Internal, errors.New("error").Error()),
 		},
 		{
 			name:           "Parse 400 error",
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
-			requestID: "1",
-			error: status.Error(codes.InvalidArgument, errors.New("error").Error()),
+			requestID:      "1",
+			error:          status.Error(codes.InvalidArgument, errors.New("error").Error()),
 		},
 		{
-			name:              "Parse 403 error",
-			expectedStatus:    http.StatusOK,
-			expectedJSON:      "{\"status\":403,\"message\":\"error\"}\n",
-			requestID: "1",
-			error: status.Error(codes.PermissionDenied, errors.New("error").Error()),
+			name:           "Parse 403 error",
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":403,\"message\":\"error\"}\n",
+			requestID:      "1",
+			error:          status.Error(codes.PermissionDenied, errors.New("error").Error()),
 		},
 		{
 			name:           "Parse 404 error",
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":404,\"message\":\"error\"}\n",
-			requestID: "1",
-			error: status.Error(codes.NotFound, errors.New("error").Error()),
+			requestID:      "1",
+			error:          status.Error(codes.NotFound, errors.New("error").Error()),
+		},
+		{
+			name:           "Parse unexpected error",
+			expectedStatus: http.StatusOK,
+			error:          nil,
 		},
 	}
 

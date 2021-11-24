@@ -49,7 +49,7 @@ func main() {
 	port := os.Getenv("MUSIC_PORT")
 	listen, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Println("CANNOT LISTEN PORT: ", port, err.Error())
+		log.Printf("CANNOT LISTEN PORT: %s error: %s", port, err.Error())
 	}
 
 	server := grpc.NewServer()
@@ -57,6 +57,6 @@ func main() {
 	log.Printf("STARTED MUSIC MICROSERVICE ON %s", port)
 	err = server.Serve(listen)
 	if err != nil {
-		log.Println("CANNOT LISTEN PORT: ", port, err.Error())
+		log.Printf("CANNOT LISTEN PORT: %s error: %s", port, err.Error())
 	}
 }

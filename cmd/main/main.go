@@ -87,12 +87,13 @@ func main() {
 
 	auth, profile, music, playlists, conn := LoadMicroservices(server)
 	defer func() {
-		if len(conn) > 0 {
-			for _, c := range conn {
-				err := c.Close()
-				if err != nil {
-					log.Fatalf("Error occurred during closing connection")
-				}
+		if len(conn) == 0 {
+			return
+		}
+		for _, c := range conn {
+			err := c.Close()
+			if err != nil {
+				log.Fatalf("Error occurred during closing connection: %s", err.Error())
 			}
 		}
 	}()

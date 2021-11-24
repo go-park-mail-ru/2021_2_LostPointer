@@ -9,6 +9,7 @@ require (
 	github.com/cenkalti/dominantcolor v0.0.0-20210411190141-70117844b8ca
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-redis/redismock/v8 v8.0.6
+	github.com/golang/mock v1.6.0
 	github.com/jinzhu/copier v0.3.2
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/labstack/echo/v4 v4.6.1

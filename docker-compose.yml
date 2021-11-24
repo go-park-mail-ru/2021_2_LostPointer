@@ -1,0 +1,140 @@
+version: "3.7"
+
+volumes:
+  postgres_data:
+  redis_data:
+  grafana_data:
+
+networks:
+  lp_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/8
+
+services:
+  main:
+    build:
+      context: .
+      dockerfile: ./cmd/main/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - authorization
+      - profile
+      - music
+      - playlists
+    ports:
+      - "3030:3030"
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.2
+    volumes:
+      - /home/ubuntu/users:/app/users
+      - /home/ubuntu/playlists:/app/playlists
+
+  authorization:
+    build:
+      context: .
+      dockerfile: ./cmd/authorization/Dockerfile
+    env_file:
+      - .env
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.3
+
+  profile:
+    build:
+      context: .
+      dockerfile: ./cmd/profile/Dockerfile
+    env_file:
+      - .env
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.4
+
+  music:
+    build:
+      context: .
+      dockerfile: ./cmd/music/Dockerfile
+    env_file:
+      - .env
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.5
+
+  playlists:
+    build:
+      context: .
+      dockerfile: ./cmd/playlists/Dockerfile
+    env_file:
+      - .env
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.6
+
+  db:
+    container_name: postgres
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${DBUSER}
+      POSTGRES_PASSWORD: ${DBPASS}
+      POSTGRES_DB: ${DBNAME}
+    ports:
+      - "${PG_EXTERNAL_PORT}:5432"
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.7
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  redis:
+    container_name: tarantool
+    image: redis:latest
+    restart: always
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.8
+    ports:
+      - "${REDIS_EXTERNAL_PORT}:6379"
+    volumes:
+      - redis_data:/data
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/config
+    command:
+      - '--config.file=/etc/config/prometheus.yml'
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.9
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    restart: always
+    ports:
+      - "9100:9100"
+    volumes:
+      - ./monitoring:/etc/config
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.10
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring:/etc/config
+      - grafana_data:/var/lib/grafana
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.11

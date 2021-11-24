@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+option go_package = "microservices/music/proto";
+
+message RandomTracksOptions {
+  int64 Amount = 1;
+  bool IsAuthorized = 2;
+}
+
+message RandomAlbumsOptions {
+  int64 Amount = 1;
+}
+
+message RandomArtistsOptions {
+  int64 Amount = 1;
+}
+
+message IncrementListenCountOptions {
+  int64 ID = 1;
+}
+
+message ArtistProfileOptions {
+  int64 ArtistID = 1;
+  bool IsAuthorized = 2;
+}
+
+message AlbumPageOptions {
+  int64 AlbumID = 1;
+  bool IsAuthorized = 2;
+}
+
+message FindOptions {
+  string Text = 1;
+  bool IsAuthorized = 2;
+}
+
+message UserPlaylistsOptions {
+  int64 UserID = 1;
+}
+
+message PlaylistPageOptions {
+  int64 PlaylistID = 1;
+  int64 UserID = 2;
+}
+
+message Album {
+  int64 ID = 1;
+  string Title = 2;
+  int64 Year = 3;
+  string Artist = 4;
+  string Artwork = 5;
+  int64 TracksAmount = 6;
+  int64 TracksDuration = 7;
+  string ArtworkColor = 8;
+}
+
+message Artist {
+  int64 ID = 1;
+  string Name = 2;
+  string Avatar = 3;
+  string Video = 4;
+  repeated Track Tracks = 5;
+  repeated Album Albums = 6;
+}
+
+message Track {
+  int64 ID = 1;
+  string Title = 2;
+  bool Explicit = 3;
+  string Genre = 4;
+  int64 Number = 5;
+  string File = 6;
+  int64 ListenCount = 7;
+  int64 Duration = 8;
+  bool Lossless = 9;
+  Album Album = 10;
+  Artist Artist = 11;
+}
+
+message AlbumTrack {
+  int64 ID = 1;
+  string Title = 2;
+  bool Explicit = 3;
+  string Genre = 4;
+  int64 Number = 5;
+  string File = 6;
+  int64 ListenCount = 7;
+  int64 Duration = 8;
+  bool Lossless = 9;
+}
+
+message PlaylistData {
+  int64 PlaylistID = 1;
+  string Title = 2;
+  string Artwork = 3;
+  string ArtworkColor = 4;
+  bool IsPublic = 5;
+  bool IsOwn = 6;
+}
+
+message AlbumPageResponse {
+  int64 AlbumID = 1;
+  string Title = 2;
+  int64 Year = 3;
+  string Artwork = 4;
+  string ArtworkColor = 5;
+  int64 TracksCount = 6;
+  int64 TracksDuration = 7;
+  Artist Artist = 8;
+  repeated AlbumTrack Tracks = 9;
+}
+
+message Tracks {
+  repeated Track Tracks = 1;
+}
+
+message Albums {
+  repeated Album Albums = 1;
+}
+
+message Artists {
+  repeated Artist Artists = 1;
+}
+
+message PlaylistsData {
+  repeated PlaylistData Playlists = 1;
+}
+
+message FindResponse {
+  repeated Track Tracks = 1;
+  repeated Album Albums = 2;
+  repeated Artist Artists = 3;
+}
+
+message PlaylistPageResponse {
+  int64 PlaylistID = 1;
+  string Title = 2;
+  string Artwork = 3;
+  string ArtworkColor = 4;
+  repeated Track Tracks = 5;
+  bool IsPublic = 6;
+  bool IsOwn = 7;
+}
+
+message IncrementListenCountEmpty {}
+
+service Music {
+  rpc RandomTracks(RandomTracksOptions) returns (Tracks) {}
+  rpc RandomAlbums(RandomAlbumsOptions) returns (Albums) {}
+  rpc RandomArtists(RandomArtistsOptions) returns (Artists) {}
+  rpc UserPlaylists(UserPlaylistsOptions) returns (PlaylistsData) {}
+  rpc ArtistProfile(ArtistProfileOptions) returns (Artist) {}
+  rpc IncrementListenCount(IncrementListenCountOptions) returns (IncrementListenCountEmpty) {}
+  rpc AlbumPage(AlbumPageOptions) returns (AlbumPageResponse) {}
+  rpc PlaylistPage(PlaylistPageOptions) returns (PlaylistPageResponse) {}
+  rpc Find(FindOptions) returns (FindResponse) {}
+}

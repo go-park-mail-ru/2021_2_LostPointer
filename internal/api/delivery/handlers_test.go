@@ -78,7 +78,7 @@ func TestAPIMicroservices_Login(t *testing.T) {
 			expectedJSON:   "{\"status\":200,\"message\":\"User is authorized\"}\n",
 		},
 		{
-			name:     "Handler returned status 400, Login error",
+			name:     "Handler returned status 400",
 			email:    "testEmail",
 			password: "testPassword",
 			mock: func(controller *gomock.Controller) *authorizationMock.MockAuthorizationClient {
@@ -105,7 +105,6 @@ func TestAPIMicroservices_Login(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 	}
@@ -174,15 +173,9 @@ func TestAPIMicroservices_Register(t *testing.T) {
 	}{
 		{
 			name:     "Handler returned status 201",
-			email:    "",
-			password: "",
-			nickname: "",
 			mock: func(controller *gomock.Controller) *authorizationMock.MockAuthorizationClient {
 				moq := authorizationMock.NewMockAuthorizationClient(controller)
 				moq.EXPECT().Register(gomock.Any(), &authorizationProto.RegisterData{
-					Email:    "",
-					Password: "",
-					Nickname: "",
 				}).Return(&authorizationProto.Cookie{Cookies: "cookie"}, nil)
 				return moq
 			},
@@ -190,16 +183,10 @@ func TestAPIMicroservices_Register(t *testing.T) {
 			expectedJSON:   "{\"status\":201,\"message\":\"User was created successfully\"}\n",
 		},
 		{
-			name:     "Handler returned status 400, Login error",
-			email:    "",
-			password: "",
-			nickname: "",
+			name:     "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *authorizationMock.MockAuthorizationClient {
 				moq := authorizationMock.NewMockAuthorizationClient(controller)
 				moq.EXPECT().Register(gomock.Any(), &authorizationProto.RegisterData{
-					Email:    "",
-					Password: "",
-					Nickname: "",
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
 				return moq
 			},
@@ -221,7 +208,6 @@ func TestAPIMicroservices_Register(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 	}
@@ -300,7 +286,7 @@ func TestAPIMicroservices_GetUserAvatar(t *testing.T) {
 			expectedJSON:   "{\"status\":200,\"avatar\":\"testFilename\"}\n",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *authorizationMock.MockAuthorizationClient {
 				moq := authorizationMock.NewMockAuthorizationClient(controller)
 				moq.EXPECT().GetAvatar(gomock.Any(), &authorizationProto.UserID{ID: ID}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
@@ -317,7 +303,6 @@ func TestAPIMicroservices_GetUserAvatar(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 		{
@@ -328,7 +313,6 @@ func TestAPIMicroservices_GetUserAvatar(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
 			doNotSetUserID: true,
 		},
 		{
@@ -348,7 +332,7 @@ func TestAPIMicroservices_GetUserAvatar(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/auth", strings.NewReader(""))
+			req := httptest.NewRequest(echo.GET, "/api/v1/auth", strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -376,56 +360,6 @@ func TestAPIMicroservices_GetUserAvatar(t *testing.T) {
 		})
 	}
 }
-
-//func (api *APIMicroservices) Logout(ctx echo.Context) error {
-//	requestID, ok := ctx.Get("REQUEST_ID").(string)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	cookie, err := ctx.Cookie("Session_cookie")
-//	if err != nil {
-//		api.logger.Info(
-//			zap.String("ID", requestID),
-//			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
-//			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-//		return ctx.JSON(http.StatusOK, &models.Response{
-//			Status:  http.StatusUnauthorized,
-//			Message: constants.UserIsNotAuthorizedMessage,
-//		})
-//	}
-//
-//	_, err = api.authMicroservice.Logout(context.Background(), &authorization.Cookie{Cookies: cookie.Value})
-//	if err != nil {
-//		api.logger.Info(
-//			zap.String("ID", requestID),
-//			zap.String("MESSAGE", err.Error()),
-//			zap.Int("ANSWER STATUS", http.StatusConflict))
-//		return ctx.NoContent(http.StatusConflict)
-//	}
-//	cookie = &http.Cookie{
-//		Name:     "Session_cookie",
-//		Value:    "",
-//		Path:     "/",
-//		Secure:   true,
-//		HttpOnly: true,
-//		SameSite: http.SameSiteNoneMode,
-//		Expires:  time.Now().AddDate(0, 0, -1),
-//	}
-//	ctx.SetCookie(cookie)
-//
-//	api.logger.Info(
-//		zap.String("ID", requestID),
-//		zap.Int("ANSWER STATUS", http.StatusOK),
-//	)
-//
-//	return ctx.JSON(http.StatusOK, &models.Response{
-//		Status:  http.StatusOK,
-//		Message: constants.LoggedOutMessage,
-//	})
-//}
 
 func TestAPIMicroservices_Logout(t *testing.T) {
 	config := zap.NewDevelopmentConfig()
@@ -467,14 +401,13 @@ func TestAPIMicroservices_Logout(t *testing.T) {
 			expectedJSON:   "{\"status\":200,\"message\":\"Logged out\"}\n",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 409",
 			mock: func(controller *gomock.Controller) *authorizationMock.MockAuthorizationClient {
 				moq := authorizationMock.NewMockAuthorizationClient(controller)
 				moq.EXPECT().Logout(gomock.Any(), &authorizationProto.Cookie{Cookies: "testCookie"}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
 				return moq
 			},
 			expectedStatus: http.StatusConflict,
-			expectedJSON:   "",
 		},
 		{
 			name: "No RequestID",
@@ -484,7 +417,6 @@ func TestAPIMicroservices_Logout(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 		{
@@ -504,7 +436,7 @@ func TestAPIMicroservices_Logout(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/user/signin",
+			req := httptest.NewRequest(echo.POST, "/api/v1/user/logout",
 				strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -512,16 +444,7 @@ func TestAPIMicroservices_Logout(t *testing.T) {
 				req.AddCookie(&http.Cookie{
 					Name:       "Session_cookie",
 					Value:      "testCookie",
-					Path:       "",
-					Domain:     "",
 					Expires:    time.Time{},
-					RawExpires: "",
-					MaxAge:     0,
-					Secure:     false,
-					HttpOnly:   false,
-					SameSite:   0,
-					Raw:        "",
-					Unparsed:   nil,
 				})
 			}
 
@@ -592,7 +515,7 @@ func TestAPIMicroservices_GetSettings(t *testing.T) {
 			expectedJSON:   "{}\n",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *profileMock.MockProfileClient {
 				moq := profileMock.NewMockProfileClient(controller)
 				moq.EXPECT().GetSettings(gomock.Any(), &profileProto.GetSettingsOptions{ID: ID}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
@@ -609,7 +532,6 @@ func TestAPIMicroservices_GetSettings(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 		{
@@ -620,7 +542,6 @@ func TestAPIMicroservices_GetSettings(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
 			doNotSetUserID: true,
 		},
 		{
@@ -640,7 +561,7 @@ func TestAPIMicroservices_GetSettings(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/auth", strings.NewReader(""))
+			req := httptest.NewRequest(echo.GET, "/api/v1/user/settings", strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -668,41 +589,6 @@ func TestAPIMicroservices_GetSettings(t *testing.T) {
 		})
 	}
 }
-
-//func (api *APIMicroservices) GenerateCSRF(ctx echo.Context) error {
-//	requestID, ok := ctx.Get("REQUEST_ID").(string)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	userID, ok := ctx.Get("USER_ID").(int)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ID", requestID),
-//			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	if userID == -1 {
-//		api.logger.Info(
-//			zap.String("ID", requestID),
-//			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
-//			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-//		return ctx.JSON(http.StatusOK, &models.Response{
-//			Status:  http.StatusUnauthorized,
-//			Message: constants.UserIsNotAuthorizedMessage,
-//		})
-//	}
-//
-//	cookie, _ := ctx.Cookie("Session_cookie")
-//	token, _ := csrf.Tokens.Create(cookie.Value, time.Now().Unix()+constants.CSRFTokenLifetime)
-//	return ctx.JSON(http.StatusOK, &models.Response{
-//		Status:  http.StatusOK,
-//		Message: token,
-//	})
-//}
 
 func TestAPIMicroservices_GenerateCSRF(t *testing.T) {
 	config := zap.NewDevelopmentConfig()
@@ -745,7 +631,7 @@ func TestAPIMicroservices_GenerateCSRF(t *testing.T) {
 			expectedStatus: http.StatusOK,
 		},
 		{
-			name:           "Handler returned status 400, Unauthorized error",
+			name:           "Handler returned status 401, Unauthorized user",
 			password:       "testPassword",
 			expectedStatus: http.StatusOK,
 			userID:         -1,
@@ -768,7 +654,7 @@ func TestAPIMicroservices_GenerateCSRF(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/csrf",
+			req := httptest.NewRequest(echo.GET, "/api/v1/csrf",
 				strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -800,47 +686,6 @@ func TestAPIMicroservices_GenerateCSRF(t *testing.T) {
 		})
 	}
 }
-
-//func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
-//	requestID, ok := ctx.Get("REQUEST_ID").(string)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	userID, ok := ctx.Get("USER_ID").(int)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ID", requestID),
-//			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	var isAuthorized bool
-//	if userID != -1 {
-//		isAuthorized = true
-//	}
-//
-//	tracksListProto, err := api.musicMicroservice.RandomTracks(context.Background(),
-//		&music.RandomTracksOptions{Amount: constants.HomePageTracksSelectionAmount, IsAuthorized: isAuthorized})
-//	if err != nil {
-//		return api.ParseErrorByCode(ctx, requestID, err)
-//	}
-//
-//	tracks := make([]models.Track, 0, constants.HomePageTracksSelectionAmount)
-//	for _, current := range tracksListProto.Tracks {
-//		var track models.Track
-//		track.BindProto(current)
-//		tracks = append(tracks, track)
-//	}
-//	api.logger.Info(
-//		zap.String("ID", requestID),
-//		zap.Int("ANSWER STATUS", http.StatusOK),
-//	)
-//
-//	return ctx.JSON(http.StatusOK, tracks)
-//}
 
 func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 	config := zap.NewDevelopmentConfig()
@@ -880,15 +725,6 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 					Amount:       constants.HomePageTracksSelectionAmount,
 					IsAuthorized: true,
 				}).Return(&musicMicroservice.Tracks{Tracks: []*musicMicroservice.Track{&musicMicroservice.Track{
-					ID:          0,
-					Title:       "",
-					Explicit:    false,
-					Genre:       "",
-					Number:      0,
-					File:        "",
-					ListenCount: 0,
-					Duration:    0,
-					Lossless:    false,
 					Album:       &musicMicroservice.Album{},
 					Artist:      &musicMicroservice.Artist{},
 				}}}, nil)
@@ -898,7 +734,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 			expectedJSON:   "[{\"album\":{},\"artist\":{\"name\":\"\"}}]\n",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomTracks(gomock.Any(), &musicMicroservice.RandomTracksOptions{
@@ -918,7 +754,6 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 		{
@@ -929,7 +764,6 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
 			doNotSetUserID: true,
 		},
 		{
@@ -938,7 +772,6 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomTracks(gomock.Any(), &musicMicroservice.RandomTracksOptions{
 					Amount:       constants.HomePageTracksSelectionAmount,
-					IsAuthorized: false,
 				}).Return(&musicMicroservice.Tracks{}, nil)
 				return moq
 			},
@@ -952,7 +785,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/home/tracks",
+			req := httptest.NewRequest(echo.GET, "/api/v1/home/tracks",
 				strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -1022,7 +855,7 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 			expectedJSON:   "[{}]\n",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomAlbums(gomock.Any(), &musicMicroservice.RandomAlbumsOptions{Amount: constants.HomePageAlbumsSelectionAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
@@ -1039,7 +872,6 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 	}
@@ -1048,7 +880,7 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/home/albums",
+			req := httptest.NewRequest(echo.GET, "/api/v1/home/albums",
 				strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -1074,34 +906,6 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 		})
 	}
 }
-
-//func (api *APIMicroservices) GetHomeArtists(ctx echo.Context) error {
-//	requestID, ok := ctx.Get("REQUEST_ID").(string)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//
-//	artistsListProto, err := api.musicMicroservice.RandomArtists(context.Background(), &music.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount})
-//	if err != nil {
-//		return api.ParseErrorByCode(ctx, requestID, err)
-//	}
-//
-//	artists := make([]models.Artist, 0, constants.HomePageArtistsSelectionAmount)
-//	for _, current := range artistsListProto.Artists {
-//		var artist models.Artist
-//		artist.BindProto(current)
-//		artists = append(artists, artist)
-//	}
-//	api.logger.Info(
-//		zap.String("ID", requestID),
-//		zap.Int("ANSWER STATUS", http.StatusOK),
-//	)
-//
-//	return ctx.JSON(http.StatusOK, artists)
-//}
 
 func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 	config := zap.NewDevelopmentConfig()
@@ -1137,10 +941,6 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount}).
 					Return(&musicMicroservice.Artists{Artists: []*musicMicroservice.Artist{&musicMicroservice.Artist{
-						ID:     0,
-						Name:   "",
-						Avatar: "",
-						Video:  "",
 						Tracks: []*musicMicroservice.Track{},
 						Albums: []*musicMicroservice.Album{},
 					}}}, nil)
@@ -1150,7 +950,7 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 			expectedJSON:   "[{\"name\":\"\"}]\n",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
@@ -1167,7 +967,6 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 	}
@@ -1176,7 +975,7 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/home/artists",
+			req := httptest.NewRequest(echo.GET, "/api/v1/home/artists",
 				strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -1243,10 +1042,6 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 					IsAuthorized: true,
 				}).
 					Return(&musicMicroservice.Artist{
-						ID:     0,
-						Name:   "",
-						Avatar: "",
-						Video:  "",
 						Tracks: []*musicMicroservice.Track{},
 						Albums: []*musicMicroservice.Album{},
 					}, nil)
@@ -1256,7 +1051,7 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 			expectedJSON:   "{\"name\":\"\"}\n",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
@@ -1279,7 +1074,6 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 		{
@@ -1288,7 +1082,6 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
 					ArtistID:     1,
-					IsAuthorized: false,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
@@ -1302,12 +1095,10 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
 					ArtistID:     1,
-					IsAuthorized: false,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
 			doNotSetUserID: true,
 		},
 		{
@@ -1316,12 +1107,10 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().ArtistProfile(gomock.Any(), &musicMicroservice.ArtistProfileOptions{
 					ArtistID:     1,
-					IsAuthorized: false,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
 			expectedStatus:  http.StatusInternalServerError,
-			expectedJSON:    "",
 			doNotSetIDParam: true,
 		},
 	}
@@ -1330,7 +1119,7 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.POST, "/api/v1/home/artist/:id",
+			req := httptest.NewRequest(echo.GET, "/api/v1/home/artist/:id",
 				strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -1409,7 +1198,7 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 			trackID:        ID,
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().IncrementListenCount(gomock.Any(), &musicMicroservice.IncrementListenCountOptions{ID: ID}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
@@ -1427,7 +1216,6 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 			trackID:           ID,
 		},
@@ -1437,7 +1225,7 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.GET, "/api/v1/home/artist/:id",
+			req := httptest.NewRequest(echo.POST, "/api/v1/inc_listencount",
 				strings.NewReader(fmt.Sprintf(`{"id": %d}`, currentTest.trackID)))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -1463,53 +1251,6 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 		})
 	}
 }
-
-//func (api *APIMicroservices) GetAlbumPage(ctx echo.Context) error {
-//	requestID, ok := ctx.Get("REQUEST_ID").(string)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	userID, ok := ctx.Get("USER_ID").(int)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ID", requestID),
-//			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	var isAuthorized bool
-//	if userID != -1 {
-//		isAuthorized = true
-//	}
-//	albumID, err := strconv.Atoi(ctx.Param("id"))
-//	if err != nil {
-//		api.logger.Error(
-//			zap.String("ID", requestID),
-//			zap.String("ERROR", err.Error()),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//
-//	albumDataProto, err := api.musicMicroservice.AlbumPage(context.Background(), &music.AlbumPageOptions{
-//		AlbumID:      int64(albumID),
-//		IsAuthorized: isAuthorized,
-//	})
-//	if err != nil {
-//		return api.ParseErrorByCode(ctx, requestID, err)
-//	}
-//
-//	var albumData models.AlbumPage
-//	albumData.BindProto(albumDataProto)
-//	api.logger.Info(
-//		zap.String("ID", requestID),
-//		zap.Int("ANSWER STATUS", http.StatusOK),
-//	)
-//
-//	return ctx.JSON(http.StatusOK, albumData)
-//}
 
 func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 	config := zap.NewDevelopmentConfig()
@@ -1550,17 +1291,9 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().AlbumPage(gomock.Any(), &musicMicroservice.AlbumPageOptions{
-					AlbumID:      0,
 					IsAuthorized: true,
 				}).
 					Return(&musicMicroservice.AlbumPageResponse{
-						AlbumID:        0,
-						Title:          "",
-						Year:           0,
-						Artwork:        "",
-						ArtworkColor:   "",
-						TracksCount:    0,
-						TracksDuration: 0,
 						Artist:         &musicMicroservice.Artist{},
 						Tracks:         []*musicMicroservice.AlbumTrack{},
 					}, nil)
@@ -1570,11 +1303,10 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 			expectedJSON:   "{\"artist\":{\"name\":\"\"}}\n",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().AlbumPage(gomock.Any(), &musicMicroservice.AlbumPageOptions{
-					AlbumID:      0,
 					IsAuthorized: true,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
 				return moq
@@ -1590,7 +1322,6 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 		{
@@ -1601,7 +1332,6 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
 			doNotSerUserID: true,
 		},
 		{
@@ -1612,7 +1342,6 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 				return moq
 			},
 			expectedStatus:       http.StatusInternalServerError,
-			expectedJSON:         "",
 			wrongTypeOfParameter: true,
 		},
 	}
@@ -1709,7 +1438,7 @@ func TestAPIMicroservices_SearchMusic(t *testing.T) {
 			formValue:      "testText",
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().Find(gomock.Any(), &musicMicroservice.FindOptions{
@@ -1730,7 +1459,6 @@ func TestAPIMicroservices_SearchMusic(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
 		},
 		{
@@ -1744,7 +1472,6 @@ func TestAPIMicroservices_SearchMusic(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
 			doNotSerUserID: true,
 		},
 	}
@@ -1753,7 +1480,7 @@ func TestAPIMicroservices_SearchMusic(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.GET, "/api/v1/home/album/:id",
+			req := httptest.NewRequest(echo.GET, "/api/v1/music/search",
 				strings.NewReader(""))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -1818,7 +1545,7 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 		trackID           int64
 	}{
 		{
-			name: "Handler returned status 200",
+			name: "Handler returned status 201",
 			mock: func(controller *gomock.Controller) *playlistsMock.MockPlaylistsClient {
 				moq := playlistsMock.NewMockPlaylistsClient(controller)
 				moq.EXPECT().AddTrack(gomock.Any(), &playlistsMicroservice.AddTrackOptions{
@@ -1831,12 +1558,12 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 			},
 			expectedStatus: http.StatusCreated,
 			expectedJSON:   "{\"status\":201,\"message\":\"Track was successfully added to playlist\"}\n",
-			trackID: 2,
-			playlistID: 1,
-			userID: 3,
+			trackID:        2,
+			playlistID:     1,
+			userID:         3,
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *playlistsMock.MockPlaylistsClient {
 				moq := playlistsMock.NewMockPlaylistsClient(controller)
 				moq.EXPECT().AddTrack(gomock.Any(), &playlistsMicroservice.AddTrackOptions{
@@ -1848,9 +1575,9 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
-			trackID: 2,
-			playlistID: 1,
-			userID: 3,
+			trackID:        2,
+			playlistID:     1,
+			userID:         3,
 		},
 		{
 			name: "No RequestID",
@@ -1864,9 +1591,7 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
-
 		},
 		{
 			name: "No UserID",
@@ -1880,7 +1605,6 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
 			doNotSerUserID: true,
 		},
 		{
@@ -1896,7 +1620,7 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
-			userID: -1,
+			userID:         -1,
 		},
 	}
 
@@ -1904,7 +1628,7 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.GET, "/api/v1/home/album/:id",
+			req := httptest.NewRequest(echo.POST, "/api/v1/playlist/track",
 				strings.NewReader(fmt.Sprintf(`{"track_id": %d, "playlist_id": %d}`, currentTest.trackID, currentTest.playlistID)))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -1933,61 +1657,6 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 		})
 	}
 }
-
-//func (api *APIMicroservices) DeleteTrack(ctx echo.Context) error {
-//	requestID, ok := ctx.Get("REQUEST_ID").(string)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	userID, ok := ctx.Get("USER_ID").(int)
-//	if !ok {
-//		api.logger.Error(
-//			zap.String("ID", requestID),
-//			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//	if userID == -1 {
-//		api.logger.Info(
-//			zap.String("ID", requestID),
-//			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
-//			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-//		return ctx.JSON(http.StatusOK, &models.Response{
-//			Status:  http.StatusUnauthorized,
-//			Message: constants.UserIsNotAuthorizedMessage,
-//		})
-//	}
-//
-//	var requestData models.PlaylistTrack
-//	if err := ctx.Bind(&requestData); err != nil {
-//		api.logger.Error(
-//			zap.String("ID", requestID),
-//			zap.String("ERROR", err.Error()),
-//			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-//		return ctx.NoContent(http.StatusInternalServerError)
-//	}
-//
-//	_, err := api.playlistsMicroservice.DeleteTrack(context.Background(), &playlists.DeleteTrackOptions{
-//		PlaylistID: requestData.PlaylistID,
-//		TrackID:    requestData.TrackID,
-//		UserID:     int64(userID),
-//	})
-//	if err != nil {
-//		return api.ParseErrorByCode(ctx, requestID, err)
-//	}
-//
-//	api.logger.Info(
-//		zap.String("ID", requestID),
-//		zap.Int("ANSWER STATUS", http.StatusOK),
-//	)
-//	return ctx.JSON(http.StatusOK, &models.Response{
-//		Status:  http.StatusOK,
-//		Message: constants.TrackDeletedFromPlaylistMessage,
-//	})
-//}
 
 func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 	config := zap.NewDevelopmentConfig()
@@ -2035,12 +1704,12 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":200,\"message\":\"Track was successfully deleted from playlist\"}\n",
-			trackID: 2,
-			playlistID: 1,
-			userID: 3,
+			trackID:        2,
+			playlistID:     1,
+			userID:         3,
 		},
 		{
-			name: "Handler returned status 400, Login error",
+			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *playlistsMock.MockPlaylistsClient {
 				moq := playlistsMock.NewMockPlaylistsClient(controller)
 				moq.EXPECT().DeleteTrack(gomock.Any(), &playlistsMicroservice.DeleteTrackOptions{
@@ -2052,9 +1721,9 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
-			trackID: 2,
-			playlistID: 1,
-			userID: 3,
+			trackID:        2,
+			playlistID:     1,
+			userID:         3,
 		},
 		{
 			name: "No RequestID",
@@ -2068,9 +1737,7 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
-			expectedJSON:      "",
 			doNotSetRequestID: true,
-
 		},
 		{
 			name: "No UserID",
@@ -2084,7 +1751,6 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "",
 			doNotSerUserID: true,
 		},
 		{
@@ -2100,7 +1766,7 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
-			userID: -1,
+			userID:         -1,
 		},
 	}
 
@@ -2108,7 +1774,7 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			server := echo.New()
-			req := httptest.NewRequest(echo.GET, "/api/v1/home/album/:id",
+			req := httptest.NewRequest(echo.DELETE, "/api/v1/playlist/track",
 				strings.NewReader(fmt.Sprintf(`{"track_id": %d, "playlist_id": %d}`, currentTest.trackID, currentTest.playlistID)))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
@@ -2131,6 +1797,385 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 
 			r := NewAPIMicroservices(logger, imageServices, authManager, profileManager, musicManager, playlistsManagerMock)
 			if assert.NoError(t, r.DeleteTrack(ctx)) {
+				assert.Equal(t, currentTest.expectedStatus, rec.Code)
+				assert.Equal(t, currentTest.expectedJSON, rec.Body.String())
+			}
+		})
+	}
+}
+
+func TestAPIMicroservices_GetUserPlaylists(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer func(prLogger *zap.Logger) {
+		_ = prLogger.Sync()
+	}(prLogger)
+	authConn, _ := grpc.Dial(
+		os.Getenv("AUTH_HOST"),
+		grpc.WithInsecure(),
+	)
+	profileConn, _ := grpc.Dial(
+		os.Getenv("PROFILE_HOST"),
+		grpc.WithInsecure(),
+	)
+	playlistsConn, _ := grpc.Dial(
+		os.Getenv("PLAYLISTS_HOST"),
+		grpc.WithInsecure(),
+	)
+
+	tests := []struct {
+		name              string
+		mock              func(*gomock.Controller) *musicMock.MockMusicClient
+		expectedStatus    int
+		expectedJSON      string
+		doNotSetRequestID bool
+		doNotSerUserID    bool
+		userID            int
+	}{
+		{
+			name: "Handler returned status 200",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().UserPlaylists(gomock.Any(), &musicMicroservice.UserPlaylistsOptions{
+					UserID: 1,
+				}).
+					Return(&musicMicroservice.PlaylistsData{
+						Playlists: []*musicMicroservice.PlaylistData{},
+					}, nil)
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{}\n",
+			userID:         1,
+		},
+		{
+			name: "Handler returned status 400",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().UserPlaylists(gomock.Any(), &musicMicroservice.UserPlaylistsOptions{
+					UserID: 1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			userID:         1,
+		},
+		{
+			name: "No RequestID",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().UserPlaylists(gomock.Any(), &musicMicroservice.UserPlaylistsOptions{
+					UserID: 1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus:    http.StatusInternalServerError,
+			doNotSetRequestID: true,
+		},
+		{
+			name: "No UserID",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().UserPlaylists(gomock.Any(), &musicMicroservice.UserPlaylistsOptions{
+					UserID: 1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus: http.StatusInternalServerError,
+			doNotSerUserID: true,
+		},
+		{
+			name: "User is unauthorized => userId = -1",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().UserPlaylists(gomock.Any(), &musicMicroservice.UserPlaylistsOptions{
+					UserID: 1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			userID:         -1,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			server := echo.New()
+			req := httptest.NewRequest(echo.GET, "/api/v1/playlists",
+				strings.NewReader(""))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+
+			if !currentTest.doNotSetRequestID {
+				ctx.Set("REQUEST_ID", "1")
+			}
+			if !currentTest.doNotSerUserID {
+				ctx.Set("USER_ID", currentTest.userID)
+			}
+
+			profileManager := profileMicroservice.NewProfileClient(profileConn)
+			authManager := authMicroservice.NewAuthorizationClient(authConn)
+			playlistsManager := playlistsMicroservice.NewPlaylistsClient(playlistsConn)
+			imageServices := image.NewImagesService()
+
+			controller := gomock.NewController(t)
+			musicManagerMock := currentTest.mock(controller)
+
+			r := NewAPIMicroservices(logger, imageServices, authManager, profileManager, musicManagerMock, playlistsManager)
+			if assert.NoError(t, r.GetUserPlaylists(ctx)) {
+				assert.Equal(t, currentTest.expectedStatus, rec.Code)
+				assert.Equal(t, currentTest.expectedJSON, rec.Body.String())
+			}
+		})
+	}
+}
+
+func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer func(prLogger *zap.Logger) {
+		_ = prLogger.Sync()
+	}(prLogger)
+	authConn, _ := grpc.Dial(
+		os.Getenv("AUTH_HOST"),
+		grpc.WithInsecure(),
+	)
+	profileConn, _ := grpc.Dial(
+		os.Getenv("PROFILE_HOST"),
+		grpc.WithInsecure(),
+	)
+	playlistsConn, _ := grpc.Dial(
+		os.Getenv("PLAYLISTS_HOST"),
+		grpc.WithInsecure(),
+	)
+
+	tests := []struct {
+		name                 string
+		mock                 func(*gomock.Controller) *musicMock.MockMusicClient
+		expectedStatus       int
+		expectedJSON         string
+		doNotSetRequestID    bool
+		doNotSerUserID       bool
+		userID               int
+		playlistId           int64
+		wrongTypeOfParameter bool
+	}{
+		{
+			name: "Handler returned status 200",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().PlaylistPage(gomock.Any(), &musicMicroservice.PlaylistPageOptions{
+					PlaylistID: 2,
+					UserID:     1,
+				}).
+					Return(&musicMicroservice.PlaylistPageResponse{
+						PlaylistID: 2,
+						Title:      "testTitle",
+					}, nil)
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"id\":2,\"title\":\"testTitle\"}\n",
+			userID:         1,
+			playlistId:     2,
+		},
+		{
+			name: "Handler returned status 400",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().PlaylistPage(gomock.Any(), &musicMicroservice.PlaylistPageOptions{
+					PlaylistID: 2,
+					UserID:     1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			userID:         1,
+			playlistId:     2,
+		},
+		{
+			name: "No RequestID",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().PlaylistPage(gomock.Any(), &musicMicroservice.PlaylistPageOptions{
+					PlaylistID: 2,
+					UserID:     1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus:    http.StatusInternalServerError,
+			doNotSetRequestID: true,
+		},
+		{
+			name: "No UserID",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().PlaylistPage(gomock.Any(), &musicMicroservice.PlaylistPageOptions{
+					PlaylistID: 2,
+					UserID:     1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus: http.StatusInternalServerError,
+			doNotSerUserID: true,
+		},
+		{
+			name: "User is unauthorized => userId = -1",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().PlaylistPage(gomock.Any(), &musicMicroservice.PlaylistPageOptions{
+					PlaylistID: 2,
+					UserID:     1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			userID:         -1,
+		},
+		{
+			name: "Wrong type of param in query",
+			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
+				moq := musicMock.NewMockMusicClient(controller)
+				moq.EXPECT().PlaylistPage(gomock.Any(), &musicMicroservice.PlaylistPageOptions{
+					PlaylistID: 2,
+					UserID:     1,
+				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				return moq
+			},
+			expectedStatus:       http.StatusInternalServerError,
+			wrongTypeOfParameter: true,
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			server := echo.New()
+			req := httptest.NewRequest(echo.GET, "/api/v1/playlists/:id",
+				strings.NewReader(""))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+
+			ctx.SetParamNames("id")
+			if currentTest.wrongTypeOfParameter {
+				ctx.SetParamValues("qwe!123scd")
+			} else {
+				ctx.SetParamValues(strconv.FormatInt(currentTest.playlistId, 10))
+			}
+
+			if !currentTest.doNotSetRequestID {
+				ctx.Set("REQUEST_ID", "1")
+			}
+			if !currentTest.doNotSerUserID {
+				ctx.Set("USER_ID", currentTest.userID)
+			}
+
+			profileManager := profileMicroservice.NewProfileClient(profileConn)
+			authManager := authMicroservice.NewAuthorizationClient(authConn)
+			playlistsManager := playlistsMicroservice.NewPlaylistsClient(playlistsConn)
+			imageServices := image.NewImagesService()
+
+			controller := gomock.NewController(t)
+			musicManagerMock := currentTest.mock(controller)
+
+			r := NewAPIMicroservices(logger, imageServices, authManager, profileManager, musicManagerMock, playlistsManager)
+			if assert.NoError(t, r.GetPlaylistPage(ctx)) {
+				assert.Equal(t, currentTest.expectedStatus, rec.Code)
+				assert.Equal(t, currentTest.expectedJSON, rec.Body.String())
+			}
+		})
+	}
+}
+
+func TestAPIMicroservices_ParseErrorByCode(t *testing.T) {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer func(prLogger *zap.Logger) {
+		_ = prLogger.Sync()
+	}(prLogger)
+	authConn, _ := grpc.Dial(
+		os.Getenv("AUTH_HOST"),
+		grpc.WithInsecure(),
+	)
+	profileConn, _ := grpc.Dial(
+		os.Getenv("PROFILE_HOST"),
+		grpc.WithInsecure(),
+	)
+	playlistsConn, _ := grpc.Dial(
+		os.Getenv("PLAYLISTS_HOST"),
+		grpc.WithInsecure(),
+	)
+	musicConn, _ := grpc.Dial(
+		os.Getenv("MUSIC_HOST"),
+		grpc.WithInsecure(),
+	)
+
+	tests := []struct {
+		name           string
+		expectedStatus int
+		expectedJSON   string
+		requestID      string
+		error          error
+	}{
+		{
+			name:           "Parse 500 error",
+			expectedStatus: http.StatusInternalServerError,
+			requestID: "1",
+			error: status.Error(codes.Internal, errors.New("error").Error()),
+		},
+		{
+			name:           "Parse 400 error",
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			requestID: "1",
+			error: status.Error(codes.InvalidArgument, errors.New("error").Error()),
+		},
+		{
+			name:              "Parse 403 error",
+			expectedStatus:    http.StatusOK,
+			expectedJSON:      "{\"status\":403,\"message\":\"error\"}\n",
+			requestID: "1",
+			error: status.Error(codes.PermissionDenied, errors.New("error").Error()),
+		},
+		{
+			name:           "Parse 404 error",
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":404,\"message\":\"error\"}\n",
+			requestID: "1",
+			error: status.Error(codes.NotFound, errors.New("error").Error()),
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			server := echo.New()
+			req := httptest.NewRequest(echo.GET, "/api/v1/home/album/:id",
+				strings.NewReader(""))
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+
+			profileManager := profileMicroservice.NewProfileClient(profileConn)
+			authManager := authMicroservice.NewAuthorizationClient(authConn)
+			playlistsManager := playlistsMicroservice.NewPlaylistsClient(playlistsConn)
+			musicManager := musicMicroservice.NewMusicClient(musicConn)
+			imageServices := image.NewImagesService()
+
+			r := NewAPIMicroservices(logger, imageServices, authManager, profileManager, musicManager, playlistsManager)
+			if assert.NoError(t, r.ParseErrorByCode(ctx, currentTest.requestID, currentTest.error)) {
 				assert.Equal(t, currentTest.expectedStatus, rec.Code)
 				assert.Equal(t, currentTest.expectedJSON, rec.Body.String())
 			}

@@ -29,9 +29,9 @@ func (service *ProfileService) GetSettings(ctx context.Context, user *proto.GetS
 	settings, err := service.storage.GetSettings(user.ID)
 	if err != nil {
 		if errors.Is(err, customErrors.ErrUserNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
+			return &proto.UserSettings{}, status.Error(codes.NotFound, err.Error())
 		}
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.UserSettings{}, status.Error(codes.Internal, err.Error())
 	}
 
 	return settings, nil
@@ -42,84 +42,84 @@ func (service *ProfileService) UpdateSettings(ctx context.Context, settings *pro
 	if strings.ToLower(settings.Email) != settings.OldSettings.Email && len(settings.Email) != 0 {
 		isEmailValid := govalidator.IsEmail(settings.Email)
 		if !isEmailValid {
-			return nil, status.Error(codes.InvalidArgument, constants.EmailInvalidSyntaxMessage)
+			return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, constants.EmailInvalidSyntaxMessage)
 		}
 
 		isEmailUnique, err := service.storage.IsEmailUnique(settings.Email)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 		if !isEmailUnique {
-			return nil, status.Error(codes.InvalidArgument, constants.EmailNotUniqueMessage)
+			return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, constants.EmailNotUniqueMessage)
 		}
 
 		err = service.storage.UpdateEmail(settings.UserID, settings.Email)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 	}
 
 	if settings.Nickname != settings.OldSettings.Nickname && len(settings.Nickname) != 0 {
 		isNicknameValid, err := regexp.MatchString(`^[a-zA-Z0-9_-]{`+constants.MinNicknameLength+`,`+constants.MaxNicknameLength+`}$`, settings.Nickname)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 		if !isNicknameValid {
-			return nil, status.Error(codes.InvalidArgument, constants.NicknameInvalidSyntaxMessage)
+			return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, constants.NicknameInvalidSyntaxMessage)
 		}
 
 		isNicknameUnique, err := service.storage.IsNicknameUnique(settings.Nickname)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 		if !isNicknameUnique {
-			return nil, status.Error(codes.InvalidArgument, constants.NicknameNotUniqueMessage)
+			return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, constants.NicknameNotUniqueMessage)
 		}
 
 		err = service.storage.UpdateNickname(settings.UserID, settings.Nickname)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 	}
 
 	switch isEmpty := len(settings.OldPassword) == 0; isEmpty {
 	case true:
 		if len(settings.NewPassword) != 0 {
-			return nil, status.Error(codes.InvalidArgument, constants.OldPasswordFieldIsEmptyMessage)
+			return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, constants.OldPasswordFieldIsEmptyMessage)
 		}
 	default:
 		if len(settings.NewPassword) == 0 {
-			return nil, status.Error(codes.InvalidArgument, constants.NewPasswordFieldIsEmptyMessage)
+			return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, constants.NewPasswordFieldIsEmptyMessage)
 		}
 		isOldPasswordCorrect, err := service.storage.CheckPasswordByUserID(settings.UserID, settings.OldPassword)
 		if err != nil {
 			if errors.Is(err, customErrors.ErrWrongCredentials) {
-				return nil, status.Error(codes.InvalidArgument, constants.WrongPasswordMessage)
+				return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, constants.WrongPasswordMessage)
 			}
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 		if !isOldPasswordCorrect {
-			return nil, status.Error(codes.InvalidArgument, constants.WrongPasswordMessage)
+			return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, constants.WrongPasswordMessage)
 		}
 
 		isNewPasswordValid, msg, err := validation.ValidatePassword(settings.NewPassword)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 		if !isNewPasswordValid {
-			return nil, status.Error(codes.InvalidArgument, msg)
+			return &proto.EmptyProfile{}, status.Error(codes.InvalidArgument, msg)
 		}
 
 		err = service.storage.UpdatePassword(settings.UserID, settings.NewPassword)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 	}
 
 	if len(settings.AvatarFilename) != 0 {
 		err := service.storage.UpdateAvatar(settings.UserID, settings.AvatarFilename)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.EmptyProfile{}, status.Error(codes.Internal, err.Error())
 		}
 	}
 

@@ -21,10 +21,10 @@ func NewPlaylistsService(storage playlists.PlaylistsStorage) *PlaylistsService {
 func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto.CreatePlaylistOptions) (*proto.CreatePlaylistResponse, error) {
 	isTitleValid, msg, err := validation.ValidatePlaylistTitle(data.Title)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.CreatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !isTitleValid {
-		return nil, status.Error(codes.InvalidArgument, msg)
+		return &proto.CreatePlaylistResponse{}, status.Error(codes.InvalidArgument, msg)
 	}
 
 	if len(data.Artwork) == 0 {
@@ -33,7 +33,7 @@ func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto
 	}
 	response, err := service.storage.CreatePlaylist(data.UserID, data.Title, data.Artwork, data.ArtworkColor, data.IsPublic)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.CreatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	return response, nil
@@ -43,18 +43,18 @@ func (service *PlaylistsService) CreatePlaylist(ctx context.Context, data *proto
 func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto.UpdatePlaylistOptions) (*proto.UpdatePlaylistResponse, error) {
 	doesExist, err := service.storage.DoesPlaylistExist(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.UpdatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !doesExist {
-		return nil, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
+		return &proto.UpdatePlaylistResponse{}, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
 	}
 
 	isOwner, err := service.storage.IsOwner(data.PlaylistID, data.UserID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.UpdatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
+		return &proto.UpdatePlaylistResponse{}, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	oldArtwork, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
@@ -65,18 +65,18 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		)
 		isTitleValid, msg, err = validation.ValidatePlaylistTitle(data.Title)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.UpdatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 		}
 		if !isTitleValid {
-			return nil, status.Error(codes.InvalidArgument, msg)
+			return &proto.UpdatePlaylistResponse{}, status.Error(codes.InvalidArgument, msg)
 		}
 		if err = service.storage.UpdatePlaylistTitle(data.PlaylistID, data.Title); err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.UpdatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 		}
 	}
 
 	if err = service.storage.UpdatePlaylistAccess(data.PlaylistID, data.IsPublic); err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.UpdatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	response := &proto.UpdatePlaylistResponse{
 		ArtworkColor: "",
@@ -85,7 +85,7 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 		response.OldArtworkFilename = oldArtwork
 		response.ArtworkColor = data.ArtworkColor
 		if err = service.storage.UpdatePlaylistArtwork(data.PlaylistID, data.Artwork, data.ArtworkColor); err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return &proto.UpdatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 		}
 	}
 
@@ -96,27 +96,27 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto.DeletePlaylistOptions) (*proto.DeletePlaylistResponse, error) {
 	doesExist, err := service.storage.DoesPlaylistExist(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeletePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !doesExist {
-		return nil, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
+		return &proto.DeletePlaylistResponse{}, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
 	}
 
 	isOwner, err := service.storage.IsOwner(data.PlaylistID, data.UserID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeletePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
+		return &proto.DeletePlaylistResponse{}, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	oldArtwork, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeletePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	err = service.storage.DeletePlaylist(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeletePlaylistResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	return &proto.DeletePlaylistResponse{OldArtworkFilename: oldArtwork}, nil
@@ -125,31 +125,31 @@ func (service *PlaylistsService) DeletePlaylist(ctx context.Context, data *proto
 func (service *PlaylistsService) AddTrack(ctx context.Context, data *proto.AddTrackOptions) (*proto.AddTrackResponse, error) {
 	doesExist, err := service.storage.DoesPlaylistExist(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.AddTrackResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !doesExist {
-		return nil, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
+		return &proto.AddTrackResponse{}, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
 	}
 
 	isOwner, err := service.storage.IsOwner(data.PlaylistID, data.UserID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.AddTrackResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
+		return &proto.AddTrackResponse{}, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	isAdded, err := service.storage.IsAdded(data.PlaylistID, data.TrackID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.AddTrackResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if isAdded {
-		return nil, status.Error(codes.InvalidArgument, constants.TrackAlreadyInPlaylistMessage)
+		return &proto.AddTrackResponse{}, status.Error(codes.InvalidArgument, constants.TrackAlreadyInPlaylistMessage)
 	}
 
 	err = service.storage.AddTrack(data.PlaylistID, data.TrackID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.AddTrackResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	return &proto.AddTrackResponse{}, nil
@@ -158,23 +158,23 @@ func (service *PlaylistsService) AddTrack(ctx context.Context, data *proto.AddTr
 func (service *PlaylistsService) DeleteTrack(ctx context.Context, data *proto.DeleteTrackOptions) (*proto.DeleteTrackResponse, error) {
 	doesExist, err := service.storage.DoesPlaylistExist(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeleteTrackResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !doesExist {
-		return nil, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
+		return &proto.DeleteTrackResponse{}, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
 	}
 
 	isOwner, err := service.storage.IsOwner(data.PlaylistID, data.UserID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeleteTrackResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
+		return &proto.DeleteTrackResponse{}, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	err = service.storage.DeleteTrack(data.PlaylistID, data.TrackID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeleteTrackResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	return &proto.DeleteTrackResponse{}, nil
@@ -184,27 +184,27 @@ func (service *PlaylistsService) DeleteTrack(ctx context.Context, data *proto.De
 func (service *PlaylistsService) DeletePlaylistArtwork(ctx context.Context, data *proto.DeletePlaylistArtworkOptions) (*proto.DeletePlaylistArtworkResponse, error) {
 	doesExist, err := service.storage.DoesPlaylistExist(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeletePlaylistArtworkResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !doesExist {
-		return nil, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
+		return &proto.DeletePlaylistArtworkResponse{}, status.Error(codes.NotFound, constants.PlaylistNotFoundMessage)
 	}
 
 	isOwner, err := service.storage.IsOwner(data.PlaylistID, data.UserID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeletePlaylistArtworkResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if !isOwner {
-		return nil, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
+		return &proto.DeletePlaylistArtworkResponse{}, status.Error(codes.PermissionDenied, constants.NotPlaylistOwnerMessage)
 	}
 
 	oldArtwork, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeletePlaylistArtworkResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	err = service.storage.DeletePlaylistArtwork(data.PlaylistID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return &proto.DeletePlaylistArtworkResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	return &proto.DeletePlaylistArtworkResponse{OldArtworkFilename: oldArtwork}, nil

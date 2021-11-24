@@ -759,7 +759,7 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 					return false, nil
 				},
 				IsPlaylistPublicFunc: func(int64) (bool, error) {
-					return true, nil
+					return false, nil
 				},
 				PlaylistInfoFunc: func(int64) (*proto.PlaylistData, error) {
 					return &proto.PlaylistData{}, nil

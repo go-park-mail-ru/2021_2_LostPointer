@@ -69,6 +69,7 @@ func (t *Track) BindProto(track *proto.Track) {
 			Artist:         track.Album.Artist,
 			TracksCount:    track.Album.TracksAmount,
 			TracksDuration: track.Album.TracksDuration,
+			ArtworkColor:   track.Album.ArtworkColor,
 		},
 		Artist: Artist{
 			ID:     track.Artist.ID,

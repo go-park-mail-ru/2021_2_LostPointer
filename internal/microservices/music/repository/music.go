@@ -335,7 +335,7 @@ func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*p
 func (storage *MusicStorage) FindTracksByFullWord(text string, isAuthorized bool) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
 		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
 		wrapper.Wrapper([]string{"name"}, "g") +
 		`
@@ -366,8 +366,8 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, isAuthorized bool
 		track.Album = &proto.Album{}
 		track.Artist = &proto.Artist{}
 		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
-			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Artist.ID,
-			&track.Artist.Name, &track.Genre); err != nil {
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Album.ArtworkColor,
+			&track.Artist.ID, &track.Artist.Name, &track.Genre); err != nil {
 			return nil, err
 		}
 		if !isAuthorized {
@@ -387,7 +387,7 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, isAuthorized bool
 func (storage *MusicStorage) FindTracksByPartial(text string, isAuthorized bool) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
 		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
 		wrapper.Wrapper([]string{"name"}, "g") +
 		`
@@ -418,8 +418,8 @@ func (storage *MusicStorage) FindTracksByPartial(text string, isAuthorized bool)
 		track.Album = &proto.Album{}
 		track.Artist = &proto.Artist{}
 		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
-			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Artist.ID,
-			&track.Artist.Name, &track.Genre); err != nil {
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork,
+			&track.Album.ArtworkColor, &track.Artist.ID, &track.Artist.Name, &track.Genre); err != nil {
 			return nil, err
 		}
 		if !isAuthorized {

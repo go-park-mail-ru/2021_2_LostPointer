@@ -221,7 +221,10 @@ ALTER SEQUENCE public.playlist_tracks_id_seq OWNED BY public.playlist_tracks.id;
 CREATE TABLE public.playlists (
                                   id integer NOT NULL,
                                   title character varying NOT NULL,
-                                  "user" integer NOT NULL
+                                  user_id integer NOT NULL,
+                                  artwork varchar default 'default_playlist_artwork' NOT NULL,
+                                  artwork_color varchar default '#8071c2' NOT NULL,
+                                  is_public boolean default false
 );
 
 

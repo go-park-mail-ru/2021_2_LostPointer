@@ -1167,16 +1167,16 @@ func (api *APIMicroservices) GetPlaylistPage(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	if userID == -1 {
-		api.logger.Info(
-			zap.String("ID", requestID),
-			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
-			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
-			Status:  http.StatusUnauthorized,
-			Message: constants.UserIsNotAuthorizedMessage,
-		})
-	}
+	//if userID == -1 {
+	//	api.logger.Info(
+	//		zap.String("ID", requestID),
+	//		zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
+	//		zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+	//	return ctx.JSON(http.StatusOK, &models.Response{
+	//		Status:  http.StatusUnauthorized,
+	//		Message: constants.UserIsNotAuthorizedMessage,
+	//	})
+	//}
 
 	playlistID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {

@@ -219,7 +219,7 @@ func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amo
 
 func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*proto.Album, error) {
 	query := `SELECT ` +
-		wrapper.Wrapper([]string{"id", "title", "year", "artwork"}, "alb") + ", SUM(t.duration) AS tracksDuration" +
+		wrapper.Wrapper([]string{"id", "title", "year", "artwork", "artwork_color"}, "alb") + ", SUM(t.duration) AS tracksDuration" +
 		`
 		FROM albums alb
 		JOIN tracks t ON alb.id = t.album
@@ -242,7 +242,7 @@ func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*prot
 	albums := make([]*proto.Album, 0, amount)
 	for rows.Next() {
 		album := &proto.Album{}
-		if err := rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.TracksDuration); err != nil {
+		if err := rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.ArtworkColor, &album.TracksDuration); err != nil {
 			return nil, err
 		}
 		albums = append(albums, album)

@@ -173,7 +173,7 @@ func (storage *MusicStorage) ArtistInfo(artistID int64) (*proto.Artist, error) {
 func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amount int64) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
 		wrapper.Wrapper([]string{"name"}, "g") +
 		`
 		FROM tracks t
@@ -201,7 +201,7 @@ func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amo
 		track.Album = &proto.Album{}
 		track.Artist = &proto.Artist{}
 		if err := rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
-			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Genre); err != nil {
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Album.ArtworkColor, &track.Genre); err != nil {
 			return nil, err
 		}
 		if !isAuthorized {

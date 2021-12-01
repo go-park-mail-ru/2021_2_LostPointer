@@ -557,7 +557,7 @@ func (storage *MusicStorage) IsPlaylistPublic(playlistID int64) (bool, error) {
 func (storage *MusicStorage) PlaylistTracks(playlistID int64) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"id", "title", "artwork"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
 		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
 		wrapper.Wrapper([]string{"name"}, "g") +
 		`
@@ -588,8 +588,8 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64) ([]*proto.Track, e
 		track.Album = &proto.Album{}
 		track.Artist = &proto.Artist{}
 		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
-			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Artist.ID,
-			&track.Artist.Name, &track.Genre); err != nil {
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork,
+			&track.Album.ArtworkColor, &track.Artist.ID, &track.Artist.Name, &track.Genre); err != nil {
 			return nil, err
 		}
 		tracks = append(tracks, track)

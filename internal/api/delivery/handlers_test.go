@@ -2031,13 +2031,12 @@ func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().PlaylistPage(gomock.Any(), &musicMicroservice.PlaylistPageOptions{
-					PlaylistID: 2,
-					UserID:     1,
+					UserID:     -1,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
 			userID:         -1,
 		},
 		{

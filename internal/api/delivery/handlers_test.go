@@ -1,6 +1,25 @@
 package delivery
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/golang/mock/gomock"
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"2021_2_LostPointer/internal/constants"
 	authorizationMock "2021_2_LostPointer/internal/microservices/authorization/mock"
 	authMicroservice "2021_2_LostPointer/internal/microservices/authorization/proto"
@@ -13,23 +32,6 @@ import (
 	profileMicroservice "2021_2_LostPointer/internal/microservices/profile/proto"
 	profileProto "2021_2_LostPointer/internal/microservices/profile/proto"
 	"2021_2_LostPointer/pkg/image"
-	"errors"
-	"fmt"
-	"github.com/golang/mock/gomock"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"strconv"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestAPIMicroservices_Login(t *testing.T) {
@@ -722,7 +724,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 				moq.EXPECT().RandomTracks(gomock.Any(), &musicMicroservice.RandomTracksOptions{
 					Amount:       constants.HomePageTracksSelectionAmount,
 					IsAuthorized: true,
-				}).Return(&musicMicroservice.Tracks{Tracks: []*musicMicroservice.Track{&musicMicroservice.Track{
+				}).Return(&musicMicroservice.Tracks{Tracks: []*musicMicroservice.Track{{
 					Album:  &musicMicroservice.Album{},
 					Artist: &musicMicroservice.Artist{},
 				}}}, nil)
@@ -846,7 +848,7 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomAlbums(gomock.Any(), &musicMicroservice.RandomAlbumsOptions{Amount: constants.HomePageAlbumsSelectionAmount}).
-					Return(&musicMicroservice.Albums{Albums: []*musicMicroservice.Album{&musicMicroservice.Album{}}}, nil)
+					Return(&musicMicroservice.Albums{Albums: []*musicMicroservice.Album{{}}}, nil)
 				return moq
 			},
 			expectedStatus: http.StatusOK,
@@ -938,7 +940,7 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount}).
-					Return(&musicMicroservice.Artists{Artists: []*musicMicroservice.Artist{&musicMicroservice.Artist{
+					Return(&musicMicroservice.Artists{Artists: []*musicMicroservice.Artist{{
 						Tracks: []*musicMicroservice.Track{},
 						Albums: []*musicMicroservice.Album{},
 					}}}, nil)
@@ -1270,8 +1272,6 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 		os.Getenv("PLAYLISTS_HOST"),
 		grpc.WithInsecure(),
 	)
-
-	//var ID int64 = 1
 
 	tests := []struct {
 		name                 string
@@ -1963,7 +1963,7 @@ func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
 		doNotSetRequestID    bool
 		doNotSerUserID       bool
 		userID               int
-		playlistId           int64
+		playlistID           int64
 		wrongTypeOfParameter bool
 	}{
 		{
@@ -1983,7 +1983,7 @@ func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"id\":2,\"title\":\"testTitle\"}\n",
 			userID:         1,
-			playlistId:     2,
+			playlistID:     2,
 		},
 		{
 			name: "Handler returned status 400",
@@ -1998,7 +1998,7 @@ func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
 			userID:         1,
-			playlistId:     2,
+			playlistID:     2,
 		},
 		{
 			name: "No RequestID",
@@ -2069,7 +2069,7 @@ func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
 			if currentTest.wrongTypeOfParameter {
 				ctx.SetParamValues("qwe!123scd")
 			} else {
-				ctx.SetParamValues(strconv.FormatInt(currentTest.playlistId, 10))
+				ctx.SetParamValues(strconv.FormatInt(currentTest.playlistID, 10))
 			}
 
 			if !currentTest.doNotSetRequestID {

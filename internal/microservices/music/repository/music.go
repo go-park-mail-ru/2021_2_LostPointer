@@ -171,6 +171,7 @@ func (storage *MusicStorage) ArtistInfo(artistID int64) (*proto.Artist, error) {
 }
 
 func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amount int64) ([]*proto.Track, error) {
+	var err error
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
@@ -200,7 +201,7 @@ func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amo
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
 		track.Artist = &proto.Artist{}
-		if err := rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
+		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
 			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Album.ArtworkColor, &track.Genre); err != nil {
 			return nil, err
 		}
@@ -218,6 +219,7 @@ func (storage *MusicStorage) ArtistTracks(artistID int64, isAuthorized bool, amo
 }
 
 func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*proto.Album, error) {
+	var err error
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "year", "artwork", "artwork_color"}, "alb") + ", SUM(t.duration) AS tracksDuration" +
 		`
@@ -242,7 +244,7 @@ func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*prot
 	albums := make([]*proto.Album, 0, amount)
 	for rows.Next() {
 		album := &proto.Album{}
-		if err := rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.ArtworkColor, &album.TracksDuration); err != nil {
+		if err = rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.ArtworkColor, &album.TracksDuration); err != nil {
 			return nil, err
 		}
 		albums = append(albums, album)
@@ -289,6 +291,7 @@ func (storage *MusicStorage) AlbumData(albumID int64) (*proto.AlbumPageResponse,
 }
 
 func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*proto.AlbumTrack, error) {
+	var err error
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"name"}, "g") +
@@ -314,7 +317,7 @@ func (storage *MusicStorage) AlbumTracks(albumID int64, isAuthorized bool) ([]*p
 	tracks := make([]*proto.AlbumTrack, 0)
 	for rows.Next() {
 		track := &proto.AlbumTrack{}
-		if err := rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
+		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
 			&track.Duration, &track.Lossless, &track.Genre); err != nil {
 			return nil, err
 		}
@@ -529,6 +532,9 @@ func (storage *MusicStorage) IsPlaylistOwner(playlistID int64, userID int64) (bo
 	if rows.Next() {
 		return true, nil
 	}
+	if err = rows.Err(); err != nil {
+		return false, err
+	}
 
 	return false, nil
 }
@@ -549,6 +555,9 @@ func (storage *MusicStorage) IsPlaylistPublic(playlistID int64) (bool, error) {
 
 	if rows.Next() {
 		return true, nil
+	}
+	if err = rows.Err(); err != nil {
+		return false, err
 	}
 
 	return false, nil

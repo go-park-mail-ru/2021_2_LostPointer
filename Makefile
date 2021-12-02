@@ -12,21 +12,8 @@ lint:
 	golangci-lint run -c golangci.yml ./...
 endif
 
-.PHONY: test
-test:
-	go test ./... -covermode=atomic -v -race
-
-.PHONY: build
-build:
-ifndef TARGET
-	@echo 'build target is not defined'
-else
-	go build $(GOTAGS) \
-		-ldflags '$(LDFLAGS)' \
-		-o bin/$(TARGET) \
-		./cmd/$(TARGET)
-endif
-
-.PHONY: run
-run:
-	docker-compose up -d --build
+.PHONY: tests
+tests:
+	go test -coverpkg=./... -coverprofile cover.out.tmp ./...
+	cat cover.out.tmp | grep -v "mock_*" | grep -v ".pb.go" | grep -v ".pb" | grep -v "middleware.go" | grep -v "/cmd*"> cover.out
+	go tool cover -func cover.out

@@ -7,7 +7,7 @@ import (
 	"2021_2_LostPointer/internal/monitoring/delivery"
 	"context"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -73,14 +73,17 @@ func (middleware *Middleware) PanicRecovering(next echo.HandlerFunc) echo.Handle
 	return func(ctx echo.Context) error {
 		defer func() error {
 			if err := recover(); err != nil {
-				requestID := ctx.Get("REQUEST_ID").(string)
+				requestID, ok := ctx.Get("REQUEST_ID").(string)
+				if !ok {
+					return ctx.NoContent(http.StatusInternalServerError)
+				}
 				middleware.logger.Info(
 					zap.String("ID", requestID),
 					zap.String("ERROR", err.(error).Error()),
 					zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 				)
 
-				fmt.Println("panic")
+				log.Println("panic")
 
 				status := strconv.Itoa(ctx.Response().Status)
 				path := ctx.Request().URL.Path

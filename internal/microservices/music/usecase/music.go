@@ -12,10 +12,10 @@ import (
 )
 
 type MusicService struct {
-	storage music.MusicStorage
+	storage music.Storage
 }
 
-func NewMusicService(storage music.MusicStorage) *MusicService {
+func NewMusicService(storage music.Storage) *MusicService {
 	return &MusicService{storage: storage}
 }
 

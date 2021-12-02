@@ -9,16 +9,16 @@ import (
 	"sync"
 )
 
-// Ensure, that MockMusicStorage does implement music.MusicStorage.
+// Ensure, that MockStorage does implement music.Storage.
 // If this is not the case, regenerate this file with moq.
-var _ music.MusicStorage = &MockMusicStorage{}
+var _ music.Storage = &MockStorage{}
 
-// MockMusicStorage is a mock implementation of music.MusicStorage.
+// MockStorage is a mock implementation of music.Storage.
 //
-// 	func TestSomethingThatUsesMusicStorage(t *testing.T) {
+// 	func TestSomethingThatUsesStorage(t *testing.T) {
 //
-// 		// make and configure a mocked music.MusicStorage
-// 		mockedMusicStorage := &MockMusicStorage{
+// 		// make and configure a mocked music.Storage
+// 		mockedStorage := &MockStorage{
 // 			AlbumDataFunc: func(n int64) (*proto.AlbumPageResponse, error) {
 // 				panic("mock out the AlbumData method")
 // 			},
@@ -78,11 +78,11 @@ var _ music.MusicStorage = &MockMusicStorage{}
 // 			},
 // 		}
 //
-// 		// use mockedMusicStorage in code that requires music.MusicStorage
+// 		// use mockedStorage in code that requires music.Storage
 // 		// and then make assertions.
 //
 // 	}
-type MockMusicStorage struct {
+type MockStorage struct {
 	// AlbumDataFunc mocks the AlbumData method.
 	AlbumDataFunc func(n int64) (*proto.AlbumPageResponse, error)
 
@@ -276,9 +276,9 @@ type MockMusicStorage struct {
 }
 
 // AlbumData calls AlbumDataFunc.
-func (mock *MockMusicStorage) AlbumData(n int64) (*proto.AlbumPageResponse, error) {
+func (mock *MockStorage) AlbumData(n int64) (*proto.AlbumPageResponse, error) {
 	if mock.AlbumDataFunc == nil {
-		panic("MockMusicStorage.AlbumDataFunc: method is nil but MusicStorage.AlbumData was just called")
+		panic("MockStorage.AlbumDataFunc: method is nil but Storage.AlbumData was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -293,8 +293,8 @@ func (mock *MockMusicStorage) AlbumData(n int64) (*proto.AlbumPageResponse, erro
 
 // AlbumDataCalls gets all the calls that were made to AlbumData.
 // Check the length with:
-//     len(mockedMusicStorage.AlbumDataCalls())
-func (mock *MockMusicStorage) AlbumDataCalls() []struct {
+//     len(mockedStorage.AlbumDataCalls())
+func (mock *MockStorage) AlbumDataCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -307,9 +307,9 @@ func (mock *MockMusicStorage) AlbumDataCalls() []struct {
 }
 
 // AlbumTracks calls AlbumTracksFunc.
-func (mock *MockMusicStorage) AlbumTracks(n int64, b bool) ([]*proto.AlbumTrack, error) {
+func (mock *MockStorage) AlbumTracks(n int64, b bool) ([]*proto.AlbumTrack, error) {
 	if mock.AlbumTracksFunc == nil {
-		panic("MockMusicStorage.AlbumTracksFunc: method is nil but MusicStorage.AlbumTracks was just called")
+		panic("MockStorage.AlbumTracksFunc: method is nil but Storage.AlbumTracks was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -326,8 +326,8 @@ func (mock *MockMusicStorage) AlbumTracks(n int64, b bool) ([]*proto.AlbumTrack,
 
 // AlbumTracksCalls gets all the calls that were made to AlbumTracks.
 // Check the length with:
-//     len(mockedMusicStorage.AlbumTracksCalls())
-func (mock *MockMusicStorage) AlbumTracksCalls() []struct {
+//     len(mockedStorage.AlbumTracksCalls())
+func (mock *MockStorage) AlbumTracksCalls() []struct {
 	N int64
 	B bool
 } {
@@ -342,9 +342,9 @@ func (mock *MockMusicStorage) AlbumTracksCalls() []struct {
 }
 
 // ArtistAlbums calls ArtistAlbumsFunc.
-func (mock *MockMusicStorage) ArtistAlbums(n1 int64, n2 int64) ([]*proto.Album, error) {
+func (mock *MockStorage) ArtistAlbums(n1 int64, n2 int64) ([]*proto.Album, error) {
 	if mock.ArtistAlbumsFunc == nil {
-		panic("MockMusicStorage.ArtistAlbumsFunc: method is nil but MusicStorage.ArtistAlbums was just called")
+		panic("MockStorage.ArtistAlbumsFunc: method is nil but Storage.ArtistAlbums was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -361,8 +361,8 @@ func (mock *MockMusicStorage) ArtistAlbums(n1 int64, n2 int64) ([]*proto.Album, 
 
 // ArtistAlbumsCalls gets all the calls that were made to ArtistAlbums.
 // Check the length with:
-//     len(mockedMusicStorage.ArtistAlbumsCalls())
-func (mock *MockMusicStorage) ArtistAlbumsCalls() []struct {
+//     len(mockedStorage.ArtistAlbumsCalls())
+func (mock *MockStorage) ArtistAlbumsCalls() []struct {
 	N1 int64
 	N2 int64
 } {
@@ -377,9 +377,9 @@ func (mock *MockMusicStorage) ArtistAlbumsCalls() []struct {
 }
 
 // ArtistInfo calls ArtistInfoFunc.
-func (mock *MockMusicStorage) ArtistInfo(n int64) (*proto.Artist, error) {
+func (mock *MockStorage) ArtistInfo(n int64) (*proto.Artist, error) {
 	if mock.ArtistInfoFunc == nil {
-		panic("MockMusicStorage.ArtistInfoFunc: method is nil but MusicStorage.ArtistInfo was just called")
+		panic("MockStorage.ArtistInfoFunc: method is nil but Storage.ArtistInfo was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -394,8 +394,8 @@ func (mock *MockMusicStorage) ArtistInfo(n int64) (*proto.Artist, error) {
 
 // ArtistInfoCalls gets all the calls that were made to ArtistInfo.
 // Check the length with:
-//     len(mockedMusicStorage.ArtistInfoCalls())
-func (mock *MockMusicStorage) ArtistInfoCalls() []struct {
+//     len(mockedStorage.ArtistInfoCalls())
+func (mock *MockStorage) ArtistInfoCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -408,9 +408,9 @@ func (mock *MockMusicStorage) ArtistInfoCalls() []struct {
 }
 
 // ArtistTracks calls ArtistTracksFunc.
-func (mock *MockMusicStorage) ArtistTracks(n1 int64, b bool, n2 int64) ([]*proto.Track, error) {
+func (mock *MockStorage) ArtistTracks(n1 int64, b bool, n2 int64) ([]*proto.Track, error) {
 	if mock.ArtistTracksFunc == nil {
-		panic("MockMusicStorage.ArtistTracksFunc: method is nil but MusicStorage.ArtistTracks was just called")
+		panic("MockStorage.ArtistTracksFunc: method is nil but Storage.ArtistTracks was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -429,8 +429,8 @@ func (mock *MockMusicStorage) ArtistTracks(n1 int64, b bool, n2 int64) ([]*proto
 
 // ArtistTracksCalls gets all the calls that were made to ArtistTracks.
 // Check the length with:
-//     len(mockedMusicStorage.ArtistTracksCalls())
-func (mock *MockMusicStorage) ArtistTracksCalls() []struct {
+//     len(mockedStorage.ArtistTracksCalls())
+func (mock *MockStorage) ArtistTracksCalls() []struct {
 	N1 int64
 	B  bool
 	N2 int64
@@ -447,9 +447,9 @@ func (mock *MockMusicStorage) ArtistTracksCalls() []struct {
 }
 
 // DoesPlaylistExist calls DoesPlaylistExistFunc.
-func (mock *MockMusicStorage) DoesPlaylistExist(n int64) (bool, error) {
+func (mock *MockStorage) DoesPlaylistExist(n int64) (bool, error) {
 	if mock.DoesPlaylistExistFunc == nil {
-		panic("MockMusicStorage.DoesPlaylistExistFunc: method is nil but MusicStorage.DoesPlaylistExist was just called")
+		panic("MockStorage.DoesPlaylistExistFunc: method is nil but Storage.DoesPlaylistExist was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -464,8 +464,8 @@ func (mock *MockMusicStorage) DoesPlaylistExist(n int64) (bool, error) {
 
 // DoesPlaylistExistCalls gets all the calls that were made to DoesPlaylistExist.
 // Check the length with:
-//     len(mockedMusicStorage.DoesPlaylistExistCalls())
-func (mock *MockMusicStorage) DoesPlaylistExistCalls() []struct {
+//     len(mockedStorage.DoesPlaylistExistCalls())
+func (mock *MockStorage) DoesPlaylistExistCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -478,9 +478,9 @@ func (mock *MockMusicStorage) DoesPlaylistExistCalls() []struct {
 }
 
 // FindAlbums calls FindAlbumsFunc.
-func (mock *MockMusicStorage) FindAlbums(s string) ([]*proto.Album, error) {
+func (mock *MockStorage) FindAlbums(s string) ([]*proto.Album, error) {
 	if mock.FindAlbumsFunc == nil {
-		panic("MockMusicStorage.FindAlbumsFunc: method is nil but MusicStorage.FindAlbums was just called")
+		panic("MockStorage.FindAlbumsFunc: method is nil but Storage.FindAlbums was just called")
 	}
 	callInfo := struct {
 		S string
@@ -495,8 +495,8 @@ func (mock *MockMusicStorage) FindAlbums(s string) ([]*proto.Album, error) {
 
 // FindAlbumsCalls gets all the calls that were made to FindAlbums.
 // Check the length with:
-//     len(mockedMusicStorage.FindAlbumsCalls())
-func (mock *MockMusicStorage) FindAlbumsCalls() []struct {
+//     len(mockedStorage.FindAlbumsCalls())
+func (mock *MockStorage) FindAlbumsCalls() []struct {
 	S string
 } {
 	var calls []struct {
@@ -509,9 +509,9 @@ func (mock *MockMusicStorage) FindAlbumsCalls() []struct {
 }
 
 // FindArtists calls FindArtistsFunc.
-func (mock *MockMusicStorage) FindArtists(s string) ([]*proto.Artist, error) {
+func (mock *MockStorage) FindArtists(s string) ([]*proto.Artist, error) {
 	if mock.FindArtistsFunc == nil {
-		panic("MockMusicStorage.FindArtistsFunc: method is nil but MusicStorage.FindArtists was just called")
+		panic("MockStorage.FindArtistsFunc: method is nil but Storage.FindArtists was just called")
 	}
 	callInfo := struct {
 		S string
@@ -526,8 +526,8 @@ func (mock *MockMusicStorage) FindArtists(s string) ([]*proto.Artist, error) {
 
 // FindArtistsCalls gets all the calls that were made to FindArtists.
 // Check the length with:
-//     len(mockedMusicStorage.FindArtistsCalls())
-func (mock *MockMusicStorage) FindArtistsCalls() []struct {
+//     len(mockedStorage.FindArtistsCalls())
+func (mock *MockStorage) FindArtistsCalls() []struct {
 	S string
 } {
 	var calls []struct {
@@ -540,9 +540,9 @@ func (mock *MockMusicStorage) FindArtistsCalls() []struct {
 }
 
 // FindTracksByFullWord calls FindTracksByFullWordFunc.
-func (mock *MockMusicStorage) FindTracksByFullWord(s string, b bool) ([]*proto.Track, error) {
+func (mock *MockStorage) FindTracksByFullWord(s string, b bool) ([]*proto.Track, error) {
 	if mock.FindTracksByFullWordFunc == nil {
-		panic("MockMusicStorage.FindTracksByFullWordFunc: method is nil but MusicStorage.FindTracksByFullWord was just called")
+		panic("MockStorage.FindTracksByFullWordFunc: method is nil but Storage.FindTracksByFullWord was just called")
 	}
 	callInfo := struct {
 		S string
@@ -559,8 +559,8 @@ func (mock *MockMusicStorage) FindTracksByFullWord(s string, b bool) ([]*proto.T
 
 // FindTracksByFullWordCalls gets all the calls that were made to FindTracksByFullWord.
 // Check the length with:
-//     len(mockedMusicStorage.FindTracksByFullWordCalls())
-func (mock *MockMusicStorage) FindTracksByFullWordCalls() []struct {
+//     len(mockedStorage.FindTracksByFullWordCalls())
+func (mock *MockStorage) FindTracksByFullWordCalls() []struct {
 	S string
 	B bool
 } {
@@ -575,9 +575,9 @@ func (mock *MockMusicStorage) FindTracksByFullWordCalls() []struct {
 }
 
 // FindTracksByPartial calls FindTracksByPartialFunc.
-func (mock *MockMusicStorage) FindTracksByPartial(s string, b bool) ([]*proto.Track, error) {
+func (mock *MockStorage) FindTracksByPartial(s string, b bool) ([]*proto.Track, error) {
 	if mock.FindTracksByPartialFunc == nil {
-		panic("MockMusicStorage.FindTracksByPartialFunc: method is nil but MusicStorage.FindTracksByPartial was just called")
+		panic("MockStorage.FindTracksByPartialFunc: method is nil but Storage.FindTracksByPartial was just called")
 	}
 	callInfo := struct {
 		S string
@@ -594,8 +594,8 @@ func (mock *MockMusicStorage) FindTracksByPartial(s string, b bool) ([]*proto.Tr
 
 // FindTracksByPartialCalls gets all the calls that were made to FindTracksByPartial.
 // Check the length with:
-//     len(mockedMusicStorage.FindTracksByPartialCalls())
-func (mock *MockMusicStorage) FindTracksByPartialCalls() []struct {
+//     len(mockedStorage.FindTracksByPartialCalls())
+func (mock *MockStorage) FindTracksByPartialCalls() []struct {
 	S string
 	B bool
 } {
@@ -610,9 +610,9 @@ func (mock *MockMusicStorage) FindTracksByPartialCalls() []struct {
 }
 
 // IncrementListenCount calls IncrementListenCountFunc.
-func (mock *MockMusicStorage) IncrementListenCount(n int64) error {
+func (mock *MockStorage) IncrementListenCount(n int64) error {
 	if mock.IncrementListenCountFunc == nil {
-		panic("MockMusicStorage.IncrementListenCountFunc: method is nil but MusicStorage.IncrementListenCount was just called")
+		panic("MockStorage.IncrementListenCountFunc: method is nil but Storage.IncrementListenCount was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -627,8 +627,8 @@ func (mock *MockMusicStorage) IncrementListenCount(n int64) error {
 
 // IncrementListenCountCalls gets all the calls that were made to IncrementListenCount.
 // Check the length with:
-//     len(mockedMusicStorage.IncrementListenCountCalls())
-func (mock *MockMusicStorage) IncrementListenCountCalls() []struct {
+//     len(mockedStorage.IncrementListenCountCalls())
+func (mock *MockStorage) IncrementListenCountCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -641,9 +641,9 @@ func (mock *MockMusicStorage) IncrementListenCountCalls() []struct {
 }
 
 // IsPlaylistOwner calls IsPlaylistOwnerFunc.
-func (mock *MockMusicStorage) IsPlaylistOwner(n1 int64, n2 int64) (bool, error) {
+func (mock *MockStorage) IsPlaylistOwner(n1 int64, n2 int64) (bool, error) {
 	if mock.IsPlaylistOwnerFunc == nil {
-		panic("MockMusicStorage.IsPlaylistOwnerFunc: method is nil but MusicStorage.IsPlaylistOwner was just called")
+		panic("MockStorage.IsPlaylistOwnerFunc: method is nil but Storage.IsPlaylistOwner was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -660,8 +660,8 @@ func (mock *MockMusicStorage) IsPlaylistOwner(n1 int64, n2 int64) (bool, error) 
 
 // IsPlaylistOwnerCalls gets all the calls that were made to IsPlaylistOwner.
 // Check the length with:
-//     len(mockedMusicStorage.IsPlaylistOwnerCalls())
-func (mock *MockMusicStorage) IsPlaylistOwnerCalls() []struct {
+//     len(mockedStorage.IsPlaylistOwnerCalls())
+func (mock *MockStorage) IsPlaylistOwnerCalls() []struct {
 	N1 int64
 	N2 int64
 } {
@@ -676,9 +676,9 @@ func (mock *MockMusicStorage) IsPlaylistOwnerCalls() []struct {
 }
 
 // IsPlaylistPublic calls IsPlaylistPublicFunc.
-func (mock *MockMusicStorage) IsPlaylistPublic(n int64) (bool, error) {
+func (mock *MockStorage) IsPlaylistPublic(n int64) (bool, error) {
 	if mock.IsPlaylistPublicFunc == nil {
-		panic("MockMusicStorage.IsPlaylistPublicFunc: method is nil but MusicStorage.IsPlaylistPublic was just called")
+		panic("MockStorage.IsPlaylistPublicFunc: method is nil but Storage.IsPlaylistPublic was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -693,8 +693,8 @@ func (mock *MockMusicStorage) IsPlaylistPublic(n int64) (bool, error) {
 
 // IsPlaylistPublicCalls gets all the calls that were made to IsPlaylistPublic.
 // Check the length with:
-//     len(mockedMusicStorage.IsPlaylistPublicCalls())
-func (mock *MockMusicStorage) IsPlaylistPublicCalls() []struct {
+//     len(mockedStorage.IsPlaylistPublicCalls())
+func (mock *MockStorage) IsPlaylistPublicCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -707,9 +707,9 @@ func (mock *MockMusicStorage) IsPlaylistPublicCalls() []struct {
 }
 
 // PlaylistInfo calls PlaylistInfoFunc.
-func (mock *MockMusicStorage) PlaylistInfo(n int64) (*proto.PlaylistData, error) {
+func (mock *MockStorage) PlaylistInfo(n int64) (*proto.PlaylistData, error) {
 	if mock.PlaylistInfoFunc == nil {
-		panic("MockMusicStorage.PlaylistInfoFunc: method is nil but MusicStorage.PlaylistInfo was just called")
+		panic("MockStorage.PlaylistInfoFunc: method is nil but Storage.PlaylistInfo was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -724,8 +724,8 @@ func (mock *MockMusicStorage) PlaylistInfo(n int64) (*proto.PlaylistData, error)
 
 // PlaylistInfoCalls gets all the calls that were made to PlaylistInfo.
 // Check the length with:
-//     len(mockedMusicStorage.PlaylistInfoCalls())
-func (mock *MockMusicStorage) PlaylistInfoCalls() []struct {
+//     len(mockedStorage.PlaylistInfoCalls())
+func (mock *MockStorage) PlaylistInfoCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -738,9 +738,9 @@ func (mock *MockMusicStorage) PlaylistInfoCalls() []struct {
 }
 
 // PlaylistTracks calls PlaylistTracksFunc.
-func (mock *MockMusicStorage) PlaylistTracks(n int64) ([]*proto.Track, error) {
+func (mock *MockStorage) PlaylistTracks(n int64) ([]*proto.Track, error) {
 	if mock.PlaylistTracksFunc == nil {
-		panic("MockMusicStorage.PlaylistTracksFunc: method is nil but MusicStorage.PlaylistTracks was just called")
+		panic("MockStorage.PlaylistTracksFunc: method is nil but Storage.PlaylistTracks was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -755,8 +755,8 @@ func (mock *MockMusicStorage) PlaylistTracks(n int64) ([]*proto.Track, error) {
 
 // PlaylistTracksCalls gets all the calls that were made to PlaylistTracks.
 // Check the length with:
-//     len(mockedMusicStorage.PlaylistTracksCalls())
-func (mock *MockMusicStorage) PlaylistTracksCalls() []struct {
+//     len(mockedStorage.PlaylistTracksCalls())
+func (mock *MockStorage) PlaylistTracksCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -769,9 +769,9 @@ func (mock *MockMusicStorage) PlaylistTracksCalls() []struct {
 }
 
 // RandomAlbums calls RandomAlbumsFunc.
-func (mock *MockMusicStorage) RandomAlbums(n int64) (*proto.Albums, error) {
+func (mock *MockStorage) RandomAlbums(n int64) (*proto.Albums, error) {
 	if mock.RandomAlbumsFunc == nil {
-		panic("MockMusicStorage.RandomAlbumsFunc: method is nil but MusicStorage.RandomAlbums was just called")
+		panic("MockStorage.RandomAlbumsFunc: method is nil but Storage.RandomAlbums was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -786,8 +786,8 @@ func (mock *MockMusicStorage) RandomAlbums(n int64) (*proto.Albums, error) {
 
 // RandomAlbumsCalls gets all the calls that were made to RandomAlbums.
 // Check the length with:
-//     len(mockedMusicStorage.RandomAlbumsCalls())
-func (mock *MockMusicStorage) RandomAlbumsCalls() []struct {
+//     len(mockedStorage.RandomAlbumsCalls())
+func (mock *MockStorage) RandomAlbumsCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -800,9 +800,9 @@ func (mock *MockMusicStorage) RandomAlbumsCalls() []struct {
 }
 
 // RandomArtists calls RandomArtistsFunc.
-func (mock *MockMusicStorage) RandomArtists(n int64) (*proto.Artists, error) {
+func (mock *MockStorage) RandomArtists(n int64) (*proto.Artists, error) {
 	if mock.RandomArtistsFunc == nil {
-		panic("MockMusicStorage.RandomArtistsFunc: method is nil but MusicStorage.RandomArtists was just called")
+		panic("MockStorage.RandomArtistsFunc: method is nil but Storage.RandomArtists was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -817,8 +817,8 @@ func (mock *MockMusicStorage) RandomArtists(n int64) (*proto.Artists, error) {
 
 // RandomArtistsCalls gets all the calls that were made to RandomArtists.
 // Check the length with:
-//     len(mockedMusicStorage.RandomArtistsCalls())
-func (mock *MockMusicStorage) RandomArtistsCalls() []struct {
+//     len(mockedStorage.RandomArtistsCalls())
+func (mock *MockStorage) RandomArtistsCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -831,9 +831,9 @@ func (mock *MockMusicStorage) RandomArtistsCalls() []struct {
 }
 
 // RandomTracks calls RandomTracksFunc.
-func (mock *MockMusicStorage) RandomTracks(n int64, b bool) (*proto.Tracks, error) {
+func (mock *MockStorage) RandomTracks(n int64, b bool) (*proto.Tracks, error) {
 	if mock.RandomTracksFunc == nil {
-		panic("MockMusicStorage.RandomTracksFunc: method is nil but MusicStorage.RandomTracks was just called")
+		panic("MockStorage.RandomTracksFunc: method is nil but Storage.RandomTracks was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -850,8 +850,8 @@ func (mock *MockMusicStorage) RandomTracks(n int64, b bool) (*proto.Tracks, erro
 
 // RandomTracksCalls gets all the calls that were made to RandomTracks.
 // Check the length with:
-//     len(mockedMusicStorage.RandomTracksCalls())
-func (mock *MockMusicStorage) RandomTracksCalls() []struct {
+//     len(mockedStorage.RandomTracksCalls())
+func (mock *MockStorage) RandomTracksCalls() []struct {
 	N int64
 	B bool
 } {
@@ -866,9 +866,9 @@ func (mock *MockMusicStorage) RandomTracksCalls() []struct {
 }
 
 // UserPlaylists calls UserPlaylistsFunc.
-func (mock *MockMusicStorage) UserPlaylists(n int64) ([]*proto.PlaylistData, error) {
+func (mock *MockStorage) UserPlaylists(n int64) ([]*proto.PlaylistData, error) {
 	if mock.UserPlaylistsFunc == nil {
-		panic("MockMusicStorage.UserPlaylistsFunc: method is nil but MusicStorage.UserPlaylists was just called")
+		panic("MockStorage.UserPlaylistsFunc: method is nil but Storage.UserPlaylists was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -883,8 +883,8 @@ func (mock *MockMusicStorage) UserPlaylists(n int64) ([]*proto.PlaylistData, err
 
 // UserPlaylistsCalls gets all the calls that were made to UserPlaylists.
 // Check the length with:
-//     len(mockedMusicStorage.UserPlaylistsCalls())
-func (mock *MockMusicStorage) UserPlaylistsCalls() []struct {
+//     len(mockedStorage.UserPlaylistsCalls())
+func (mock *MockStorage) UserPlaylistsCalls() []struct {
 	N int64
 } {
 	var calls []struct {

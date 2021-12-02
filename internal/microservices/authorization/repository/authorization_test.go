@@ -1,17 +1,19 @@
 package repository
 
 import (
-	"2021_2_LostPointer/internal/constants"
-	"2021_2_LostPointer/internal/microservices/authorization/proto"
 	"database/sql/driver"
 	"errors"
+	"log"
+	"regexp"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-redis/redismock/v8"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	"log"
-	"regexp"
-	"testing"
+
+	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/microservices/authorization/proto"
 )
 
 func TestSessionRepository_CreateSession(t *testing.T) {
@@ -107,13 +109,14 @@ func TestSessionRepository_GetUserIdByCookie(t *testing.T) {
 		},
 	}
 	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			testCase.mock()
-			res, err := repository.GetUserByCookie(testCase.input)
-			if testCase.expectedErr {
+		currentTest := testCase
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			res, err := repository.GetUserByCookie(currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
 			} else {
-				assert.Equal(t, testCase.expected, res)
+				assert.Equal(t, currentTest.expected, res)
 				assert.NoError(t, err)
 			}
 		})
@@ -153,10 +156,11 @@ func TestSessionRepository_DeleteSession(t *testing.T) {
 		},
 	}
 	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			testCase.mock()
-			err := repository.DeleteSession(testCase.input)
-			if testCase.expectedErr {
+		currentTest := testCase
+		t.Run(currentTest.name, func(t *testing.T) {
+			currentTest.mock()
+			err := repository.DeleteSession(currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)

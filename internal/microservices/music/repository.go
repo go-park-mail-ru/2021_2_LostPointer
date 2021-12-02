@@ -4,8 +4,8 @@ import (
 	"2021_2_LostPointer/internal/microservices/music/proto"
 )
 
-//go:generate moq -out ./mock/music_repo_mock.go -pkg mock . MusicStorage:MockMusicStorage
-type MusicStorage interface {
+//go:generate moq -out ./mock/music_repo_mock.go -pkg mock . Storage:MockStorage
+type Storage interface {
 	RandomTracks(int64, bool) (*proto.Tracks, error)
 	RandomAlbums(int64) (*proto.Albums, error)
 	RandomArtists(int64) (*proto.Artists, error)

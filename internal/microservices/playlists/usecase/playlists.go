@@ -1,20 +1,22 @@
 package usecase
 
 import (
+	"context"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/playlists"
 	"2021_2_LostPointer/internal/microservices/playlists/proto"
 	"2021_2_LostPointer/pkg/validation"
-	"context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type PlaylistsService struct {
-	storage playlists.PlaylistsStorage
+	storage playlists.Storage
 }
 
-func NewPlaylistsService(storage playlists.PlaylistsStorage) *PlaylistsService {
+func NewPlaylistsService(storage playlists.Storage) *PlaylistsService {
 	return &PlaylistsService{storage: storage}
 }
 
@@ -58,6 +60,9 @@ func (service *PlaylistsService) UpdatePlaylist(ctx context.Context, data *proto
 	}
 
 	oldArtwork, err := service.storage.GetOldPlaylistSettings(data.PlaylistID)
+	if err != nil {
+		return &proto.UpdatePlaylistResponse{}, status.Error(codes.Internal, err.Error())
+	}
 	if len(data.Title) != 0 {
 		var (
 			isTitleValid bool

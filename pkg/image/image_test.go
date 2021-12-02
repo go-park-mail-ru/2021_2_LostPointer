@@ -2,6 +2,7 @@ package image
 
 import (
 	"bytes"
+	"context"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -41,13 +42,19 @@ func TestCreateImages(t *testing.T) {
 	fw, _ := writer.CreateFormFile("photo", filename)
 
 	file, _ := os.Open("./" + filename)
-	io.Copy(fw, file)
+	_, err = io.Copy(fw, file)
+	if err != nil {
+		t.Error(err)
+	}
 	writer.Close()
 
-	req, _ := http.NewRequest("POST", "", bytes.NewReader(body.Bytes()))
+	req, _ := http.NewRequestWithContext(context.Background(), "POST", "", bytes.NewReader(body.Bytes()))
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	req.ParseMultipartForm(0)
+	err = req.ParseMultipartForm(0)
+	if err != nil {
+		t.Error(err)
+	}
 
 	r := NewImagesService()
 
@@ -65,9 +72,13 @@ func TestCreateImages(t *testing.T) {
 	// Пришла форма с пустой картинкой
 	const brokenFilename = "image2.jpeg"
 	f, _ = os.OpenFile(brokenFilename, os.O_WRONLY|os.O_CREATE, 0600)
-	f.Write([]byte("a"))
+	_, err = f.Write([]byte("a"))
+	if err != nil {
+		t.Error(err)
+	}
+
 	defer func(f *os.File) {
-		err := f.Close()
+		err = f.Close()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -78,13 +89,20 @@ func TestCreateImages(t *testing.T) {
 	fw, _ = writer.CreateFormFile("photo", brokenFilename)
 
 	file, _ = os.Open("./" + brokenFilename)
-	io.Copy(fw, file)
+	_, err = io.Copy(fw, file)
+	if err != nil {
+		t.Error(err)
+	}
+
 	writer.Close()
 
-	req, _ = http.NewRequest("POST", "", bytes.NewReader(body.Bytes()))
+	req, _ = http.NewRequestWithContext(context.Background(), "POST", "", bytes.NewReader(body.Bytes()))
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	req.ParseMultipartForm(0)
+	err = req.ParseMultipartForm(0)
+	if err != nil {
+		t.Error(err)
+	}
 
 	r = NewImagesService()
 

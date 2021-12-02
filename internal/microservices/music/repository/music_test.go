@@ -1450,9 +1450,9 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"name"}, "g") +
-		`
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
@@ -1480,9 +1480,9 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"name"}, "g") +
-		`
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
@@ -1509,9 +1509,9 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre, newArg)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"name"}, "g") +
-		`
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
@@ -1536,9 +1536,9 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Genre)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"name"}, "g") +
-		`
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
@@ -1566,9 +1566,9 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Genre)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT ` +
-		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
-		wrapper.Wrapper([]string{"name"}, "g") +
-		`
+					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+					wrapper.Wrapper([]string{"name"}, "g") +
+					`
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id

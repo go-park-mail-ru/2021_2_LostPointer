@@ -1,17 +1,19 @@
 package usecase
 
 import (
+	"context"
+	"errors"
+	"os"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"2021_2_LostPointer/internal/constants"
 	customErrors "2021_2_LostPointer/internal/errors"
 	"2021_2_LostPointer/internal/microservices/authorization/mock"
 	"2021_2_LostPointer/internal/microservices/authorization/proto"
-	"context"
-	"errors"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"os"
-	"testing"
 )
 
 func TestAuthService_Login(t *testing.T) {
@@ -73,11 +75,12 @@ func TestAuthService_Login(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			storage := NewAuthService(test.storageMock)
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewAuthService(currentTest.storageMock)
 
-			res, err := storage.Login(context.Background(), test.input)
-			if test.expectedErr {
+			res, err := storage.Login(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.True(t, len(res.Cookies) != 0)
@@ -218,13 +221,14 @@ func TestAuthService_Register(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			storage := NewAuthService(test.storageMock)
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewAuthService(currentTest.storageMock)
 
-			res, err := storage.Register(context.Background(), test.input)
-			if test.expectedErr {
+			res, err := storage.Register(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
-				assert.Equal(t, err, test.err)
+				assert.Equal(t, err, currentTest.err)
 			} else {
 				assert.True(t, len(res.Cookies) != 0)
 				assert.NoError(t, err)
@@ -266,16 +270,17 @@ func TestAuthService_GetAvatar(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			storage := NewAuthService(test.storageMock)
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewAuthService(currentTest.storageMock)
 
-			res, err := storage.GetAvatar(context.Background(), test.input)
-			if test.expectedErr {
+			res, err := storage.GetAvatar(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
-				assert.Equal(t, err, test.err)
+				assert.Equal(t, err, currentTest.err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, test.expected, res)
+				assert.Equal(t, currentTest.expected, res)
 			}
 		})
 	}
@@ -312,13 +317,14 @@ func TestAuthService_Logout(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			storage := NewAuthService(test.storageMock)
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewAuthService(currentTest.storageMock)
 
-			_, err := storage.Logout(context.Background(), test.input)
-			if test.expectedErr {
+			_, err := storage.Logout(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
-				assert.Equal(t, err, test.err)
+				assert.Equal(t, err, currentTest.err)
 			} else {
 				assert.NoError(t, err)
 			}
@@ -357,13 +363,14 @@ func TestAuthService_GetUserByCookie(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			storage := NewAuthService(test.storageMock)
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewAuthService(currentTest.storageMock)
 
-			_, err := storage.GetUserByCookie(context.Background(), test.input)
-			if test.expectedErr {
+			_, err := storage.GetUserByCookie(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
-				assert.Equal(t, err, test.err)
+				assert.Equal(t, err, currentTest.err)
 			} else {
 				assert.NoError(t, err)
 			}

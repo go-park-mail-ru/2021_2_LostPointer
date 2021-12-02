@@ -28,6 +28,7 @@ func NewImagesService() ImagesService {
 	return ImagesService{}
 }
 
+//nolint:cyclop
 func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, path string, extensions map[int]string) (*models.ImageData, error) {
 	file, err := fileHeader.Open()
 	if err != nil {

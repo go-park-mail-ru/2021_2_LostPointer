@@ -369,7 +369,7 @@ func TestProfileService_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &proto.UpdateSettingsOptions{
-				NewPassword: "Av",
+				NewPassword: "Av8",
 				OldPassword: "Avt8430055!",
 				OldSettings: &proto.UserSettings{},
 			},

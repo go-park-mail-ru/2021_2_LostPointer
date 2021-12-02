@@ -45,42 +45,42 @@ func NewAPIMicroservices(logger *zap.SugaredLogger, imageService image.ImagesSer
 }
 
 func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string, err error) error {
-	if e, temp := status.FromError(err); temp {
-		if e.Code() == codes.Internal {
+	if currentError, temp := status.FromError(err); temp {
+		if currentError.Code() == codes.Internal {
 			api.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
-		if e.Code() == codes.InvalidArgument {
+		if currentError.Code() == codes.InvalidArgument {
 			api.logger.Info(
 				zap.String("ID", requestID),
-				zap.String("MESSAGE", e.Message()),
+				zap.String("MESSAGE", currentError.Message()),
 				zap.Int("ANSWER STATUS", http.StatusBadRequest))
 			return ctx.JSON(http.StatusOK, &models.Response{
 				Status:  http.StatusBadRequest,
-				Message: e.Message(),
+				Message: currentError.Message(),
 			})
 		}
-		if e.Code() == codes.PermissionDenied {
+		if currentError.Code() == codes.PermissionDenied {
 			api.logger.Info(
 				zap.String("ID", requestID),
-				zap.String("MESSAGE", e.Message()),
+				zap.String("MESSAGE", currentError.Message()),
 				zap.Int("ANSWER STATUS", http.StatusForbidden))
 			return ctx.JSON(http.StatusOK, &models.Response{
 				Status:  http.StatusForbidden,
-				Message: e.Message(),
+				Message: currentError.Message(),
 			})
 		}
-		if e.Code() == codes.NotFound {
+		if currentError.Code() == codes.NotFound {
 			api.logger.Info(
 				zap.String("ID", requestID),
-				zap.String("MESSAGE", e.Message()),
+				zap.String("MESSAGE", currentError.Message()),
 				zap.Int("ANSWER STATUS", http.StatusNotFound))
 			return ctx.JSON(http.StatusOK, &models.Response{
 				Status:  http.StatusNotFound,
-				Message: e.Message(),
+				Message: currentError.Message(),
 			})
 		}
 	}

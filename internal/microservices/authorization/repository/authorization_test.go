@@ -447,36 +447,6 @@ func TestAuthStorage_IsNicknameUnique(t *testing.T) {
 	}
 }
 
-//func (storage *AuthStorage) GetAvatar(userID int64) (string, error) {
-//	query := `SELECT avatar FROM users WHERE id=$1`
-//
-//	rows, err := storage.db.Query(query, userID)
-//	if err != nil {
-//		return "", err
-//	}
-//	err = rows.Err()
-//	if err != nil {
-//		return "", err
-//	}
-//	defer func() {
-//		err = rows.Close()
-//		if err != nil {
-//			log.Fatal("Error occurred during closing rows")
-//		}
-//	}()
-//
-//	if !rows.Next() {
-//		return "", nil
-//	}
-//
-//	var filename string
-//	if err := rows.Scan(&filename); err != nil {
-//		return "", err
-//	}
-//
-//	return filename, nil
-//}
-
 func TestAuthStorage_GetAvatar(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {

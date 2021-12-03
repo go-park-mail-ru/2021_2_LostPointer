@@ -54,6 +54,12 @@ jobs:
           username: "vershovbmstu"
           password: "Avt8430055"
       - name: Push to Docker Hub
+        env:
+          DBUSER: postgres
+          DBPASS: root
+          DBNAME: lostpointer
+          PG_EXTERNAL_PORT: 54321
+          REDIS_EXTERNAL_PORT: 63799
         run: |
           docker-compose build
           docker tag 2021_2_lostpointer vershovbmstu/lostpointer_deploy:latest

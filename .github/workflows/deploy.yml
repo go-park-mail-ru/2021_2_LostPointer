@@ -54,11 +54,10 @@ jobs:
           username: "vershovbmstu"
           password: "Avt8430055"
       - name: Push to Docker Hub
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: vershovbmstu/lostpointer_deploy
+        run: |
+          docker-compose build
+          docker tag 2021_2_lostpointer vershovbmstu/lostpointer_deploy:latest
+          docker push vershovbmstu/lostpointer_deploy:latest
 
 
 

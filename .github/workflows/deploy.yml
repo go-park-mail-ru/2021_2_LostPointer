@@ -11,30 +11,44 @@ on:
       - main
 
 jobs:
-  tests:
-    name: Run tests
+#  tests:
+#    name: Run tests
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Install Go
+#        uses: actions/setup-go@v2
+#        with:
+#          go-version: '1.16.x'
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#      - name: Run all tests
+#        run: make tests
+#  linter:
+#    name: Run linter
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Install Go
+#        uses: actions/setup-go@v2
+#        with:
+#          go-version: '1.16.x'
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#      - name: Run linter
+#        run: |
+#          export PATH=$PATH:$(go env GOPATH)/bin
+#          go get github.com/golangci/golangci-lint/cmd/golangci-lint
+#          make lint
+  build:
+    name: Build Docker
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.16.x'
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Run all tests
-        run: make tests
-  linter:
-    name: Run linter
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.16.x'
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Run linter
-        run: |
-          export PATH=$PATH:$(go env GOPATH)/bin
-          go get github.com/golangci/golangci-lint/cmd/golangci-lint
-          make lint
+      - name: Login to DockerHub
+        run: echo "Avt8430055" | docker login -u "vershovbmstu" --password-stdin
+      - name: Build docker image
+        run: docker build -t vershovbmstu/lostpointer_deploy:latest .
+      - name: Push to DockerHub
+        run: docker push vershovbmstu/lostpointer_deploy:latest
+
+

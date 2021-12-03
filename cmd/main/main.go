@@ -20,6 +20,7 @@ import (
 	"2021_2_LostPointer/pkg/image"
 )
 
+//nolint:ireturn
 func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, profileMicroservice.ProfileClient,
 	musicMicroservice.MusicClient, playlistsMicroservice.PlaylistsClient, []*grpc.ClientConn) {
 	connections := make([]*grpc.ClientConn, 0)

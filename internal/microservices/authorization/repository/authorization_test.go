@@ -170,13 +170,13 @@ func TestSessionRepository_DeleteSession(t *testing.T) {
 }
 
 func TestAuthStorage_GetUserByPassword(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	database, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
 	redisDB, _ := redismock.NewClientMock()
-	repository := NewAuthStorage(db, redisDB)
+	repository := NewAuthStorage(database, redisDB)
 
 	authData := &proto.AuthData{
 		Email:    "testEmail",
@@ -267,13 +267,13 @@ func TestAuthStorage_GetUserByPassword(t *testing.T) {
 }
 
 func TestAuthStorage_CreateUser(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	database, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
 	redisDB, _ := redismock.NewClientMock()
-	repository := NewAuthStorage(db, redisDB)
+	repository := NewAuthStorage(database, redisDB)
 
 	const ID = 1
 
@@ -327,13 +327,13 @@ func TestAuthStorage_CreateUser(t *testing.T) {
 }
 
 func TestAuthStorage_IsEmailUnique(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	database, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
 	redisDB, _ := redismock.NewClientMock()
-	repository := NewAuthStorage(db, redisDB)
+	repository := NewAuthStorage(database, redisDB)
 	const (
 		email         = "testEmail"
 		emailArgument = "testemail"
@@ -387,13 +387,13 @@ func TestAuthStorage_IsEmailUnique(t *testing.T) {
 }
 
 func TestAuthStorage_IsNicknameUnique(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	database, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
 	redisDB, _ := redismock.NewClientMock()
-	repository := NewAuthStorage(db, redisDB)
+	repository := NewAuthStorage(database, redisDB)
 
 	const (
 		nickname         = "testEmail"
@@ -448,13 +448,13 @@ func TestAuthStorage_IsNicknameUnique(t *testing.T) {
 }
 
 func TestAuthStorage_GetAvatar(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	database, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
 	redisDB, _ := redismock.NewClientMock()
-	repository := NewAuthStorage(db, redisDB)
+	repository := NewAuthStorage(database, redisDB)
 
 	const (
 		avatar = "testAvatar"

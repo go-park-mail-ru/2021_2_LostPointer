@@ -23,14 +23,14 @@ func TestCreateImages(t *testing.T) {
 
 	img := image.NewRGBA(image.Rect(0, 0, 100, 50))
 	img.Set(2, 3, color.RGBA{R: 255, A: 255})
-	f, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
+	filePtr, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
 			t.Error(err)
 		}
-	}(f)
-	err := jpeg.Encode(f, img, nil)
+	}(filePtr)
+	err := jpeg.Encode(filePtr, img, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -39,10 +39,10 @@ func TestCreateImages(t *testing.T) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	fw, _ := writer.CreateFormFile("photo", filename)
+	fwriter, _ := writer.CreateFormFile("photo", filename)
 
 	file, _ := os.Open("./" + filename)
-	_, err = io.Copy(fw, file)
+	_, err = io.Copy(fwriter, file)
 	if err != nil {
 		t.Error(err)
 	}
@@ -56,9 +56,9 @@ func TestCreateImages(t *testing.T) {
 		t.Error(err)
 	}
 
-	r := NewImagesService()
+	service := NewImagesService()
 
-	avatar, err := r.CreateImages(
+	avatar, err := service.CreateImages(
 		req.MultipartForm.File["photo"][0],
 		os.Getenv("PLAYLIST_FULL_PREFIX"), map[int]string{
 			100: constants.PlaylistArtworkExtension100px,
@@ -71,8 +71,8 @@ func TestCreateImages(t *testing.T) {
 
 	// Пришла форма с пустой картинкой
 	const brokenFilename = "image2.jpeg"
-	f, _ = os.OpenFile(brokenFilename, os.O_WRONLY|os.O_CREATE, 0600)
-	_, err = f.Write([]byte("a"))
+	filePtr, _ = os.OpenFile(brokenFilename, os.O_WRONLY|os.O_CREATE, 0600)
+	_, err = filePtr.Write([]byte("a"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -82,14 +82,14 @@ func TestCreateImages(t *testing.T) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-	}(f)
+	}(filePtr)
 	body = &bytes.Buffer{}
 	writer = multipart.NewWriter(body)
 
-	fw, _ = writer.CreateFormFile("photo", brokenFilename)
+	fwriter, _ = writer.CreateFormFile("photo", brokenFilename)
 
 	file, _ = os.Open("./" + brokenFilename)
-	_, err = io.Copy(fw, file)
+	_, err = io.Copy(fwriter, file)
 	if err != nil {
 		t.Error(err)
 	}
@@ -104,9 +104,9 @@ func TestCreateImages(t *testing.T) {
 		t.Error(err)
 	}
 
-	r = NewImagesService()
+	service = NewImagesService()
 
-	_, err = r.CreateImages(
+	_, err = service.CreateImages(
 		req.MultipartForm.File["photo"][0],
 		os.Getenv("PLAYLIST_FULL_PREFIX"), map[int]string{
 			100: constants.PlaylistArtworkExtension100px,

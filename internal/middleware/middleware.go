@@ -174,18 +174,18 @@ func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func (middleware *Middleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(ctx echo.Context) error {
 
-		c.Response().Header().Set("Access-Control-Allow-Origin", os.Getenv("CORS_ORIGIN"))
-		c.Response().Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS, PUT, DELETE, POST, PATCH")
-		c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, X-Login, Set-Cookie, Content-Type, Content-Length, Accept-Encoding, X-Csrf-Token, csrf-token, Authorization")
-		c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Response().Header().Set("Vary", "Cookie")
+		ctx.Response().Header().Set("Access-Control-Allow-Origin", os.Getenv("CORS_ORIGIN"))
+		ctx.Response().Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS, PUT, DELETE, POST, PATCH")
+		ctx.Response().Header().Set("Access-Control-Allow-Headers", "Origin, X-Login, Set-Cookie, Content-Type, Content-Length, Accept-Encoding, X-Csrf-Token, csrf-token, Authorization")
+		ctx.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+		ctx.Response().Header().Set("Vary", "Cookie")
 
-		if c.Request().Method == http.MethodOptions {
-			return c.NoContent(http.StatusOK)
+		if ctx.Request().Method == http.MethodOptions {
+			return ctx.NoContent(http.StatusOK)
 		}
 
-		return next(c)
+		return next(ctx)
 	}
 }

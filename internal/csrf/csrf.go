@@ -52,13 +52,13 @@ func (tk *HashToken) Check(cookie string, inputToken string) (bool, error) {
 		return false, errors.New("Session expires")
 	}
 
-	h := hmac.New(sha256.New, tk.Secret)
+	hash := hmac.New(sha256.New, tk.Secret)
 	data := fmt.Sprintf("%s:%d", cookie, tokenExp)
-	_, err = h.Write([]byte(data))
+	_, err = hash.Write([]byte(data))
 	if err != nil {
 		return false, err
 	}
-	expectedMAC := h.Sum(nil)
+	expectedMAC := hash.Sum(nil)
 	messageMAC, err := hex.DecodeString(tokenData[0])
 	if err != nil {
 		return false, fmt.Errorf("can't hex decode token")

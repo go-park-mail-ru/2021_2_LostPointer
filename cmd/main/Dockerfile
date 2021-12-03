@@ -15,7 +15,7 @@ RUN mkdir .bin && mkdir .bin/webp && cp $(which cwebp) .bin/webp/
 
 COPY ./. .
 
-RUN go build ./cmd/main/main.go
+RUN GOARCH=arm64 GOOS=linux go build ./cmd/main/main.go
 
 ADD cmd/main .
 

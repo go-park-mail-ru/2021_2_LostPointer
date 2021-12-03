@@ -9,7 +9,7 @@ RUN go mod download
 
 COPY ./. .
 
-RUN go build ./cmd/playlists/playlists.go
+RUN GOARCH=arm64 GOOS=linux go build ./cmd/playlists/playlists.go
 
 ADD cmd/playlists .
 

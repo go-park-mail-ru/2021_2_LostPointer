@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY ./. .
 
-RUN go build ./cmd/authorization/authorization.go
+RUN GOARCH=arm64 GOOS=linux go build ./cmd/authorization/authorization.go
 
 ADD cmd/authorization .
 

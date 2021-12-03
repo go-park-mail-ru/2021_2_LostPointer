@@ -9,7 +9,7 @@ RUN go mod download
 
 COPY ./. .
 
-RUN go build ./cmd/profile/profile.go
+RUN GOARCH=arm64 GOOS=linux go build ./cmd/profile/profile.go
 
 ADD cmd/profile .
 

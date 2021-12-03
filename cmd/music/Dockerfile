@@ -9,7 +9,7 @@ RUN go mod download
 
 COPY ./. .
 
-RUN go build ./cmd/music/music.go
+RUN GOARCH=arm64 GOOS=linux go build ./cmd/music/music.go
 
 ADD cmd/music .
 

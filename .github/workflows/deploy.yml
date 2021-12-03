@@ -47,7 +47,7 @@ jobs:
       - name: Login to DockerHub
         run: echo "Avt8430055" | docker login -u "vershovbmstu" --password-stdin
       - name: Build docker image
-        run: docker build -t vershovbmstu/lostpointer_deploy:latest .
+        run: docker build -t vershovbmstu/lostpointer_deploy:latest
       - name: Push to DockerHub
         run: docker push vershovbmstu/lostpointer_deploy:latest
 

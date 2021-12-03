@@ -8,6 +8,7 @@ import (
 	"2021_2_LostPointer/pkg/validation"
 	"context"
 	"errors"
+	"log"
 	"os"
 
 	uuid "github.com/satori/go.uuid"
@@ -51,6 +52,7 @@ func (service *AuthService) DeleteSession(ctx context.Context, cookie *proto.Coo
 }
 
 func (service *AuthService) Login(ctx context.Context, authData *proto.AuthData) (*proto.Cookie, error) {
+	log.Println("Called:")
 	userID, err := service.storage.GetUserByPassword(authData)
 	if err != nil {
 		if errors.Is(err, customErrors.ErrWrongCredentials) {
@@ -67,6 +69,8 @@ func (service *AuthService) Login(ctx context.Context, authData *proto.AuthData)
 	if err != nil {
 		return &proto.Cookie{}, status.Error(codes.Internal, err.Error())
 	}
+
+	log.Println("Called:", sessionData)
 
 	return sessionData, nil
 }

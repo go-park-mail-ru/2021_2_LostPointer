@@ -55,14 +55,46 @@ jobs:
         with:
           username: "vershovbmstu"
           password: "Avt8430055"
-      - name: Push authorization
+      - name: Build and push authorization
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./cmd/authorization/Dockerfile
           platforms: linux/arm64
           push: true
-          tags: vershovbmstu/lostpointer_deploy_main:latest
+          tags: vershovbmstu/lostpointer_deploy_authorization:latest
+#      - name: Build and push music
+#        uses: docker/build-push-action@v2
+#        with:
+#          context: .
+#          file: ./cmd/music/Dockerfile
+#          platforms: linux/arm64
+#          push: true
+#          tags: vershovbmstu/lostpointer_deploy_music:latest
+#      - name: Build and push playlists
+#        uses: docker/build-push-action@v2
+#        with:
+#          context: .
+#          file: ./cmd/playlists/Dockerfile
+#          platforms: linux/arm64
+#          push: true
+#          tags: vershovbmstu/lostpointer_deploy_playlists:latest
+#      - name: Build and push profile
+#        uses: docker/build-push-action@v2
+#        with:
+#          context: .
+#          file: ./cmd/profile/Dockerfile
+#          platforms: linux/arm64
+#          push: true
+#          tags: vershovbmstu/lostpointer_deploy_profile:latest
+#      - name: Build and push main
+#        uses: docker/build-push-action@v2
+#        with:
+#          context: .
+#          file: ./cmd/main/Dockerfile
+#          platforms: linux/arm64
+#          push: true
+#          tags: vershovbmstu/lostpointer_deploy_main:latest
 
 #        env:
 #          DBUSER: postgres

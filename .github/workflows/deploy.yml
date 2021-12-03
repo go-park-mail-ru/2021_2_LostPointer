@@ -34,7 +34,4 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Run linter
-        run: |
-          export PATH=$PATH:$(go env GOPATH)/bin
-          go get github.com/golangci/golangci-lint/cmd/golangci-lint
-          make lint
+        run: make lint

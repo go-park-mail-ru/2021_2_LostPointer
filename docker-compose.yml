@@ -34,7 +34,9 @@ services:
       - /home/ubuntu/playlists:/app/playlists
 
   authorization:
-    image: vershovbmstu/lostpointer_deploy_authorization:latest
+    build:
+      context: .
+      dockerfile: ./cmd/profile/Dockerfile
     env_file:
       - .env-prod
     networks:

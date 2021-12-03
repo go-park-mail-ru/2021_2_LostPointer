@@ -11,7 +11,7 @@ RUN apk add --no-cache --update libwebp-tools
 COPY ./. .
 RUN mkdir .bin && mkdir .bin/webp && cp $(which cwebp) .bin/webp/
 
-RUN CGO_ENABLED=0 go build ./cmd/main/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build ./cmd/main/main.go
 
 #Environment
 FROM alpine:latest

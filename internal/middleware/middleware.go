@@ -71,6 +71,7 @@ func (middleware *Middleware) CheckAuthorization(next echo.HandlerFunc) echo.Han
 
 func (middleware *Middleware) PanicRecovering(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
+		//nolint:errcheck
 		defer func() error {
 			if err := recover(); err != nil {
 				requestID, ok := ctx.Get("REQUEST_ID").(string)

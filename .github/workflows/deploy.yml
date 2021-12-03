@@ -61,7 +61,7 @@ jobs:
           PG_EXTERNAL_PORT: 54321
           REDIS_EXTERNAL_PORT: 63799
         run: |
-          docker-compose build -f docker-compose.yml
+          docker-compose build
           docker tag 2021_2_lostpointer_main vershovbmstu/lostpointer_deploy_main:latest
           docker push vershovbmstu/lostpointer_deploy_main:latest
           docker tag 2021_2_lostpointer_authorization vershovbmstu/lostpointer_deploy_authorization:latest

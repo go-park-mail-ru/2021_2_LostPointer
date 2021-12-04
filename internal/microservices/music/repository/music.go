@@ -677,3 +677,86 @@ func (storage *MusicStorage) DoesPlaylistExist(playlistID int64) (bool, error) {
 
 	return false, nil
 }
+
+func (storage *MusicStorage) AddTrackToFavorite(userID int64, trackID int64) error {
+	query := `INSERT INTO likes(user_id, track_id) VALUES ($1, $2)`
+
+	err := storage.db.QueryRow(query, userID, trackID).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (storage *MusicStorage) DeleteTrackFromFavorites(userID int64, trackID int64) error {
+	query := `DELETE FROM likes WHERE user_id = $1 and track_id = $2`
+
+	_, err := storage.db.Exec(query, userID, trackID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (storage *MusicStorage) GetFavorites(userID int64) ([]*proto.Track, error) {
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") +
+		`
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		WHERE t.id IN (
+			SELECT track_id
+			FROM likes
+			WHERE user_id = $1
+		)`
+
+	rows, err := storage.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	tracks := make([]*proto.Track, 0)
+	for rows.Next() {
+		track := &proto.Track{}
+		track.Album = &proto.Album{}
+		track.Artist = &proto.Artist{}
+		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork,
+			&track.Album.ArtworkColor, &track.Artist.ID, &track.Artist.Name, &track.Genre); err != nil {
+			return nil, err
+		}
+		tracks = append(tracks, track)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return tracks, nil
+}
+
+func (storage *MusicStorage) IsTrackInFavorites(userID int64, trackID int64) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM likes WHERE user_id = $1 AND track_id = $2)`
+
+	var isExist bool
+
+	err := storage.db.QueryRow(query, userID, trackID).Scan(isExist)
+	if err != nil {
+		return false, err
+	}
+
+	return isExist, nil
+}

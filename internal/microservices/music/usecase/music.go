@@ -180,6 +180,8 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 	return playlistData, nil
 }
 
+//func (service *MusicService) AddTrackToFavorites(ctx context.Context
+
 func contains(tracks []*proto.Track, trackID int64) bool {
 	for _, currentTrack := range tracks {
 		if currentTrack.ID == trackID {

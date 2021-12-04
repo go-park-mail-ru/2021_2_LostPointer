@@ -144,6 +144,24 @@ message PlaylistPageResponse {
 
 message IncrementListenCountEmpty {}
 
+message AddTrackToFavoritesOptions {
+  int64 UserID = 1;
+  int64 TrackID = 2;
+}
+
+message DeleteTrackFromFavoritesOptions {
+  int64 UserID = 1;
+  int64 TrackID = 2;
+}
+
+message UserFavoritesOptions {
+  int64 UserID = 1;
+}
+
+message AddTrackToFavoritesResponse {}
+
+message DeleteTrackFromFavoritesResponse {}
+
 service Music {
   rpc RandomTracks(RandomTracksOptions) returns (Tracks) {}
   rpc RandomAlbums(RandomAlbumsOptions) returns (Albums) {}
@@ -154,4 +172,7 @@ service Music {
   rpc AlbumPage(AlbumPageOptions) returns (AlbumPageResponse) {}
   rpc PlaylistPage(PlaylistPageOptions) returns (PlaylistPageResponse) {}
   rpc Find(FindOptions) returns (FindResponse) {}
+  rpc AddTrackToFavorites(AddTrackToFavoritesOptions) returns (AddTrackToFavoritesResponse) {}
+  rpc DeleteTrackFromFavorites(DeleteTrackFromFavoritesResponse) returns (DeleteTrackFromFavoritesResponse) {}
+  rpc GetFavoriteTracks(UserFavoritesOptions) returns (Tracks) {}
 }

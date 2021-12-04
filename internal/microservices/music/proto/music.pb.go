@@ -7,10 +7,6 @@
 package proto
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1497,6 +1493,239 @@ func (*IncrementListenCountEmpty) Descriptor() ([]byte, []int) {
 	return file_music_proto_rawDescGZIP(), []int{21}
 }
 
+type AddTrackToFavoritesOptions struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UserID  int64 `protobuf:"varint,1,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	TrackID int64 `protobuf:"varint,2,opt,name=TrackID,proto3" json:"TrackID,omitempty"`
+}
+
+func (x *AddTrackToFavoritesOptions) Reset() {
+	*x = AddTrackToFavoritesOptions{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_music_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddTrackToFavoritesOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddTrackToFavoritesOptions) ProtoMessage() {}
+
+func (x *AddTrackToFavoritesOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_music_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddTrackToFavoritesOptions.ProtoReflect.Descriptor instead.
+func (*AddTrackToFavoritesOptions) Descriptor() ([]byte, []int) {
+	return file_music_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *AddTrackToFavoritesOptions) GetUserID() int64 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+func (x *AddTrackToFavoritesOptions) GetTrackID() int64 {
+	if x != nil {
+		return x.TrackID
+	}
+	return 0
+}
+
+type DeleteTrackFromFavoritesOptions struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UserID  int64 `protobuf:"varint,1,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	TrackID int64 `protobuf:"varint,2,opt,name=TrackID,proto3" json:"TrackID,omitempty"`
+}
+
+func (x *DeleteTrackFromFavoritesOptions) Reset() {
+	*x = DeleteTrackFromFavoritesOptions{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_music_proto_msgTypes[23]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteTrackFromFavoritesOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteTrackFromFavoritesOptions) ProtoMessage() {}
+
+func (x *DeleteTrackFromFavoritesOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_music_proto_msgTypes[23]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteTrackFromFavoritesOptions.ProtoReflect.Descriptor instead.
+func (*DeleteTrackFromFavoritesOptions) Descriptor() ([]byte, []int) {
+	return file_music_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *DeleteTrackFromFavoritesOptions) GetUserID() int64 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+func (x *DeleteTrackFromFavoritesOptions) GetTrackID() int64 {
+	if x != nil {
+		return x.TrackID
+	}
+	return 0
+}
+
+type UserFavoritesOptions struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UserID int64 `protobuf:"varint,1,opt,name=UserID,proto3" json:"UserID,omitempty"`
+}
+
+func (x *UserFavoritesOptions) Reset() {
+	*x = UserFavoritesOptions{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_music_proto_msgTypes[24]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UserFavoritesOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserFavoritesOptions) ProtoMessage() {}
+
+func (x *UserFavoritesOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_music_proto_msgTypes[24]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserFavoritesOptions.ProtoReflect.Descriptor instead.
+func (*UserFavoritesOptions) Descriptor() ([]byte, []int) {
+	return file_music_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *UserFavoritesOptions) GetUserID() int64 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+type AddTrackToFavoritesResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *AddTrackToFavoritesResponse) Reset() {
+	*x = AddTrackToFavoritesResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_music_proto_msgTypes[25]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddTrackToFavoritesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddTrackToFavoritesResponse) ProtoMessage() {}
+
+func (x *AddTrackToFavoritesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_music_proto_msgTypes[25]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddTrackToFavoritesResponse.ProtoReflect.Descriptor instead.
+func (*AddTrackToFavoritesResponse) Descriptor() ([]byte, []int) {
+	return file_music_proto_rawDescGZIP(), []int{25}
+}
+
+type DeleteTrackFromFavoritesResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DeleteTrackFromFavoritesResponse) Reset() {
+	*x = DeleteTrackFromFavoritesResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_music_proto_msgTypes[26]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteTrackFromFavoritesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteTrackFromFavoritesResponse) ProtoMessage() {}
+
+func (x *DeleteTrackFromFavoritesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_music_proto_msgTypes[26]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteTrackFromFavoritesResponse.ProtoReflect.Descriptor instead.
+func (*DeleteTrackFromFavoritesResponse) Descriptor() ([]byte, []int) {
+	return file_music_proto_rawDescGZIP(), []int{26}
+}
+
 var File_music_proto protoreflect.FileDescriptor
 
 var file_music_proto_rawDesc = []byte{
@@ -1660,41 +1889,73 @@ var file_music_proto_rawDesc = []byte{
 	0x12, 0x14, 0x0a, 0x05, 0x49, 0x73, 0x4f, 0x77, 0x6e, 0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52,
 	0x05, 0x49, 0x73, 0x4f, 0x77, 0x6e, 0x22, 0x1b, 0x0a, 0x19, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d,
 	0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x45, 0x6d,
-	0x70, 0x74, 0x79, 0x32, 0xfa, 0x03, 0x0a, 0x05, 0x4d, 0x75, 0x73, 0x69, 0x63, 0x12, 0x2f, 0x0a,
-	0x0c, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x73, 0x12, 0x14, 0x2e,
-	0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x73, 0x4f, 0x70, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x1a, 0x07, 0x2e, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x73, 0x22, 0x00, 0x12, 0x2f,
-	0x0a, 0x0c, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x41, 0x6c, 0x62, 0x75, 0x6d, 0x73, 0x12, 0x14,
-	0x2e, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x41, 0x6c, 0x62, 0x75, 0x6d, 0x73, 0x4f, 0x70, 0x74,
-	0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x07, 0x2e, 0x41, 0x6c, 0x62, 0x75, 0x6d, 0x73, 0x22, 0x00, 0x12,
-	0x32, 0x0a, 0x0d, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x73,
-	0x12, 0x15, 0x2e, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x73,
-	0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x08, 0x2e, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74,
-	0x73, 0x22, 0x00, 0x12, 0x38, 0x0a, 0x0d, 0x55, 0x73, 0x65, 0x72, 0x50, 0x6c, 0x61, 0x79, 0x6c,
-	0x69, 0x73, 0x74, 0x73, 0x12, 0x15, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x50, 0x6c, 0x61, 0x79, 0x6c,
-	0x69, 0x73, 0x74, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x0e, 0x2e, 0x50, 0x6c,
-	0x61, 0x79, 0x6c, 0x69, 0x73, 0x74, 0x73, 0x44, 0x61, 0x74, 0x61, 0x22, 0x00, 0x12, 0x31, 0x0a,
-	0x0d, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x12, 0x15,
-	0x2e, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x4f, 0x70,
-	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x07, 0x2e, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x22, 0x00,
-	0x12, 0x52, 0x0a, 0x14, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73,
-	0x74, 0x65, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x1c, 0x2e, 0x49, 0x6e, 0x63, 0x72, 0x65,
-	0x6d, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x4f,
-	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x1a, 0x2e, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65,
-	0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x22, 0x00, 0x12, 0x34, 0x0a, 0x09, 0x41, 0x6c, 0x62, 0x75, 0x6d, 0x50, 0x61, 0x67,
-	0x65, 0x12, 0x11, 0x2e, 0x41, 0x6c, 0x62, 0x75, 0x6d, 0x50, 0x61, 0x67, 0x65, 0x4f, 0x70, 0x74,
-	0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x12, 0x2e, 0x41, 0x6c, 0x62, 0x75, 0x6d, 0x50, 0x61, 0x67, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3d, 0x0a, 0x0c, 0x50, 0x6c,
-	0x61, 0x79, 0x6c, 0x69, 0x73, 0x74, 0x50, 0x61, 0x67, 0x65, 0x12, 0x14, 0x2e, 0x50, 0x6c, 0x61,
-	0x79, 0x6c, 0x69, 0x73, 0x74, 0x50, 0x61, 0x67, 0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
-	0x1a, 0x15, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x6c, 0x69, 0x73, 0x74, 0x50, 0x61, 0x67, 0x65, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x25, 0x0a, 0x04, 0x46, 0x69, 0x6e,
-	0x64, 0x12, 0x0c, 0x2e, 0x46, 0x69, 0x6e, 0x64, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a,
-	0x0d, 0x2e, 0x46, 0x69, 0x6e, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x42, 0x1b, 0x5a, 0x19, 0x6d, 0x69, 0x63, 0x72, 0x6f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
-	0x73, 0x2f, 0x6d, 0x75, 0x73, 0x69, 0x63, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x70, 0x74, 0x79, 0x22, 0x4e, 0x0a, 0x1a, 0x41, 0x64, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x54,
+	0x6f, 0x46, 0x61, 0x76, 0x6f, 0x72, 0x69, 0x74, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x12, 0x16, 0x0a, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x03, 0x52, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x12, 0x18, 0x0a, 0x07, 0x54, 0x72, 0x61,
+	0x63, 0x6b, 0x49, 0x44, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x54, 0x72, 0x61, 0x63,
+	0x6b, 0x49, 0x44, 0x22, 0x53, 0x0a, 0x1f, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x54, 0x72, 0x61,
+	0x63, 0x6b, 0x46, 0x72, 0x6f, 0x6d, 0x46, 0x61, 0x76, 0x6f, 0x72, 0x69, 0x74, 0x65, 0x73, 0x4f,
+	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x12, 0x18,
+	0x0a, 0x07, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x49, 0x44, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52,
+	0x07, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x49, 0x44, 0x22, 0x2e, 0x0a, 0x14, 0x55, 0x73, 0x65, 0x72,
+	0x46, 0x61, 0x76, 0x6f, 0x72, 0x69, 0x74, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x12, 0x16, 0x0a, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03,
+	0x52, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x22, 0x1d, 0x0a, 0x1b, 0x41, 0x64, 0x64, 0x54,
+	0x72, 0x61, 0x63, 0x6b, 0x54, 0x6f, 0x46, 0x61, 0x76, 0x6f, 0x72, 0x69, 0x74, 0x65, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x22, 0x0a, 0x20, 0x44, 0x65, 0x6c, 0x65, 0x74,
+	0x65, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x46, 0x72, 0x6f, 0x6d, 0x46, 0x61, 0x76, 0x6f, 0x72, 0x69,
+	0x74, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xe9, 0x05, 0x0a, 0x05,
+	0x4d, 0x75, 0x73, 0x69, 0x63, 0x12, 0x2f, 0x0a, 0x0c, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x54,
+	0x72, 0x61, 0x63, 0x6b, 0x73, 0x12, 0x14, 0x2e, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x54, 0x72,
+	0x61, 0x63, 0x6b, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x07, 0x2e, 0x54, 0x72,
+	0x61, 0x63, 0x6b, 0x73, 0x22, 0x00, 0x12, 0x2f, 0x0a, 0x0c, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d,
+	0x41, 0x6c, 0x62, 0x75, 0x6d, 0x73, 0x12, 0x14, 0x2e, 0x52, 0x61, 0x6e, 0x64, 0x6f, 0x6d, 0x41,
+	0x6c, 0x62, 0x75, 0x6d, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x07, 0x2e, 0x41,
+	0x6c, 0x62, 0x75, 0x6d, 0x73, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x0d, 0x52, 0x61, 0x6e, 0x64, 0x6f,
+	0x6d, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x73, 0x12, 0x15, 0x2e, 0x52, 0x61, 0x6e, 0x64, 0x6f,
+	0x6d, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a,
+	0x08, 0x2e, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x73, 0x22, 0x00, 0x12, 0x38, 0x0a, 0x0d, 0x55,
+	0x73, 0x65, 0x72, 0x50, 0x6c, 0x61, 0x79, 0x6c, 0x69, 0x73, 0x74, 0x73, 0x12, 0x15, 0x2e, 0x55,
+	0x73, 0x65, 0x72, 0x50, 0x6c, 0x61, 0x79, 0x6c, 0x69, 0x73, 0x74, 0x73, 0x4f, 0x70, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x1a, 0x0e, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x6c, 0x69, 0x73, 0x74, 0x73, 0x44,
+	0x61, 0x74, 0x61, 0x22, 0x00, 0x12, 0x31, 0x0a, 0x0d, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x50,
+	0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x12, 0x15, 0x2e, 0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x50,
+	0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x07, 0x2e,
+	0x41, 0x72, 0x74, 0x69, 0x73, 0x74, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x14, 0x49, 0x6e, 0x63, 0x72,
+	0x65, 0x6d, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74,
+	0x12, 0x1c, 0x2e, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74,
+	0x65, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x1a,
+	0x2e, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e,
+	0x43, 0x6f, 0x75, 0x6e, 0x74, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x00, 0x12, 0x34, 0x0a, 0x09,
+	0x41, 0x6c, 0x62, 0x75, 0x6d, 0x50, 0x61, 0x67, 0x65, 0x12, 0x11, 0x2e, 0x41, 0x6c, 0x62, 0x75,
+	0x6d, 0x50, 0x61, 0x67, 0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x12, 0x2e, 0x41,
+	0x6c, 0x62, 0x75, 0x6d, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x3d, 0x0a, 0x0c, 0x50, 0x6c, 0x61, 0x79, 0x6c, 0x69, 0x73, 0x74, 0x50, 0x61,
+	0x67, 0x65, 0x12, 0x14, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x6c, 0x69, 0x73, 0x74, 0x50, 0x61, 0x67,
+	0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x15, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x6c,
+	0x69, 0x73, 0x74, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x25, 0x0a, 0x04, 0x46, 0x69, 0x6e, 0x64, 0x12, 0x0c, 0x2e, 0x46, 0x69, 0x6e, 0x64,
+	0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x0d, 0x2e, 0x46, 0x69, 0x6e, 0x64, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x13, 0x41, 0x64, 0x64, 0x54,
+	0x72, 0x61, 0x63, 0x6b, 0x54, 0x6f, 0x46, 0x61, 0x76, 0x6f, 0x72, 0x69, 0x74, 0x65, 0x73, 0x12,
+	0x1b, 0x2e, 0x41, 0x64, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x54, 0x6f, 0x46, 0x61, 0x76, 0x6f,
+	0x72, 0x69, 0x74, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x1c, 0x2e, 0x41,
+	0x64, 0x64, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x54, 0x6f, 0x46, 0x61, 0x76, 0x6f, 0x72, 0x69, 0x74,
+	0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x62, 0x0a, 0x18,
+	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x46, 0x72, 0x6f, 0x6d, 0x46,
+	0x61, 0x76, 0x6f, 0x72, 0x69, 0x74, 0x65, 0x73, 0x12, 0x21, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74,
+	0x65, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x46, 0x72, 0x6f, 0x6d, 0x46, 0x61, 0x76, 0x6f, 0x72, 0x69,
+	0x74, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x1a, 0x21, 0x2e, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x46, 0x72, 0x6f, 0x6d, 0x46, 0x61, 0x76,
+	0x6f, 0x72, 0x69, 0x74, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x35, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x46, 0x61, 0x76, 0x6f, 0x72, 0x69, 0x74, 0x65, 0x54,
+	0x72, 0x61, 0x63, 0x6b, 0x73, 0x12, 0x15, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x46, 0x61, 0x76, 0x6f,
+	0x72, 0x69, 0x74, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x07, 0x2e, 0x54,
+	0x72, 0x61, 0x63, 0x6b, 0x73, 0x22, 0x00, 0x42, 0x1b, 0x5a, 0x19, 0x6d, 0x69, 0x63, 0x72, 0x6f,
+	0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2f, 0x6d, 0x75, 0x73, 0x69, 0x63, 0x2f, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1709,30 +1970,35 @@ func file_music_proto_rawDescGZIP() []byte {
 	return file_music_proto_rawDescData
 }
 
-var file_music_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_music_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_music_proto_goTypes = []interface{}{
-	(*RandomTracksOptions)(nil),         // 0: RandomTracksOptions
-	(*RandomAlbumsOptions)(nil),         // 1: RandomAlbumsOptions
-	(*RandomArtistsOptions)(nil),        // 2: RandomArtistsOptions
-	(*IncrementListenCountOptions)(nil), // 3: IncrementListenCountOptions
-	(*ArtistProfileOptions)(nil),        // 4: ArtistProfileOptions
-	(*AlbumPageOptions)(nil),            // 5: AlbumPageOptions
-	(*FindOptions)(nil),                 // 6: FindOptions
-	(*UserPlaylistsOptions)(nil),        // 7: UserPlaylistsOptions
-	(*PlaylistPageOptions)(nil),         // 8: PlaylistPageOptions
-	(*Album)(nil),                       // 9: Album
-	(*Artist)(nil),                      // 10: Artist
-	(*Track)(nil),                       // 11: Track
-	(*AlbumTrack)(nil),                  // 12: AlbumTrack
-	(*PlaylistData)(nil),                // 13: PlaylistData
-	(*AlbumPageResponse)(nil),           // 14: AlbumPageResponse
-	(*Tracks)(nil),                      // 15: Tracks
-	(*Albums)(nil),                      // 16: Albums
-	(*Artists)(nil),                     // 17: Artists
-	(*PlaylistsData)(nil),               // 18: PlaylistsData
-	(*FindResponse)(nil),                // 19: FindResponse
-	(*PlaylistPageResponse)(nil),        // 20: PlaylistPageResponse
-	(*IncrementListenCountEmpty)(nil),   // 21: IncrementListenCountEmpty
+	(*RandomTracksOptions)(nil),              // 0: RandomTracksOptions
+	(*RandomAlbumsOptions)(nil),              // 1: RandomAlbumsOptions
+	(*RandomArtistsOptions)(nil),             // 2: RandomArtistsOptions
+	(*IncrementListenCountOptions)(nil),      // 3: IncrementListenCountOptions
+	(*ArtistProfileOptions)(nil),             // 4: ArtistProfileOptions
+	(*AlbumPageOptions)(nil),                 // 5: AlbumPageOptions
+	(*FindOptions)(nil),                      // 6: FindOptions
+	(*UserPlaylistsOptions)(nil),             // 7: UserPlaylistsOptions
+	(*PlaylistPageOptions)(nil),              // 8: PlaylistPageOptions
+	(*Album)(nil),                            // 9: Album
+	(*Artist)(nil),                           // 10: Artist
+	(*Track)(nil),                            // 11: Track
+	(*AlbumTrack)(nil),                       // 12: AlbumTrack
+	(*PlaylistData)(nil),                     // 13: PlaylistData
+	(*AlbumPageResponse)(nil),                // 14: AlbumPageResponse
+	(*Tracks)(nil),                           // 15: Tracks
+	(*Albums)(nil),                           // 16: Albums
+	(*Artists)(nil),                          // 17: Artists
+	(*PlaylistsData)(nil),                    // 18: PlaylistsData
+	(*FindResponse)(nil),                     // 19: FindResponse
+	(*PlaylistPageResponse)(nil),             // 20: PlaylistPageResponse
+	(*IncrementListenCountEmpty)(nil),        // 21: IncrementListenCountEmpty
+	(*AddTrackToFavoritesOptions)(nil),       // 22: AddTrackToFavoritesOptions
+	(*DeleteTrackFromFavoritesOptions)(nil),  // 23: DeleteTrackFromFavoritesOptions
+	(*UserFavoritesOptions)(nil),             // 24: UserFavoritesOptions
+	(*AddTrackToFavoritesResponse)(nil),      // 25: AddTrackToFavoritesResponse
+	(*DeleteTrackFromFavoritesResponse)(nil), // 26: DeleteTrackFromFavoritesResponse
 }
 var file_music_proto_depIdxs = []int32{
 	11, // 0: Artist.Tracks:type_name -> Track
@@ -1758,17 +2024,23 @@ var file_music_proto_depIdxs = []int32{
 	5,  // 20: Music.AlbumPage:input_type -> AlbumPageOptions
 	8,  // 21: Music.PlaylistPage:input_type -> PlaylistPageOptions
 	6,  // 22: Music.Find:input_type -> FindOptions
-	15, // 23: Music.RandomTracks:output_type -> Tracks
-	16, // 24: Music.RandomAlbums:output_type -> Albums
-	17, // 25: Music.RandomArtists:output_type -> Artists
-	18, // 26: Music.UserPlaylists:output_type -> PlaylistsData
-	10, // 27: Music.ArtistProfile:output_type -> Artist
-	21, // 28: Music.IncrementListenCount:output_type -> IncrementListenCountEmpty
-	14, // 29: Music.AlbumPage:output_type -> AlbumPageResponse
-	20, // 30: Music.PlaylistPage:output_type -> PlaylistPageResponse
-	19, // 31: Music.Find:output_type -> FindResponse
-	23, // [23:32] is the sub-list for method output_type
-	14, // [14:23] is the sub-list for method input_type
+	22, // 23: Music.AddTrackToFavorites:input_type -> AddTrackToFavoritesOptions
+	26, // 24: Music.DeleteTrackFromFavorites:input_type -> DeleteTrackFromFavoritesResponse
+	24, // 25: Music.GetFavoriteTracks:input_type -> UserFavoritesOptions
+	15, // 26: Music.RandomTracks:output_type -> Tracks
+	16, // 27: Music.RandomAlbums:output_type -> Albums
+	17, // 28: Music.RandomArtists:output_type -> Artists
+	18, // 29: Music.UserPlaylists:output_type -> PlaylistsData
+	10, // 30: Music.ArtistProfile:output_type -> Artist
+	21, // 31: Music.IncrementListenCount:output_type -> IncrementListenCountEmpty
+	14, // 32: Music.AlbumPage:output_type -> AlbumPageResponse
+	20, // 33: Music.PlaylistPage:output_type -> PlaylistPageResponse
+	19, // 34: Music.Find:output_type -> FindResponse
+	25, // 35: Music.AddTrackToFavorites:output_type -> AddTrackToFavoritesResponse
+	26, // 36: Music.DeleteTrackFromFavorites:output_type -> DeleteTrackFromFavoritesResponse
+	15, // 37: Music.GetFavoriteTracks:output_type -> Tracks
+	26, // [26:38] is the sub-list for method output_type
+	14, // [14:26] is the sub-list for method input_type
 	14, // [14:14] is the sub-list for extension type_name
 	14, // [14:14] is the sub-list for extension extendee
 	0,  // [0:14] is the sub-list for field type_name
@@ -2044,6 +2316,66 @@ func file_music_proto_init() {
 				return nil
 			}
 		}
+		file_music_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddTrackToFavoritesOptions); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_music_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteTrackFromFavoritesOptions); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_music_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UserFavoritesOptions); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_music_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddTrackToFavoritesResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_music_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteTrackFromFavoritesResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2051,7 +2383,7 @@ func file_music_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_music_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -2063,372 +2395,4 @@ func file_music_proto_init() {
 	file_music_proto_rawDesc = nil
 	file_music_proto_goTypes = nil
 	file_music_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// MusicClient is the client API for Music service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type MusicClient interface {
-	RandomTracks(ctx context.Context, in *RandomTracksOptions, opts ...grpc.CallOption) (*Tracks, error)
-	RandomAlbums(ctx context.Context, in *RandomAlbumsOptions, opts ...grpc.CallOption) (*Albums, error)
-	RandomArtists(ctx context.Context, in *RandomArtistsOptions, opts ...grpc.CallOption) (*Artists, error)
-	UserPlaylists(ctx context.Context, in *UserPlaylistsOptions, opts ...grpc.CallOption) (*PlaylistsData, error)
-	ArtistProfile(ctx context.Context, in *ArtistProfileOptions, opts ...grpc.CallOption) (*Artist, error)
-	IncrementListenCount(ctx context.Context, in *IncrementListenCountOptions, opts ...grpc.CallOption) (*IncrementListenCountEmpty, error)
-	AlbumPage(ctx context.Context, in *AlbumPageOptions, opts ...grpc.CallOption) (*AlbumPageResponse, error)
-	PlaylistPage(ctx context.Context, in *PlaylistPageOptions, opts ...grpc.CallOption) (*PlaylistPageResponse, error)
-	Find(ctx context.Context, in *FindOptions, opts ...grpc.CallOption) (*FindResponse, error)
-}
-
-type musicClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewMusicClient(cc grpc.ClientConnInterface) MusicClient {
-	return &musicClient{cc}
-}
-
-func (c *musicClient) RandomTracks(ctx context.Context, in *RandomTracksOptions, opts ...grpc.CallOption) (*Tracks, error) {
-	out := new(Tracks)
-	err := c.cc.Invoke(ctx, "/Music/RandomTracks", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *musicClient) RandomAlbums(ctx context.Context, in *RandomAlbumsOptions, opts ...grpc.CallOption) (*Albums, error) {
-	out := new(Albums)
-	err := c.cc.Invoke(ctx, "/Music/RandomAlbums", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *musicClient) RandomArtists(ctx context.Context, in *RandomArtistsOptions, opts ...grpc.CallOption) (*Artists, error) {
-	out := new(Artists)
-	err := c.cc.Invoke(ctx, "/Music/RandomArtists", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *musicClient) UserPlaylists(ctx context.Context, in *UserPlaylistsOptions, opts ...grpc.CallOption) (*PlaylistsData, error) {
-	out := new(PlaylistsData)
-	err := c.cc.Invoke(ctx, "/Music/UserPlaylists", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *musicClient) ArtistProfile(ctx context.Context, in *ArtistProfileOptions, opts ...grpc.CallOption) (*Artist, error) {
-	out := new(Artist)
-	err := c.cc.Invoke(ctx, "/Music/ArtistProfile", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *musicClient) IncrementListenCount(ctx context.Context, in *IncrementListenCountOptions, opts ...grpc.CallOption) (*IncrementListenCountEmpty, error) {
-	out := new(IncrementListenCountEmpty)
-	err := c.cc.Invoke(ctx, "/Music/IncrementListenCount", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *musicClient) AlbumPage(ctx context.Context, in *AlbumPageOptions, opts ...grpc.CallOption) (*AlbumPageResponse, error) {
-	out := new(AlbumPageResponse)
-	err := c.cc.Invoke(ctx, "/Music/AlbumPage", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *musicClient) PlaylistPage(ctx context.Context, in *PlaylistPageOptions, opts ...grpc.CallOption) (*PlaylistPageResponse, error) {
-	out := new(PlaylistPageResponse)
-	err := c.cc.Invoke(ctx, "/Music/PlaylistPage", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *musicClient) Find(ctx context.Context, in *FindOptions, opts ...grpc.CallOption) (*FindResponse, error) {
-	out := new(FindResponse)
-	err := c.cc.Invoke(ctx, "/Music/Find", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// MusicServer is the server API for Music service.
-type MusicServer interface {
-	RandomTracks(context.Context, *RandomTracksOptions) (*Tracks, error)
-	RandomAlbums(context.Context, *RandomAlbumsOptions) (*Albums, error)
-	RandomArtists(context.Context, *RandomArtistsOptions) (*Artists, error)
-	UserPlaylists(context.Context, *UserPlaylistsOptions) (*PlaylistsData, error)
-	ArtistProfile(context.Context, *ArtistProfileOptions) (*Artist, error)
-	IncrementListenCount(context.Context, *IncrementListenCountOptions) (*IncrementListenCountEmpty, error)
-	AlbumPage(context.Context, *AlbumPageOptions) (*AlbumPageResponse, error)
-	PlaylistPage(context.Context, *PlaylistPageOptions) (*PlaylistPageResponse, error)
-	Find(context.Context, *FindOptions) (*FindResponse, error)
-}
-
-// UnimplementedMusicServer can be embedded to have forward compatible implementations.
-type UnimplementedMusicServer struct {
-}
-
-func (*UnimplementedMusicServer) RandomTracks(context.Context, *RandomTracksOptions) (*Tracks, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RandomTracks not implemented")
-}
-func (*UnimplementedMusicServer) RandomAlbums(context.Context, *RandomAlbumsOptions) (*Albums, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RandomAlbums not implemented")
-}
-func (*UnimplementedMusicServer) RandomArtists(context.Context, *RandomArtistsOptions) (*Artists, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RandomArtists not implemented")
-}
-func (*UnimplementedMusicServer) UserPlaylists(context.Context, *UserPlaylistsOptions) (*PlaylistsData, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UserPlaylists not implemented")
-}
-func (*UnimplementedMusicServer) ArtistProfile(context.Context, *ArtistProfileOptions) (*Artist, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ArtistProfile not implemented")
-}
-func (*UnimplementedMusicServer) IncrementListenCount(context.Context, *IncrementListenCountOptions) (*IncrementListenCountEmpty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IncrementListenCount not implemented")
-}
-func (*UnimplementedMusicServer) AlbumPage(context.Context, *AlbumPageOptions) (*AlbumPageResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AlbumPage not implemented")
-}
-func (*UnimplementedMusicServer) PlaylistPage(context.Context, *PlaylistPageOptions) (*PlaylistPageResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PlaylistPage not implemented")
-}
-func (*UnimplementedMusicServer) Find(context.Context, *FindOptions) (*FindResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
-}
-
-func RegisterMusicServer(s *grpc.Server, srv MusicServer) {
-	s.RegisterService(&_Music_serviceDesc, srv)
-}
-
-func _Music_RandomTracks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RandomTracksOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).RandomTracks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/RandomTracks",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).RandomTracks(ctx, req.(*RandomTracksOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Music_RandomAlbums_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RandomAlbumsOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).RandomAlbums(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/RandomAlbums",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).RandomAlbums(ctx, req.(*RandomAlbumsOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Music_RandomArtists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RandomArtistsOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).RandomArtists(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/RandomArtists",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).RandomArtists(ctx, req.(*RandomArtistsOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Music_UserPlaylists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserPlaylistsOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).UserPlaylists(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/UserPlaylists",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).UserPlaylists(ctx, req.(*UserPlaylistsOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Music_ArtistProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ArtistProfileOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).ArtistProfile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/ArtistProfile",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).ArtistProfile(ctx, req.(*ArtistProfileOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Music_IncrementListenCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IncrementListenCountOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).IncrementListenCount(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/IncrementListenCount",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).IncrementListenCount(ctx, req.(*IncrementListenCountOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Music_AlbumPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AlbumPageOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).AlbumPage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/AlbumPage",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).AlbumPage(ctx, req.(*AlbumPageOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Music_PlaylistPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PlaylistPageOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).PlaylistPage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/PlaylistPage",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).PlaylistPage(ctx, req.(*PlaylistPageOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Music_Find_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FindOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MusicServer).Find(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Music/Find",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MusicServer).Find(ctx, req.(*FindOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _Music_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "Music",
-	HandlerType: (*MusicServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "RandomTracks",
-			Handler:    _Music_RandomTracks_Handler,
-		},
-		{
-			MethodName: "RandomAlbums",
-			Handler:    _Music_RandomAlbums_Handler,
-		},
-		{
-			MethodName: "RandomArtists",
-			Handler:    _Music_RandomArtists_Handler,
-		},
-		{
-			MethodName: "UserPlaylists",
-			Handler:    _Music_UserPlaylists_Handler,
-		},
-		{
-			MethodName: "ArtistProfile",
-			Handler:    _Music_ArtistProfile_Handler,
-		},
-		{
-			MethodName: "IncrementListenCount",
-			Handler:    _Music_IncrementListenCount_Handler,
-		},
-		{
-			MethodName: "AlbumPage",
-			Handler:    _Music_AlbumPage_Handler,
-		},
-		{
-			MethodName: "PlaylistPage",
-			Handler:    _Music_PlaylistPage_Handler,
-		},
-		{
-			MethodName: "Find",
-			Handler:    _Music_Find_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "music.proto",
 }

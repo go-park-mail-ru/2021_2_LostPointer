@@ -5,6 +5,7 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -1196,6 +1197,59 @@ func (api *APIMicroservices) GetPlaylistPage(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, playlistPage)
 }
 
+func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
+	fmt.Println("1")
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	fmt.Println("2")
+
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	fmt.Println("3")
+
+	trackID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	fmt.Println("4")
+
+
+	_, err = api.musicMicroservice.AddTrackToFavorites(context.Background(), &music.AddTrackToFavoritesOptions{
+		UserID:  int64(userID),
+		TrackID: int64(trackID),
+	})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+	fmt.Println("5")
+
+
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusCreated),
+	)
+	return ctx.JSON(http.StatusCreated, &models.Response{
+		Status:  http.StatusCreated,
+		Message: constants.TrackAddedToFavoritesMessage,
+	})
+}
+
 func (api *APIMicroservices) DeletePlaylistArtwork(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -1272,6 +1326,7 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.GET("/api/v1/music/search", api.SearchMusic)
 	server.GET("/api/v1/playlists", api.GetUserPlaylists)
 	server.GET("/api/v1/playlists/:id", api.GetPlaylistPage)
+	server.POST("api/v1/track/like/:id", api.AddTrackToFavorites)
 
 	// Playlists
 	server.POST("/api/v1/playlists", api.CreatePlaylist)

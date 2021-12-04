@@ -173,6 +173,6 @@ service Music {
   rpc PlaylistPage(PlaylistPageOptions) returns (PlaylistPageResponse) {}
   rpc Find(FindOptions) returns (FindResponse) {}
   rpc AddTrackToFavorites(AddTrackToFavoritesOptions) returns (AddTrackToFavoritesResponse) {}
-  rpc DeleteTrackFromFavorites(DeleteTrackFromFavoritesResponse) returns (DeleteTrackFromFavoritesResponse) {}
+  rpc DeleteTrackFromFavorites(DeleteTrackFromFavoritesOptions) returns (DeleteTrackFromFavoritesResponse) {}
   rpc GetFavoriteTracks(UserFavoritesOptions) returns (Tracks) {}
 }

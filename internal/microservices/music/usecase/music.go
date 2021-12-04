@@ -15,6 +15,10 @@ type MusicService struct {
 	storage music.Storage
 }
 
+func (service *MusicService) GetFavoriteTracks(ctx context.Context, options *proto.UserFavoritesOptions) (*proto.Tracks, error) {
+	panic("implement me")
+}
+
 func NewMusicService(storage music.Storage) *MusicService {
 	return &MusicService{storage: storage}
 }
@@ -180,7 +184,51 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 	return playlistData, nil
 }
 
-//func (service *MusicService) AddTrackToFavorites(ctx context.Context
+func (service *MusicService) AddTrackToFavorites(ctx context.Context, data *proto.AddTrackToFavoritesOptions) (*proto.AddTrackToFavoritesResponse, error) {
+	isExist, err := service.storage.IsTrackInFavorites(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+	if isExist {
+		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.PermissionDenied, constants.TrackAlreadyInFavorites)
+	}
+
+	err = service.storage.AddTrackToFavorite(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return &proto.AddTrackToFavoritesResponse{}, nil
+}
+
+func (service *MusicService) DeleteTrackFromFavorites(ctx context.Context, data *proto.DeleteTrackFromFavoritesOptions) (*proto.DeleteTrackFromFavoritesResponse, error) {
+	isExist, err := service.storage.IsTrackInFavorites(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.DeleteTrackFromFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+	if !isExist {
+		return &proto.DeleteTrackFromFavoritesResponse{}, status.Error(codes.PermissionDenied, constants.TrackNotInFavorites)
+	}
+
+	err = service.storage.DeleteTrackFromFavorites(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.DeleteTrackFromFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return &proto.DeleteTrackFromFavoritesResponse{}, nil
+}
+
+func (service *MusicService) GetUserFavorites(ctx context.Context, data *proto.UserFavoritesOptions) (*proto.Tracks, error) {
+	tracks := new(proto.Tracks)
+	var err error
+
+	tracks.Tracks, err = service.storage.GetFavorites(data.UserID)
+	if err != nil {
+		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return tracks, nil
+}
 
 func contains(tracks []*proto.Track, trackID int64) bool {
 	for _, currentTrack := range tracks {

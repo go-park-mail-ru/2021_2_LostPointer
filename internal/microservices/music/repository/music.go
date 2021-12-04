@@ -750,7 +750,6 @@ func (storage *MusicStorage) GetFavorites(userID int64) ([]*proto.Track, error) 
 
 func (storage *MusicStorage) IsTrackInFavorites(userID int64, trackID int64) (bool, error) {
 	query := `SELECT EXISTS(SELECT 1 FROM likes WHERE user_id = $1 AND track_id = $2)`
-
 	var isExist bool
 
 	err := storage.db.QueryRow(query, userID, trackID).Scan(isExist)

@@ -52,6 +52,9 @@ const (
 	NotPlaylistOwnerMessage         = "You are not owner of this playlist"
 	PlaylistNotFoundMessage         = "Playlist doesn't exist"
 	PanicRecover                    = "Panic!"
+	TrackAlreadyInFavorites         = "Track is already in favorites"
+	TrackNotInFavorites             = "Track not in favorites"
+	TrackAddedToFavoritesMessage    = "Track was successfully added to favorites"
 
 	// Ограничения/лимиты
 	ArtistTracksSelectionAmount    = 10

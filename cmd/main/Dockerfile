@@ -20,5 +20,8 @@ FROM alpine:latest
 
 WORKDIR /app
 COPY --from=build /app/main .
+COPY --from=build /app/users .
+COPY --from=build /app/playlists .
+COPY --from=build /app/.bin .
 
 CMD ["./main"]

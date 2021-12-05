@@ -5,7 +5,6 @@ import (
 	"2021_2_LostPointer/internal/microservices/music/proto"
 	"2021_2_LostPointer/pkg/wrapper"
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 )
@@ -593,6 +592,7 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64) ([]*proto.Track, e
 	}()
 
 	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+	//nolint:dupl
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -730,6 +730,7 @@ func (storage *MusicStorage) GetFavorites(userID int64) ([]*proto.Track, error) 
 	}()
 
 	tracks := make([]*proto.Track, 0)
+	//nolint:dupl
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -753,16 +754,10 @@ func (storage *MusicStorage) IsTrackInFavorites(userID int64, trackID int64) (bo
 	query := `SELECT EXISTS(SELECT 1 FROM likes WHERE user_id = $1 AND track_id = $2)`
 	var isExist bool
 
-	fmt.Println("data")
-	fmt.Println(userID)
-	fmt.Println(trackID)
-
 	err := storage.db.QueryRow(query, userID, trackID).Scan(&isExist)
 	if err != nil {
-		fmt.Println(err)
 		return false, err
 	}
-
 
 	return isExist, nil
 }

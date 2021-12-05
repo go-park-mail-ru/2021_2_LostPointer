@@ -1,21 +1,19 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/internal/microservices/music"
 	"context"
-	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/microservices/music"
 	"2021_2_LostPointer/internal/microservices/music/proto"
 )
 
 type MusicService struct {
 	storage music.Storage
 }
-
 
 func NewMusicService(storage music.Storage) *MusicService {
 	return &MusicService{storage: storage}
@@ -185,8 +183,6 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 func (service *MusicService) AddTrackToFavorites(ctx context.Context, data *proto.AddTrackToFavoritesOptions) (*proto.AddTrackToFavoritesResponse, error) {
 	isExist, err := service.storage.IsTrackInFavorites(data.UserID, data.TrackID)
 	if err != nil {
-		fmt.Println(err)
-
 		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	if isExist {
@@ -195,8 +191,6 @@ func (service *MusicService) AddTrackToFavorites(ctx context.Context, data *prot
 
 	err = service.storage.AddTrackToFavorite(data.UserID, data.TrackID)
 	if err != nil {
-		fmt.Println(err)
-
 		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.Internal, err.Error())
 	}
 

@@ -5,7 +5,6 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -1197,6 +1196,7 @@ func (api *APIMicroservices) GetPlaylistPage(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, playlistPage)
 }
 
+//nolint:dupl
 func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -1207,13 +1207,22 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 	}
 
 	userID, ok := ctx.Get("USER_ID").(int)
-	userID = 268
 	if !ok {
 		api.logger.Error(
 			zap.String("ID", requestID),
 			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	if userID == -1 {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
 	}
 
 	trackID, err := strconv.Atoi(ctx.Param("id"))
@@ -1243,6 +1252,7 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 	})
 }
 
+//nolint:dupl
 func (api *APIMicroservices) DeleteTrackFromFavorites(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -1253,13 +1263,22 @@ func (api *APIMicroservices) DeleteTrackFromFavorites(ctx echo.Context) error {
 	}
 
 	userID, ok := ctx.Get("USER_ID").(int)
-	userID = 268
 	if !ok {
 		api.logger.Error(
 			zap.String("ID", requestID),
 			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	if userID == -1 {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
 	}
 
 	trackID, err := strconv.Atoi(ctx.Param("id"))
@@ -1322,8 +1341,6 @@ func (api *APIMicroservices) GetUserFavorites(ctx echo.Context) error {
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
-
-	fmt.Println(tracksListProto.Tracks)
 
 	tracks := make([]models.Track, 0)
 	for _, current := range tracksListProto.Tracks {

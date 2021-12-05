@@ -38,7 +38,6 @@ func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, pat
 		_ = f.Close()
 	}(file)
 	reader := bufio.NewReader(file)
-
 	src, err := imgconv.Decode(reader)
 	if err != nil {
 		return nil, err

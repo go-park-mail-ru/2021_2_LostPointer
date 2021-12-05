@@ -17,6 +17,7 @@ services:
     image: vershovbmstu/lostpointer_deploy_main:latest
     env_file:
       - .env-prod
+    restart: always
     depends_on:
       - authorization
       - profile
@@ -35,6 +36,7 @@ services:
     image: vershovbmstu/lostpointer_deploy_authorization:latest
     env_file:
       - .env-prod
+    restart: always
     networks:
       lp_network:
         ipv4_address: 10.5.0.3
@@ -43,6 +45,7 @@ services:
     image: vershovbmstu/lostpointer_deploy_profile:latest
     env_file:
       - .env-prod
+    restart: always
     networks:
       lp_network:
         ipv4_address: 10.5.0.4
@@ -51,6 +54,7 @@ services:
     image: vershovbmstu/lostpointer_deploy_music:latest
     env_file:
       - .env-prod
+    restart: always
     networks:
       lp_network:
         ipv4_address: 10.5.0.5
@@ -59,6 +63,7 @@ services:
     image: vershovbmstu/lostpointer_deploy_playlists:latest
     env_file:
       - .env-prod
+    restart: always
     networks:
       lp_network:
         ipv4_address: 10.5.0.6

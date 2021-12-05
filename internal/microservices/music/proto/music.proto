@@ -4,7 +4,8 @@ option go_package = "microservices/music/proto";
 
 message RandomTracksOptions {
   int64 Amount = 1;
-  bool IsAuthorized = 2;
+  int64 UserID = 2;
+  bool IsAuthorized = 3;
 }
 
 message RandomAlbumsOptions {
@@ -21,17 +22,20 @@ message IncrementListenCountOptions {
 
 message ArtistProfileOptions {
   int64 ArtistID = 1;
-  bool IsAuthorized = 2;
+  int64 UserID = 2;
+  bool IsAuthorized = 3;
 }
 
 message AlbumPageOptions {
   int64 AlbumID = 1;
-  bool IsAuthorized = 2;
+  int64 UserID = 2;
+  bool IsAuthorized = 3;
 }
 
 message FindOptions {
   string Text = 1;
-  bool IsAuthorized = 2;
+  int64 UserID = 2;
+  bool IsAuthorized = 3;
 }
 
 message UserPlaylistsOptions {
@@ -75,6 +79,7 @@ message Track {
   bool Lossless = 9;
   Album Album = 10;
   Artist Artist = 11;
+  bool IsInFavorites = 12;
 }
 
 message AlbumTrack {
@@ -87,6 +92,7 @@ message AlbumTrack {
   int64 ListenCount = 7;
   int64 Duration = 8;
   bool Lossless = 9;
+  bool IsInFavorites = 10;
 }
 
 message PlaylistData {

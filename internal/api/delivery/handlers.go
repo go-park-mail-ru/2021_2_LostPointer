@@ -478,7 +478,7 @@ func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
 	}
 
 	tracksListProto, err := api.musicMicroservice.RandomTracks(context.Background(),
-		&music.RandomTracksOptions{Amount: constants.HomePageTracksSelectionAmount, IsAuthorized: isAuthorized})
+		&music.RandomTracksOptions{Amount: constants.HomePageTracksSelectionAmount, UserID: int64(userID), IsAuthorized: isAuthorized})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
@@ -671,6 +671,7 @@ func (api *APIMicroservices) GetAlbumPage(ctx echo.Context) error {
 
 	albumDataProto, err := api.musicMicroservice.AlbumPage(context.Background(), &music.AlbumPageOptions{
 		AlbumID:      int64(albumID),
+		UserID:       int64(userID),
 		IsAuthorized: isAuthorized,
 	})
 	if err != nil {
@@ -1423,7 +1424,7 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.PATCH("/api/v1/user/settings", api.UpdateSettings)
 
 	// Music
-	server.GET("/api/v1/home/tracks", api.GetHomeTracks)
+	server.GET("/api/v1/home/tracks", api.GetHomeTracks) //
 	server.GET("/api/v1/home/albums", api.GetHomeAlbums)
 	server.GET("/api/v1/home/artists", api.GetHomeArtists)
 	server.GET("/api/v1/artist/:id", api.GetArtistProfile)

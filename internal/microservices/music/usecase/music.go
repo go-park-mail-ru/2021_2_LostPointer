@@ -20,7 +20,7 @@ func NewMusicService(storage music.Storage) *MusicService {
 }
 
 func (service *MusicService) RandomTracks(ctx context.Context, metadata *proto.RandomTracksOptions) (*proto.Tracks, error) {
-	tracks, err := service.storage.RandomTracks(metadata.Amount, metadata.IsAuthorized)
+	tracks, err := service.storage.RandomTracks(metadata.Amount, metadata.UserID, metadata.IsAuthorized)
 	if err != nil {
 		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
 	}
@@ -52,7 +52,7 @@ func (service *MusicService) ArtistProfile(ctx context.Context, metadata *proto.
 		return &proto.Artist{}, status.Error(codes.Internal, err.Error())
 	}
 
-	artistData.Tracks, err = service.storage.ArtistTracks(metadata.ArtistID, metadata.IsAuthorized, constants.ArtistTracksSelectionAmount)
+	artistData.Tracks, err = service.storage.ArtistTracks(metadata.ArtistID, metadata.UserID, metadata.IsAuthorized, constants.ArtistTracksSelectionAmount)
 	if err != nil {
 		return &proto.Artist{}, status.Error(codes.Internal, err.Error())
 	}
@@ -80,7 +80,7 @@ func (service *MusicService) AlbumPage(ctx context.Context, metadata *proto.Albu
 		return &proto.AlbumPageResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
-	album.Tracks, err = service.storage.AlbumTracks(metadata.AlbumID, metadata.IsAuthorized)
+	album.Tracks, err = service.storage.AlbumTracks(metadata.AlbumID, metadata.UserID, metadata.IsAuthorized)
 	if err != nil {
 		return &proto.AlbumPageResponse{}, status.Error(codes.Internal, err.Error())
 	}
@@ -89,14 +89,14 @@ func (service *MusicService) AlbumPage(ctx context.Context, metadata *proto.Albu
 }
 
 func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) (*proto.FindResponse, error) {
-	tracks, err := service.storage.FindTracksByFullWord(data.Text, data.IsAuthorized)
+	tracks, err := service.storage.FindTracksByFullWord(data.Text, data.UserID, data.IsAuthorized)
 	if err != nil {
 		return &proto.FindResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	var FindTracksByPartial []*proto.Track
 	if len(tracks) < constants.SearchTracksAmount {
-		FindTracksByPartial, err = service.storage.FindTracksByPartial(data.Text, data.IsAuthorized)
+		FindTracksByPartial, err = service.storage.FindTracksByPartial(data.Text, data.UserID, data.IsAuthorized)
 		if err != nil {
 			return &proto.FindResponse{}, status.Error(codes.Internal, err.Error())
 		}
@@ -162,7 +162,7 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 		return &proto.PlaylistPageResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
-	playlistTracks, err := service.storage.PlaylistTracks(data.PlaylistID)
+	playlistTracks, err := service.storage.PlaylistTracks(data.PlaylistID, data.UserID)
 	if err != nil {
 		return &proto.PlaylistPageResponse{}, status.Error(codes.Internal, err.Error())
 	}

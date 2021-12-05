@@ -1198,7 +1198,6 @@ func (api *APIMicroservices) GetPlaylistPage(ctx echo.Context) error {
 }
 
 func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
-	fmt.Println("1")
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
 		api.logger.Error(
@@ -1206,9 +1205,9 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	fmt.Println("2")
 
 	userID, ok := ctx.Get("USER_ID").(int)
+	userID = 268
 	if !ok {
 		api.logger.Error(
 			zap.String("ID", requestID),
@@ -1216,8 +1215,6 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-
-	fmt.Println("3")
 
 	trackID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -1227,8 +1224,6 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	fmt.Println("4")
-
 
 	_, err = api.musicMicroservice.AddTrackToFavorites(context.Background(), &music.AddTrackToFavoritesOptions{
 		UserID:  int64(userID),
@@ -1237,8 +1232,6 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
-	fmt.Println("5")
-
 
 	api.logger.Info(
 		zap.String("ID", requestID),
@@ -1248,6 +1241,102 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 		Status:  http.StatusCreated,
 		Message: constants.TrackAddedToFavoritesMessage,
 	})
+}
+
+func (api *APIMicroservices) DeleteTrackFromFavorites(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	userID, ok := ctx.Get("USER_ID").(int)
+	userID = 268
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	trackID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	_, err = api.musicMicroservice.DeleteTrackFromFavorites(context.Background(), &music.DeleteTrackFromFavoritesOptions{
+		UserID:  int64(userID),
+		TrackID: int64(trackID),
+	})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusCreated),
+	)
+	return ctx.JSON(http.StatusCreated, &models.Response{
+		Status:  http.StatusCreated,
+		Message: constants.TrackDeletedFromFavoritesMessage,
+	})
+}
+
+func (api *APIMicroservices) GetUserFavorites(ctx echo.Context) error {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		api.logger.Error(
+			zap.String("ERROR", constants.RequestIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	userID, ok := ctx.Get("USER_ID").(int)
+	if !ok {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", constants.UserIDTypeAssertionFailed),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	if userID == -1 {
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
+			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusUnauthorized,
+			Message: constants.UserIsNotAuthorizedMessage,
+		})
+	}
+
+	tracksListProto, err := api.musicMicroservice.GetFavoriteTracks(context.Background(),
+		&music.UserFavoritesOptions{UserID: int64(userID)})
+	if err != nil {
+		return api.ParseErrorByCode(ctx, requestID, err)
+	}
+
+	fmt.Println(tracksListProto.Tracks)
+
+	tracks := make([]models.Track, 0)
+	for _, current := range tracksListProto.Tracks {
+		var track models.Track
+		track.BindProto(current)
+		tracks = append(tracks, track)
+	}
+	api.logger.Info(
+		zap.String("ID", requestID),
+		zap.Int("ANSWER STATUS", http.StatusOK),
+	)
+
+	return ctx.JSON(http.StatusOK, tracks)
 }
 
 func (api *APIMicroservices) DeletePlaylistArtwork(ctx echo.Context) error {
@@ -1327,6 +1416,8 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.GET("/api/v1/playlists", api.GetUserPlaylists)
 	server.GET("/api/v1/playlists/:id", api.GetPlaylistPage)
 	server.POST("api/v1/track/like/:id", api.AddTrackToFavorites)
+	server.DELETE("api/v1/track/like/:id", api.DeleteTrackFromFavorites)
+	server.GET("api/v1/track/favorites", api.GetUserFavorites)
 
 	// Playlists
 	server.POST("/api/v1/playlists", api.CreatePlaylist)

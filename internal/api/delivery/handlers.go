@@ -587,6 +587,7 @@ func (api *APIMicroservices) GetArtistProfile(ctx echo.Context) error {
 
 	artistDataProto, err := api.musicMicroservice.ArtistProfile(context.Background(), &music.ArtistProfileOptions{
 		ArtistID:     int64(artistID),
+		UserID:       int64(userID),
 		IsAuthorized: isAuthorized,
 	})
 	if err != nil {
@@ -711,7 +712,7 @@ func (api *APIMicroservices) SearchMusic(ctx echo.Context) error {
 
 	text := ctx.FormValue("text")
 
-	searchResultProto, err := api.musicMicroservice.Find(context.Background(), &music.FindOptions{Text: text, IsAuthorized: isAuthorized})
+	searchResultProto, err := api.musicMicroservice.Find(context.Background(), &music.FindOptions{Text: text, UserID: int64(userID), IsAuthorized: isAuthorized})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}

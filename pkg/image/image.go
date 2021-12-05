@@ -38,16 +38,6 @@ func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, pat
 		_ = f.Close()
 	}(file)
 	reader := bufio.NewReader(file)
-	destination, err := os.Create("/tmp/" + uuid.NewV4().String() + "_" + fileHeader.Filename)
-	if err != nil {
-		return nil, err
-	}
-	defer destination.Close()
-	_, err = io.Copy(destination, file)
-	if err != nil {
-		return nil, err
-	}
-	file.Seek(0, 0)
 	src, err := imgconv.Decode(reader)
 	if err != nil {
 		return nil, err

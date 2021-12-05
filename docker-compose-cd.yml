@@ -31,7 +31,6 @@ services:
     volumes:
       - /home/ubuntu/users:/app/users
       - /home/ubuntu/playlists:/app/playlists
-      - /tmp:/tmp # TEMPORARY
 
   authorization:
     image: vershovbmstu/lostpointer_deploy_authorization:latest

@@ -25,7 +25,7 @@ var _ music.Storage = &MockStorage{}
 // 			AlbumDataFunc: func(n int64) (*proto.AlbumPageResponse, error) {
 // 				panic("mock out the AlbumData method")
 // 			},
-// 			AlbumTracksFunc: func(n int64, b bool) ([]*proto.AlbumTrack, error) {
+// 			AlbumTracksFunc: func(n1 int64, n2 int64, b bool) ([]*proto.AlbumTrack, error) {
 // 				panic("mock out the AlbumTracks method")
 // 			},
 // 			ArtistAlbumsFunc: func(n1 int64, n2 int64) ([]*proto.Album, error) {
@@ -34,7 +34,7 @@ var _ music.Storage = &MockStorage{}
 // 			ArtistInfoFunc: func(n int64) (*proto.Artist, error) {
 // 				panic("mock out the ArtistInfo method")
 // 			},
-// 			ArtistTracksFunc: func(n1 int64, b bool, n2 int64) ([]*proto.Track, error) {
+// 			ArtistTracksFunc: func(n1 int64, n2 int64, b bool, n3 int64) ([]*proto.Track, error) {
 // 				panic("mock out the ArtistTracks method")
 // 			},
 // 			DeleteTrackFromFavoritesFunc: func(userID int64, trackID int64) error {
@@ -49,10 +49,10 @@ var _ music.Storage = &MockStorage{}
 // 			FindArtistsFunc: func(s string) ([]*proto.Artist, error) {
 // 				panic("mock out the FindArtists method")
 // 			},
-// 			FindTracksByFullWordFunc: func(s string, b bool) ([]*proto.Track, error) {
+// 			FindTracksByFullWordFunc: func(s string, n int64, b bool) ([]*proto.Track, error) {
 // 				panic("mock out the FindTracksByFullWord method")
 // 			},
-// 			FindTracksByPartialFunc: func(s string, b bool) ([]*proto.Track, error) {
+// 			FindTracksByPartialFunc: func(s string, n int64, b bool) ([]*proto.Track, error) {
 // 				panic("mock out the FindTracksByPartial method")
 // 			},
 // 			GetFavoritesFunc: func(userID int64) ([]*proto.Track, error) {
@@ -73,7 +73,7 @@ var _ music.Storage = &MockStorage{}
 // 			PlaylistInfoFunc: func(n int64) (*proto.PlaylistData, error) {
 // 				panic("mock out the PlaylistInfo method")
 // 			},
-// 			PlaylistTracksFunc: func(n int64) ([]*proto.Track, error) {
+// 			PlaylistTracksFunc: func(n1 int64, n2 int64) ([]*proto.Track, error) {
 // 				panic("mock out the PlaylistTracks method")
 // 			},
 // 			RandomAlbumsFunc: func(n int64) (*proto.Albums, error) {
@@ -82,7 +82,7 @@ var _ music.Storage = &MockStorage{}
 // 			RandomArtistsFunc: func(n int64) (*proto.Artists, error) {
 // 				panic("mock out the RandomArtists method")
 // 			},
-// 			RandomTracksFunc: func(n int64, b bool) (*proto.Tracks, error) {
+// 			RandomTracksFunc: func(n1 int64, n2 int64, b bool) (*proto.Tracks, error) {
 // 				panic("mock out the RandomTracks method")
 // 			},
 // 			UserPlaylistsFunc: func(n int64) ([]*proto.PlaylistData, error) {
@@ -102,7 +102,7 @@ type MockStorage struct {
 	AlbumDataFunc func(n int64) (*proto.AlbumPageResponse, error)
 
 	// AlbumTracksFunc mocks the AlbumTracks method.
-	AlbumTracksFunc func(n int64, b bool) ([]*proto.AlbumTrack, error)
+	AlbumTracksFunc func(n1 int64, n2 int64, b bool) ([]*proto.AlbumTrack, error)
 
 	// ArtistAlbumsFunc mocks the ArtistAlbums method.
 	ArtistAlbumsFunc func(n1 int64, n2 int64) ([]*proto.Album, error)
@@ -111,7 +111,7 @@ type MockStorage struct {
 	ArtistInfoFunc func(n int64) (*proto.Artist, error)
 
 	// ArtistTracksFunc mocks the ArtistTracks method.
-	ArtistTracksFunc func(n1 int64, b bool, n2 int64) ([]*proto.Track, error)
+	ArtistTracksFunc func(n1 int64, n2 int64, b bool, n3 int64) ([]*proto.Track, error)
 
 	// DeleteTrackFromFavoritesFunc mocks the DeleteTrackFromFavorites method.
 	DeleteTrackFromFavoritesFunc func(userID int64, trackID int64) error
@@ -126,10 +126,10 @@ type MockStorage struct {
 	FindArtistsFunc func(s string) ([]*proto.Artist, error)
 
 	// FindTracksByFullWordFunc mocks the FindTracksByFullWord method.
-	FindTracksByFullWordFunc func(s string, b bool) ([]*proto.Track, error)
+	FindTracksByFullWordFunc func(s string, n int64, b bool) ([]*proto.Track, error)
 
 	// FindTracksByPartialFunc mocks the FindTracksByPartial method.
-	FindTracksByPartialFunc func(s string, b bool) ([]*proto.Track, error)
+	FindTracksByPartialFunc func(s string, n int64, b bool) ([]*proto.Track, error)
 
 	// GetFavoritesFunc mocks the GetFavorites method.
 	GetFavoritesFunc func(userID int64) ([]*proto.Track, error)
@@ -150,7 +150,7 @@ type MockStorage struct {
 	PlaylistInfoFunc func(n int64) (*proto.PlaylistData, error)
 
 	// PlaylistTracksFunc mocks the PlaylistTracks method.
-	PlaylistTracksFunc func(n int64) ([]*proto.Track, error)
+	PlaylistTracksFunc func(n1 int64, n2 int64) ([]*proto.Track, error)
 
 	// RandomAlbumsFunc mocks the RandomAlbums method.
 	RandomAlbumsFunc func(n int64) (*proto.Albums, error)
@@ -159,7 +159,7 @@ type MockStorage struct {
 	RandomArtistsFunc func(n int64) (*proto.Artists, error)
 
 	// RandomTracksFunc mocks the RandomTracks method.
-	RandomTracksFunc func(n int64, b bool) (*proto.Tracks, error)
+	RandomTracksFunc func(n1 int64, n2 int64, b bool) (*proto.Tracks, error)
 
 	// UserPlaylistsFunc mocks the UserPlaylists method.
 	UserPlaylistsFunc func(n int64) ([]*proto.PlaylistData, error)
@@ -180,8 +180,10 @@ type MockStorage struct {
 		}
 		// AlbumTracks holds details about calls to the AlbumTracks method.
 		AlbumTracks []struct {
-			// N is the n argument value.
-			N int64
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 			// B is the b argument value.
 			B bool
 		}
@@ -201,10 +203,12 @@ type MockStorage struct {
 		ArtistTracks []struct {
 			// N1 is the n1 argument value.
 			N1 int64
-			// B is the b argument value.
-			B bool
 			// N2 is the n2 argument value.
 			N2 int64
+			// B is the b argument value.
+			B bool
+			// N3 is the n3 argument value.
+			N3 int64
 		}
 		// DeleteTrackFromFavorites holds details about calls to the DeleteTrackFromFavorites method.
 		DeleteTrackFromFavorites []struct {
@@ -232,6 +236,8 @@ type MockStorage struct {
 		FindTracksByFullWord []struct {
 			// S is the s argument value.
 			S string
+			// N is the n argument value.
+			N int64
 			// B is the b argument value.
 			B bool
 		}
@@ -239,6 +245,8 @@ type MockStorage struct {
 		FindTracksByPartial []struct {
 			// S is the s argument value.
 			S string
+			// N is the n argument value.
+			N int64
 			// B is the b argument value.
 			B bool
 		}
@@ -278,8 +286,10 @@ type MockStorage struct {
 		}
 		// PlaylistTracks holds details about calls to the PlaylistTracks method.
 		PlaylistTracks []struct {
-			// N is the n argument value.
-			N int64
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 		}
 		// RandomAlbums holds details about calls to the RandomAlbums method.
 		RandomAlbums []struct {
@@ -293,8 +303,10 @@ type MockStorage struct {
 		}
 		// RandomTracks holds details about calls to the RandomTracks method.
 		RandomTracks []struct {
-			// N is the n argument value.
-			N int64
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 			// B is the b argument value.
 			B bool
 		}
@@ -396,33 +408,37 @@ func (mock *MockStorage) AlbumDataCalls() []struct {
 }
 
 // AlbumTracks calls AlbumTracksFunc.
-func (mock *MockStorage) AlbumTracks(n int64, b bool) ([]*proto.AlbumTrack, error) {
+func (mock *MockStorage) AlbumTracks(n1 int64, n2 int64, b bool) ([]*proto.AlbumTrack, error) {
 	if mock.AlbumTracksFunc == nil {
 		panic("MockStorage.AlbumTracksFunc: method is nil but Storage.AlbumTracks was just called")
 	}
 	callInfo := struct {
-		N int64
-		B bool
+		N1 int64
+		N2 int64
+		B  bool
 	}{
-		N: n,
-		B: b,
+		N1: n1,
+		N2: n2,
+		B:  b,
 	}
 	mock.lockAlbumTracks.Lock()
 	mock.calls.AlbumTracks = append(mock.calls.AlbumTracks, callInfo)
 	mock.lockAlbumTracks.Unlock()
-	return mock.AlbumTracksFunc(n, b)
+	return mock.AlbumTracksFunc(n1, n2, b)
 }
 
 // AlbumTracksCalls gets all the calls that were made to AlbumTracks.
 // Check the length with:
 //     len(mockedStorage.AlbumTracksCalls())
 func (mock *MockStorage) AlbumTracksCalls() []struct {
-	N int64
-	B bool
+	N1 int64
+	N2 int64
+	B  bool
 } {
 	var calls []struct {
-		N int64
-		B bool
+		N1 int64
+		N2 int64
+		B  bool
 	}
 	mock.lockAlbumTracks.RLock()
 	calls = mock.calls.AlbumTracks
@@ -497,23 +513,25 @@ func (mock *MockStorage) ArtistInfoCalls() []struct {
 }
 
 // ArtistTracks calls ArtistTracksFunc.
-func (mock *MockStorage) ArtistTracks(n1 int64, b bool, n2 int64) ([]*proto.Track, error) {
+func (mock *MockStorage) ArtistTracks(n1 int64, n2 int64, b bool, n3 int64) ([]*proto.Track, error) {
 	if mock.ArtistTracksFunc == nil {
 		panic("MockStorage.ArtistTracksFunc: method is nil but Storage.ArtistTracks was just called")
 	}
 	callInfo := struct {
 		N1 int64
-		B  bool
 		N2 int64
+		B  bool
+		N3 int64
 	}{
 		N1: n1,
-		B:  b,
 		N2: n2,
+		B:  b,
+		N3: n3,
 	}
 	mock.lockArtistTracks.Lock()
 	mock.calls.ArtistTracks = append(mock.calls.ArtistTracks, callInfo)
 	mock.lockArtistTracks.Unlock()
-	return mock.ArtistTracksFunc(n1, b, n2)
+	return mock.ArtistTracksFunc(n1, n2, b, n3)
 }
 
 // ArtistTracksCalls gets all the calls that were made to ArtistTracks.
@@ -521,13 +539,15 @@ func (mock *MockStorage) ArtistTracks(n1 int64, b bool, n2 int64) ([]*proto.Trac
 //     len(mockedStorage.ArtistTracksCalls())
 func (mock *MockStorage) ArtistTracksCalls() []struct {
 	N1 int64
-	B  bool
 	N2 int64
+	B  bool
+	N3 int64
 } {
 	var calls []struct {
 		N1 int64
-		B  bool
 		N2 int64
+		B  bool
+		N3 int64
 	}
 	mock.lockArtistTracks.RLock()
 	calls = mock.calls.ArtistTracks
@@ -664,21 +684,23 @@ func (mock *MockStorage) FindArtistsCalls() []struct {
 }
 
 // FindTracksByFullWord calls FindTracksByFullWordFunc.
-func (mock *MockStorage) FindTracksByFullWord(s string, b bool) ([]*proto.Track, error) {
+func (mock *MockStorage) FindTracksByFullWord(s string, n int64, b bool) ([]*proto.Track, error) {
 	if mock.FindTracksByFullWordFunc == nil {
 		panic("MockStorage.FindTracksByFullWordFunc: method is nil but Storage.FindTracksByFullWord was just called")
 	}
 	callInfo := struct {
 		S string
+		N int64
 		B bool
 	}{
 		S: s,
+		N: n,
 		B: b,
 	}
 	mock.lockFindTracksByFullWord.Lock()
 	mock.calls.FindTracksByFullWord = append(mock.calls.FindTracksByFullWord, callInfo)
 	mock.lockFindTracksByFullWord.Unlock()
-	return mock.FindTracksByFullWordFunc(s, b)
+	return mock.FindTracksByFullWordFunc(s, n, b)
 }
 
 // FindTracksByFullWordCalls gets all the calls that were made to FindTracksByFullWord.
@@ -686,10 +708,12 @@ func (mock *MockStorage) FindTracksByFullWord(s string, b bool) ([]*proto.Track,
 //     len(mockedStorage.FindTracksByFullWordCalls())
 func (mock *MockStorage) FindTracksByFullWordCalls() []struct {
 	S string
+	N int64
 	B bool
 } {
 	var calls []struct {
 		S string
+		N int64
 		B bool
 	}
 	mock.lockFindTracksByFullWord.RLock()
@@ -699,21 +723,23 @@ func (mock *MockStorage) FindTracksByFullWordCalls() []struct {
 }
 
 // FindTracksByPartial calls FindTracksByPartialFunc.
-func (mock *MockStorage) FindTracksByPartial(s string, b bool) ([]*proto.Track, error) {
+func (mock *MockStorage) FindTracksByPartial(s string, n int64, b bool) ([]*proto.Track, error) {
 	if mock.FindTracksByPartialFunc == nil {
 		panic("MockStorage.FindTracksByPartialFunc: method is nil but Storage.FindTracksByPartial was just called")
 	}
 	callInfo := struct {
 		S string
+		N int64
 		B bool
 	}{
 		S: s,
+		N: n,
 		B: b,
 	}
 	mock.lockFindTracksByPartial.Lock()
 	mock.calls.FindTracksByPartial = append(mock.calls.FindTracksByPartial, callInfo)
 	mock.lockFindTracksByPartial.Unlock()
-	return mock.FindTracksByPartialFunc(s, b)
+	return mock.FindTracksByPartialFunc(s, n, b)
 }
 
 // FindTracksByPartialCalls gets all the calls that were made to FindTracksByPartial.
@@ -721,10 +747,12 @@ func (mock *MockStorage) FindTracksByPartial(s string, b bool) ([]*proto.Track, 
 //     len(mockedStorage.FindTracksByPartialCalls())
 func (mock *MockStorage) FindTracksByPartialCalls() []struct {
 	S string
+	N int64
 	B bool
 } {
 	var calls []struct {
 		S string
+		N int64
 		B bool
 	}
 	mock.lockFindTracksByPartial.RLock()
@@ -928,29 +956,33 @@ func (mock *MockStorage) PlaylistInfoCalls() []struct {
 }
 
 // PlaylistTracks calls PlaylistTracksFunc.
-func (mock *MockStorage) PlaylistTracks(n int64) ([]*proto.Track, error) {
+func (mock *MockStorage) PlaylistTracks(n1 int64, n2 int64) ([]*proto.Track, error) {
 	if mock.PlaylistTracksFunc == nil {
 		panic("MockStorage.PlaylistTracksFunc: method is nil but Storage.PlaylistTracks was just called")
 	}
 	callInfo := struct {
-		N int64
+		N1 int64
+		N2 int64
 	}{
-		N: n,
+		N1: n1,
+		N2: n2,
 	}
 	mock.lockPlaylistTracks.Lock()
 	mock.calls.PlaylistTracks = append(mock.calls.PlaylistTracks, callInfo)
 	mock.lockPlaylistTracks.Unlock()
-	return mock.PlaylistTracksFunc(n)
+	return mock.PlaylistTracksFunc(n1, n2)
 }
 
 // PlaylistTracksCalls gets all the calls that were made to PlaylistTracks.
 // Check the length with:
 //     len(mockedStorage.PlaylistTracksCalls())
 func (mock *MockStorage) PlaylistTracksCalls() []struct {
-	N int64
+	N1 int64
+	N2 int64
 } {
 	var calls []struct {
-		N int64
+		N1 int64
+		N2 int64
 	}
 	mock.lockPlaylistTracks.RLock()
 	calls = mock.calls.PlaylistTracks
@@ -1021,33 +1053,37 @@ func (mock *MockStorage) RandomArtistsCalls() []struct {
 }
 
 // RandomTracks calls RandomTracksFunc.
-func (mock *MockStorage) RandomTracks(n int64, b bool) (*proto.Tracks, error) {
+func (mock *MockStorage) RandomTracks(n1 int64, n2 int64, b bool) (*proto.Tracks, error) {
 	if mock.RandomTracksFunc == nil {
 		panic("MockStorage.RandomTracksFunc: method is nil but Storage.RandomTracks was just called")
 	}
 	callInfo := struct {
-		N int64
-		B bool
+		N1 int64
+		N2 int64
+		B  bool
 	}{
-		N: n,
-		B: b,
+		N1: n1,
+		N2: n2,
+		B:  b,
 	}
 	mock.lockRandomTracks.Lock()
 	mock.calls.RandomTracks = append(mock.calls.RandomTracks, callInfo)
 	mock.lockRandomTracks.Unlock()
-	return mock.RandomTracksFunc(n, b)
+	return mock.RandomTracksFunc(n1, n2, b)
 }
 
 // RandomTracksCalls gets all the calls that were made to RandomTracks.
 // Check the length with:
 //     len(mockedStorage.RandomTracksCalls())
 func (mock *MockStorage) RandomTracksCalls() []struct {
-	N int64
-	B bool
+	N1 int64
+	N2 int64
+	B  bool
 } {
 	var calls []struct {
-		N int64
-		B bool
+		N1 int64
+		N2 int64
+		B  bool
 	}
 	mock.lockRandomTracks.RLock()
 	calls = mock.calls.RandomTracks

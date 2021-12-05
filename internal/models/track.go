@@ -38,15 +38,15 @@ type TrackID struct {
 
 func (t *TrackAlbum) BindProto(track *proto.AlbumTrack) {
 	bindedTrack := &TrackAlbum{
-		ID:          track.ID,
-		Title:       track.Title,
-		Explicit:    track.Explicit,
-		Genre:       track.Genre,
-		Number:      track.Number,
-		File:        track.File,
-		ListenCount: track.ListenCount,
-		Duration:    track.Duration,
-		Lossless:    track.Lossless,
+		ID:            track.ID,
+		Title:         track.Title,
+		Explicit:      track.Explicit,
+		Genre:         track.Genre,
+		Number:        track.Number,
+		File:          track.File,
+		ListenCount:   track.ListenCount,
+		Duration:      track.Duration,
+		Lossless:      track.Lossless,
 		IsInFavorites: track.IsInFavorites,
 	}
 

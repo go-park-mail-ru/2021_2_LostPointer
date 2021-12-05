@@ -1424,7 +1424,7 @@ func (api *APIMicroservices) Init(server *echo.Echo) {
 	server.PATCH("/api/v1/user/settings", api.UpdateSettings)
 
 	// Music
-	server.GET("/api/v1/home/tracks", api.GetHomeTracks) //
+	server.GET("/api/v1/home/tracks", api.GetHomeTracks)
 	server.GET("/api/v1/home/albums", api.GetHomeAlbums)
 	server.GET("/api/v1/home/artists", api.GetHomeArtists)
 	server.GET("/api/v1/artist/:id", api.GetArtistProfile)

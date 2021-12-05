@@ -47,6 +47,7 @@ func (service *ImagesService) CreateImages(fileHeader *multipart.FileHeader, pat
 	if err != nil {
 		return nil, err
 	}
+	file.Seek(0, 0)
 	src, err := imgconv.Decode(reader)
 	if err != nil {
 		return nil, err

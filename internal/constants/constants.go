@@ -56,6 +56,7 @@ const (
 	TrackNotInFavorites              = "Track not in favorites"
 	TrackAddedToFavoritesMessage     = "Track was successfully added to favorites"
 	TrackDeletedFromFavoritesMessage = "Track was successfully deleted from favorites"
+	TrackNotFound                    = "Track not found"
 
 	// Ограничения/лимиты
 	ArtistTracksSelectionAmount    = 10

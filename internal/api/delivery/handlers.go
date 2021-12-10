@@ -1216,6 +1216,7 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+
 	if userID == -1 {
 		api.logger.Info(
 			zap.String("ID", requestID),
@@ -1272,6 +1273,7 @@ func (api *APIMicroservices) DeleteTrackFromFavorites(ctx echo.Context) error {
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+
 	if userID == -1 {
 		api.logger.Info(
 			zap.String("ID", requestID),

@@ -722,17 +722,15 @@ func (storage *MusicStorage) GetFavorites(userID int64) ([]*proto.Track, error) 
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
 		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
-		wrapper.Wrapper([]string{"name"}, "g") +
+		wrapper.Wrapper([]string{"name"}, "g") + ", " +
 		`
+		l.id IS NOT NULL as favorite
 		FROM tracks t
 		JOIN genres g ON t.genre = g.id
 		JOIN albums alb ON t.album = alb.id
 		JOIN artists art ON t.artist = art.id
-		WHERE t.id IN (
-			SELECT track_id
-			FROM likes
-			WHERE user_id = $1
-		)`
+		JOIN likes l on t.id = l.track_id and l.user_id = $1
+        ORDER BY l.id`
 
 	rows, err := storage.db.Query(query, userID)
 	if err != nil {
@@ -753,7 +751,7 @@ func (storage *MusicStorage) GetFavorites(userID int64) ([]*proto.Track, error) 
 		track.Artist = &proto.Artist{}
 		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
 			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork,
-			&track.Album.ArtworkColor, &track.Artist.ID, &track.Artist.Name, &track.Genre); err != nil {
+			&track.Album.ArtworkColor, &track.Artist.ID, &track.Artist.Name, &track.Genre, &track.IsInFavorites); err != nil {
 			return nil, err
 		}
 		tracks = append(tracks, track)

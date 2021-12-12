@@ -1,7 +1,7 @@
 package usecase
 
-/*
 import (
+	"2021_2_LostPointer/internal/constants"
 	"context"
 	"errors"
 	"testing"
@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/music/mock"
 	"2021_2_LostPointer/internal/microservices/music/proto"
 )
@@ -27,7 +26,7 @@ func TestMusicService_RandomTracks(t *testing.T) {
 		{
 			name: "Success",
 			storageMock: &mock.MockStorage{
-				RandomTracksFunc: func(int64, bool) (*proto.Tracks, error) {
+				RandomTracksFunc: func(int64, int64, bool) (*proto.Tracks, error) {
 					return &proto.Tracks{
 						Tracks: []*proto.Track{},
 					}, nil
@@ -44,7 +43,7 @@ func TestMusicService_RandomTracks(t *testing.T) {
 		{
 			name: "Error 500. mock.RandomTracks returned error",
 			storageMock: &mock.MockStorage{
-				RandomTracksFunc: func(int64, bool) (*proto.Tracks, error) {
+				RandomTracksFunc: func(int64, int64, bool) (*proto.Tracks, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -195,7 +194,7 @@ func TestMusicService_ArtistProfile(t *testing.T) {
 				ArtistInfoFunc: func(int64) (*proto.Artist, error) {
 					return &proto.Artist{}, nil
 				},
-				ArtistTracksFunc: func(int64, bool, int64) ([]*proto.Track, error) {
+				ArtistTracksFunc: func(int64, int64, bool, int64) ([]*proto.Track, error) {
 					return nil, nil
 				},
 				ArtistAlbumsFunc: func(int64, int64) ([]*proto.Album, error) {
@@ -228,7 +227,7 @@ func TestMusicService_ArtistProfile(t *testing.T) {
 				ArtistInfoFunc: func(int64) (*proto.Artist, error) {
 					return &proto.Artist{}, nil
 				},
-				ArtistTracksFunc: func(int64, bool, int64) ([]*proto.Track, error) {
+				ArtistTracksFunc: func(int64, int64, bool, int64) ([]*proto.Track, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -245,7 +244,7 @@ func TestMusicService_ArtistProfile(t *testing.T) {
 				ArtistInfoFunc: func(int64) (*proto.Artist, error) {
 					return &proto.Artist{}, nil
 				},
-				ArtistTracksFunc: func(int64, bool, int64) ([]*proto.Track, error) {
+				ArtistTracksFunc: func(int64, int64, bool, int64) ([]*proto.Track, error) {
 					return nil, nil
 				},
 				ArtistAlbumsFunc: func(int64, int64) ([]*proto.Album, error) {
@@ -342,7 +341,7 @@ func TestMusicService_AlbumPage(t *testing.T) {
 				AlbumDataFunc: func(int64) (*proto.AlbumPageResponse, error) {
 					return &proto.AlbumPageResponse{}, nil
 				},
-				AlbumTracksFunc: func(int64, bool) ([]*proto.AlbumTrack, error) {
+				AlbumTracksFunc: func(int64, int64, bool) ([]*proto.AlbumTrack, error) {
 					return nil, nil
 				},
 			},
@@ -372,7 +371,7 @@ func TestMusicService_AlbumPage(t *testing.T) {
 				AlbumDataFunc: func(int64) (*proto.AlbumPageResponse, error) {
 					return &proto.AlbumPageResponse{}, nil
 				},
-				AlbumTracksFunc: func(int64, bool) ([]*proto.AlbumTrack, error) {
+				AlbumTracksFunc: func(int64, int64, bool) ([]*proto.AlbumTrack, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -466,7 +465,7 @@ func TestMusicService_Find(t *testing.T) {
 		{
 			name: "Success, contain returned true",
 			storageMock: &mock.MockStorage{
-				FindTracksByFullWordFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByFullWordFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{
 						{
 							ID:          0,
@@ -483,7 +482,7 @@ func TestMusicService_Find(t *testing.T) {
 						},
 					}, nil
 				},
-				FindTracksByPartialFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByPartialFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{
 						{
 							ID:          0,
@@ -534,10 +533,10 @@ func TestMusicService_Find(t *testing.T) {
 		{
 			name: "Success, contain returned false",
 			storageMock: &mock.MockStorage{
-				FindTracksByFullWordFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByFullWordFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
-				FindTracksByPartialFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByPartialFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{
 						{
 							ID:          0,
@@ -588,7 +587,7 @@ func TestMusicService_Find(t *testing.T) {
 		{
 			name: "Error 500. mock.FindTracksByFullWord returned error",
 			storageMock: &mock.MockStorage{
-				FindTracksByFullWordFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByFullWordFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -602,10 +601,10 @@ func TestMusicService_Find(t *testing.T) {
 		{
 			name: "Error 500. mock.FindTracksByPartial returned error",
 			storageMock: &mock.MockStorage{
-				FindTracksByFullWordFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByFullWordFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
-				FindTracksByPartialFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByPartialFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -619,10 +618,10 @@ func TestMusicService_Find(t *testing.T) {
 		{
 			name: "Error 500. mock.FindArtists returned error",
 			storageMock: &mock.MockStorage{
-				FindTracksByFullWordFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByFullWordFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
-				FindTracksByPartialFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByPartialFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
 				FindArtistsFunc: func(string) ([]*proto.Artist, error) {
@@ -639,10 +638,10 @@ func TestMusicService_Find(t *testing.T) {
 		{
 			name: "Error 500. mock.FindAlbums returned error",
 			storageMock: &mock.MockStorage{
-				FindTracksByFullWordFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByFullWordFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
-				FindTracksByPartialFunc: func(string, bool) ([]*proto.Track, error) {
+				FindTracksByPartialFunc: func(string, int64, bool) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
 				FindArtistsFunc: func(string) ([]*proto.Artist, error) {
@@ -699,7 +698,7 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 				PlaylistInfoFunc: func(int64) (*proto.PlaylistData, error) {
 					return &proto.PlaylistData{}, nil
 				},
-				PlaylistTracksFunc: func(int64) ([]*proto.Track, error) {
+				PlaylistTracksFunc: func(int64, int64) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
 				IsPlaylistPublicFunc: func(int64) (bool, error) {
@@ -775,7 +774,7 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 				PlaylistInfoFunc: func(int64) (*proto.PlaylistData, error) {
 					return &proto.PlaylistData{}, nil
 				},
-				PlaylistTracksFunc: func(int64) ([]*proto.Track, error) {
+				PlaylistTracksFunc: func(int64, int64) ([]*proto.Track, error) {
 					return []*proto.Track{}, nil
 				},
 			},
@@ -821,11 +820,37 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 				PlaylistInfoFunc: func(int64) (*proto.PlaylistData, error) {
 					return &proto.PlaylistData{}, nil
 				},
-				PlaylistTracksFunc: func(int64) ([]*proto.Track, error) {
+				PlaylistTracksFunc: func(int64, int64) ([]*proto.Track, error) {
 					return nil, errors.New("error")
 				},
 				IsPlaylistPublicFunc: func(int64) (bool, error) {
 					return true, nil
+				},
+			},
+			input: &proto.PlaylistPageOptions{
+				PlaylistID: 1,
+				UserID:     1,
+			},
+			expectedErr: true,
+			err:         status.Error(codes.Internal, "error"),
+		},
+		{
+			name: "Error 500. mock.IsPlaylistPublic returned error",
+			storageMock: &mock.MockStorage{
+				DoesPlaylistExistFunc: func(int64) (bool, error) {
+					return true, nil
+				},
+				IsPlaylistOwnerFunc: func(int64, int64) (bool, error) {
+					return true, nil
+				},
+				PlaylistInfoFunc: func(int64) (*proto.PlaylistData, error) {
+					return &proto.PlaylistData{}, nil
+				},
+				PlaylistTracksFunc: func(int64, int64) ([]*proto.Track, error) {
+					return nil, errors.New("error")
+				},
+				IsPlaylistPublicFunc: func(int64) (bool, error) {
+					return true, errors.New("error")
 				},
 			},
 			input: &proto.PlaylistPageOptions{
@@ -853,4 +878,252 @@ func TestMusicService_PlaylistPage(t *testing.T) {
 		})
 	}
 }
-*/
+
+func TestMusicService_AddTrackToFavorites(t *testing.T) {
+	tests := []struct {
+		name        string
+		storageMock *mock.MockStorage
+		input       *proto.AddTrackToFavoritesOptions
+		expected    *proto.AddTrackToFavoritesResponse
+		expectedErr bool
+		err         error
+	}{
+		{
+			name: "Success",
+			storageMock: &mock.MockStorage{
+				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
+					return false, nil
+				},
+				AddTrackToFavoriteFunc: func(int64, int64) error {
+					return nil
+				},
+			},
+			input: &proto.AddTrackToFavoritesOptions{
+				UserID:  1,
+				TrackID: 1,
+			},
+			expected: &proto.AddTrackToFavoritesResponse{},
+		},
+		{
+			name: "Fail. Track already in favorites",
+			storageMock: &mock.MockStorage{
+				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
+					return true, nil
+				},
+				AddTrackToFavoriteFunc: func(int64, int64) error {
+					return nil
+				},
+			},
+			input: &proto.AddTrackToFavoritesOptions{
+				UserID:  1,
+				TrackID: 1,
+			},
+			expected:    &proto.AddTrackToFavoritesResponse{},
+			expectedErr: true,
+			err:         status.Error(codes.PermissionDenied, constants.TrackAlreadyInFavorites),
+		},
+		{
+			name: "Fail. IsTrackInFavorites returns error",
+			storageMock: &mock.MockStorage{
+				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
+					return true, errors.New("error")
+				},
+				AddTrackToFavoriteFunc: func(int64, int64) error {
+					return nil
+				},
+			},
+			input: &proto.AddTrackToFavoritesOptions{
+				UserID:  1,
+				TrackID: 1,
+			},
+			expected:    &proto.AddTrackToFavoritesResponse{},
+			expectedErr: true,
+			err:         status.Error(codes.Internal, "error"),
+		},
+		{
+			name: "Fail. AddTrackToFavorites returns error",
+			storageMock: &mock.MockStorage{
+				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
+					return false, nil
+				},
+				AddTrackToFavoriteFunc: func(int64, int64) error {
+					return errors.New("error")
+				},
+			},
+			input: &proto.AddTrackToFavoritesOptions{
+				UserID:  1,
+				TrackID: 1,
+			},
+			expected:    &proto.AddTrackToFavoritesResponse{},
+			expectedErr: true,
+			err:         status.Error(codes.NotFound, constants.TrackNotFound),
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewMusicService(currentTest.storageMock)
+
+			res, err := storage.AddTrackToFavorites(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
+				assert.Error(t, err)
+				assert.Equal(t, err, currentTest.err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, res)
+			}
+		})
+	}
+}
+
+func TestMusicService_DeleteTrackFromFavorites(t *testing.T) {
+	tests := []struct {
+		name        string
+		storageMock *mock.MockStorage
+		input       *proto.DeleteTrackFromFavoritesOptions
+		expected    *proto.DeleteTrackFromFavoritesResponse
+		expectedErr bool
+		err         error
+	}{
+		{
+			name: "Success",
+			storageMock: &mock.MockStorage{
+				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
+					return true, nil
+				},
+				DeleteTrackFromFavoritesFunc: func(int64, int64) error {
+					return nil
+				},
+			},
+			input: &proto.DeleteTrackFromFavoritesOptions{
+				UserID:  1,
+				TrackID: 1,
+			},
+			expected: &proto.DeleteTrackFromFavoritesResponse{},
+		},
+		{
+			name: "Fail. Track not in favorites",
+			storageMock: &mock.MockStorage{
+				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
+					return false, nil
+				},
+				DeleteTrackFromFavoritesFunc: func(int64, int64) error {
+					return nil
+				},
+			},
+			input: &proto.DeleteTrackFromFavoritesOptions{
+				UserID:  1,
+				TrackID: 1,
+			},
+			expected:    &proto.DeleteTrackFromFavoritesResponse{},
+			expectedErr: true,
+			err:         status.Error(codes.PermissionDenied, constants.TrackNotInFavorites),
+		},
+		{
+			name: "Fail. IsTrackInFavorites returns error",
+			storageMock: &mock.MockStorage{
+				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
+					return true, errors.New("error")
+				},
+				DeleteTrackFromFavoritesFunc: func(int64, int64) error {
+					return nil
+				},
+			},
+			input: &proto.DeleteTrackFromFavoritesOptions{
+				UserID:  1,
+				TrackID: 1,
+			},
+			expected:    &proto.DeleteTrackFromFavoritesResponse{},
+			expectedErr: true,
+			err:         status.Error(codes.Internal, "error"),
+		},
+		{
+			name: "Fail. DeleteTrackFromFavorites returns error",
+			storageMock: &mock.MockStorage{
+				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
+					return true, nil
+				},
+				DeleteTrackFromFavoritesFunc: func(int64, int64) error {
+					return errors.New("error")
+				},
+			},
+			input: &proto.DeleteTrackFromFavoritesOptions{
+				UserID:  1,
+				TrackID: 1,
+			},
+			expected:    &proto.DeleteTrackFromFavoritesResponse{},
+			expectedErr: true,
+			err:         status.Error(codes.Internal, "error"),
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewMusicService(currentTest.storageMock)
+			res, err := storage.DeleteTrackFromFavorites(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
+				assert.Error(t, err)
+				assert.Equal(t, err, currentTest.err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, res)
+			}
+		})
+	}
+}
+
+func TestMusicService_GetFavoriteTracks(t *testing.T) {
+	tests := []struct {
+		name        string
+		storageMock *mock.MockStorage
+		input       *proto.UserFavoritesOptions
+		expected    *proto.Tracks
+		expectedErr bool
+		err         error
+	}{
+		{
+			name: "Success",
+			storageMock: &mock.MockStorage{
+				GetFavoritesFunc: func(int64) ([]*proto.Track, error) {
+					tracks := make([]*proto.Track, 0)
+					return tracks, nil
+				},
+			},
+			input: &proto.UserFavoritesOptions{
+				UserID: 1,
+			},
+			expected: &proto.Tracks{Tracks: []*proto.Track{}},
+		},
+		{
+			name: "Fail. GetFavorites returns error",
+			storageMock: &mock.MockStorage{
+				GetFavoritesFunc: func(int64) ([]*proto.Track, error) {
+					return []*proto.Track{}, errors.New("error")
+				},
+			},
+			input: &proto.UserFavoritesOptions{
+				UserID: 1,
+			},
+			expected:    &proto.Tracks{},
+			expectedErr: true,
+			err:         status.Error(codes.Internal, "error"),
+		},
+	}
+
+	for _, test := range tests {
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewMusicService(currentTest.storageMock)
+			res, err := storage.GetFavoriteTracks(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
+				assert.Error(t, err)
+				assert.Equal(t, err, currentTest.err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, currentTest.expected, res)
+			}
+		})
+	}
+}

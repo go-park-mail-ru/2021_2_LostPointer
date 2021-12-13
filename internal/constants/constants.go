@@ -65,8 +65,8 @@ const (
 	HomePageAlbumsSelectionAmount  = 4
 	HomePageArtistsSelectionAmount = 4
 	SearchTracksAmount             = 4
-	SearchArtistsAmount            = 5
-	SearchAlbumsAmount             = 5
+	SearchArtistsAmount            = 4
+	SearchAlbumsAmount             = 3
 
 	// Прочее
 	SaltLength        = 8

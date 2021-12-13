@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -89,6 +90,10 @@ func (service *MusicService) AlbumPage(ctx context.Context, metadata *proto.Albu
 }
 
 func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) (*proto.FindResponse, error) {
+	data.Text = strings.TrimSpace(data.Text)
+	if len(data.Text) == 0 {
+		return &proto.FindResponse{}, nil
+	}
 	tracks, err := service.storage.FindTracksByFullWord(data.Text, data.UserID, data.IsAuthorized)
 	if err != nil {
 		return &proto.FindResponse{}, status.Error(codes.Internal, err.Error())

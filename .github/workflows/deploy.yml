@@ -47,8 +47,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: los-98
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to Docker
@@ -104,8 +102,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: los-98
       - name: copy file via rsync
         run : |
           rsync -a ./docker-compose-cd.yml ${{ secrets.TARGET_PATH }}

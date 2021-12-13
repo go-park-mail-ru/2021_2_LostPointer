@@ -5,6 +5,7 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
+	"github.com/mailru/easyjson"
 	"net/http"
 	"os"
 	"strconv"
@@ -59,30 +60,63 @@ func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string
 				zap.String("ID", requestID),
 				zap.String("MESSAGE", currentError.Message()),
 				zap.Int("ANSWER STATUS", http.StatusBadRequest))
-			return ctx.JSON(http.StatusOK, &models.Response{
+
+			response := &models.Response{
 				Status:  http.StatusBadRequest,
 				Message: currentError.Message(),
-			})
+			}
+			jsonResponse, err := easyjson.Marshal(response)
+			if err != nil {
+				api.logger.Error(
+					zap.String("ID", requestID),
+					zap.String("ERROR", err.Error()),
+					zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+				return ctx.NoContent(http.StatusInternalServerError)
+			}
+
+			return ctx.JSONBlob(http.StatusOK, jsonResponse)
 		}
 		if currentError.Code() == codes.PermissionDenied {
 			api.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("MESSAGE", currentError.Message()),
 				zap.Int("ANSWER STATUS", http.StatusForbidden))
-			return ctx.JSON(http.StatusOK, &models.Response{
+
+			response := &models.Response{
 				Status:  http.StatusForbidden,
 				Message: currentError.Message(),
-			})
+			}
+			jsonResponse, err := easyjson.Marshal(response)
+			if err != nil {
+				api.logger.Error(
+					zap.String("ID", requestID),
+					zap.String("ERROR", err.Error()),
+					zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+				return ctx.NoContent(http.StatusInternalServerError)
+			}
+
+			return ctx.JSONBlob(http.StatusOK, jsonResponse)
 		}
 		if currentError.Code() == codes.NotFound {
 			api.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("MESSAGE", currentError.Message()),
 				zap.Int("ANSWER STATUS", http.StatusNotFound))
-			return ctx.JSON(http.StatusOK, &models.Response{
+
+			response := &models.Response{
 				Status:  http.StatusNotFound,
 				Message: currentError.Message(),
-			})
+			}
+			jsonResponse, err := easyjson.Marshal(response)
+			if err != nil {
+				api.logger.Error(
+					zap.String("ID", requestID),
+					zap.String("ERROR", err.Error()),
+					zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+				return ctx.NoContent(http.StatusInternalServerError)
+			}
+
+			return ctx.JSONBlob(http.StatusOK, jsonResponse)
 		}
 	}
 	return nil
@@ -121,15 +155,25 @@ func (api *APIMicroservices) Login(ctx echo.Context) error {
 		Expires:  time.Now().Add(constants.CookieLifetime),
 	}
 	ctx.SetCookie(cookie)
+
+	response := &models.Response{
+		Status:  http.StatusOK,
+		Message: constants.UserAuthorizedMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status:  http.StatusOK,
-		Message: constants.UserAuthorizedMessage,
-	})
+	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
 func (api *APIMicroservices) Register(ctx echo.Context) error {
@@ -165,15 +209,25 @@ func (api *APIMicroservices) Register(ctx echo.Context) error {
 		Expires:  time.Now().Add(constants.CookieLifetime),
 	}
 	ctx.SetCookie(cookie)
+
+	response := &models.Response{
+		Status:  http.StatusCreated,
+		Message: constants.UserCreatedMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusCreated),
 	)
-
-	return ctx.JSON(http.StatusCreated, &models.Response{
-		Status:  http.StatusCreated,
-		Message: constants.UserCreatedMessage,
-	})
+	return ctx.JSONBlob(http.StatusCreated, jsonResponse)
 }
 
 func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
@@ -197,10 +251,21 @@ func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	avatar, err := api.authMicroservice.GetAvatar(context.Background(), &authorization.UserID{ID: int64(userID)})
@@ -208,15 +273,24 @@ func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
+	response := &models.AvatarResponse{
+		Status: http.StatusOK,
+		Avatar: avatar.Filename,
+	}
+	jsonAvatarResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK,
-		struct {
-			Status int    `json:"status"`
-			Avatar string `json:"avatar"`
-		}{http.StatusOK, avatar.Filename})
+	return ctx.JSONBlob(http.StatusOK, jsonAvatarResponse)
 }
 
 func (api *APIMicroservices) Logout(ctx echo.Context) error {
@@ -233,10 +307,21 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	_, err = api.authMicroservice.Logout(context.Background(), &authorization.Cookie{Cookies: cookie.Value})
@@ -258,15 +343,24 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 	}
 	ctx.SetCookie(cookie)
 
+	response := &models.Response{
+		Status:  http.StatusOK,
+		Message: constants.LoggedOutMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status:  http.StatusOK,
-		Message: constants.LoggedOutMessage,
-	})
+	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
 //nolint:dupl
@@ -291,10 +385,21 @@ func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	settingsProto, err := api.profileMicroservice.GetSettings(context.Background(), &profile.GetSettingsOptions{ID: int64(userID)})
@@ -305,12 +410,20 @@ func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
 	var settings models.UserSettings
 	settings.BindProto(settingsProto)
 
+	jsonResponse, err := easyjson.Marshal(settings)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, settings)
+	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
 func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
@@ -334,10 +447,21 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	oldSettings, err := api.profileMicroservice.GetSettings(context.Background(), &profile.GetSettingsOptions{ID: int64(userID)})
@@ -409,15 +533,24 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
+	response := &models.Response{
+		Status:  http.StatusOK,
+		Message: constants.SettingsUploadedMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status:  http.StatusOK,
-		Message: constants.SettingsUploadedMessage,
-	})
+	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
 func (api *APIMicroservices) GenerateCSRF(ctx echo.Context) error {
@@ -441,18 +574,40 @@ func (api *APIMicroservices) GenerateCSRF(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	cookie, _ := ctx.Cookie("Session_cookie")
 	token, _ := csrf.Tokens.Create(cookie.Value, time.Now().Unix()+constants.CSRFTokenLifetime)
-	return ctx.JSON(http.StatusOK, &models.Response{
+
+	response := &models.Response{
 		Status:  http.StatusOK,
 		Message: token,
-	})
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
 //nolint:dupl
@@ -483,18 +638,27 @@ func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
-	tracks := make([]models.Track, 0, constants.HomePageTracksSelectionAmount)
+	tracks := models.Tracks{}
 	for _, current := range tracksListProto.Tracks {
 		var track models.Track
 		track.BindProto(current)
 		tracks = append(tracks, track)
 	}
+
+	jsonTracks, err := easyjson.Marshal(tracks)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, tracks)
+	return ctx.JSONBlob(http.StatusOK, jsonTracks)
 }
 
 //nolint:dupl
@@ -512,18 +676,27 @@ func (api *APIMicroservices) GetHomeAlbums(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
-	albums := make([]models.Album, 0, constants.HomePageAlbumsSelectionAmount)
+	albums := models.Albums{}
 	for _, current := range albumsListProto.Albums {
 		var album models.Album
 		album.BindProto(current)
 		albums = append(albums, album)
 	}
+
+	jsonAlbums, err := easyjson.Marshal(albums)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, albums)
+	return ctx.JSONBlob(http.StatusOK, jsonAlbums)
 }
 
 //nolint:dupl
@@ -541,18 +714,27 @@ func (api *APIMicroservices) GetHomeArtists(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
-	artists := make([]models.Artist, 0, constants.HomePageArtistsSelectionAmount)
+	artists := models.Artists{}
 	for _, current := range artistsListProto.Artists {
 		var artist models.Artist
 		artist.BindProto(current)
 		artists = append(artists, artist)
 	}
+
+	jsonArtists, err := easyjson.Marshal(artists)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, artists)
+	return ctx.JSONBlob(http.StatusOK, jsonArtists)
 }
 
 //nolint:dupl
@@ -596,12 +778,21 @@ func (api *APIMicroservices) GetArtistProfile(ctx echo.Context) error {
 
 	var artistData models.Artist
 	artistData.BindProto(artistDataProto)
+
+	jsonArtistData, err := easyjson.Marshal(artistData)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, artistData)
+	return ctx.JSONBlob(http.StatusOK, jsonArtistData)
 }
 
 func (api *APIMicroservices) IncrementListenCount(ctx echo.Context) error {
@@ -629,15 +820,24 @@ func (api *APIMicroservices) IncrementListenCount(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
+	response := &models.Response{
+		Status:  http.StatusOK,
+		Message: "Incremented track listen count",
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status:  http.StatusOK,
-		Message: "Incremented track listen count",
-	})
+	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
 //nolint:dupl
@@ -681,12 +881,21 @@ func (api *APIMicroservices) GetAlbumPage(ctx echo.Context) error {
 
 	var albumData models.AlbumPage
 	albumData.BindProto(albumDataProto)
+
+	jsonAlbumData, err := easyjson.Marshal(albumData)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, albumData)
+	return ctx.JSONBlob(http.StatusOK, jsonAlbumData)
 }
 
 func (api *APIMicroservices) SearchMusic(ctx echo.Context) error {
@@ -720,12 +929,20 @@ func (api *APIMicroservices) SearchMusic(ctx echo.Context) error {
 	var searchResult models.SearchResult
 	searchResult.BindProto(searchResultProto)
 
+	jsonSearchResult, err := easyjson.Marshal(searchResult)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, searchResult)
+	return ctx.JSONBlob(http.StatusOK, jsonSearchResult)
 }
 
 func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
@@ -749,10 +966,21 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	var artworkFilename, artworkColor string
@@ -812,11 +1040,20 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 	var playlistID models.PlaylistID
 	playlistID.BindProto(playlistIDProto)
 
+	jsonPlaylistID, err := easyjson.Marshal(playlistID)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusCreated),
 	)
-	return ctx.JSON(http.StatusCreated, playlistID)
+	return ctx.JSONBlob(http.StatusCreated, jsonPlaylistID)
 }
 
 //nolint:cyclop
@@ -841,10 +1078,21 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	playlistID, err := strconv.Atoi(ctx.Param("id"))
@@ -924,11 +1172,21 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
+	response := &models.PlaylistArtworkColor{ArtworkColor: artworkProto.ArtworkColor}
+	jsonPlaylistArtworkColor, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, &models.PlaylistArtworkColor{ArtworkColor: artworkProto.ArtworkColor})
+	return ctx.JSONBlob(http.StatusOK, jsonPlaylistArtworkColor)
 }
 
 func (api *APIMicroservices) DeletePlaylist(ctx echo.Context) error {
@@ -952,10 +1210,21 @@ func (api *APIMicroservices) DeletePlaylist(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	playlistID, err := strconv.Atoi(ctx.Param("id"))
@@ -988,14 +1257,24 @@ func (api *APIMicroservices) DeletePlaylist(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
+	response := &models.Response{
+		Status:  http.StatusOK,
+		Message: constants.PlaylistDeletedMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status:  http.StatusOK,
-		Message: constants.PlaylistDeletedMessage,
-	})
+	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
 //nolint:dupl
@@ -1020,10 +1299,21 @@ func (api *APIMicroservices) AddTrack(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	var requestData models.PlaylistTrack
@@ -1044,14 +1334,24 @@ func (api *APIMicroservices) AddTrack(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
+	response := &models.Response{
+		Status:  http.StatusCreated,
+		Message: constants.TrackAddedToPlaylistMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusCreated),
 	)
-	return ctx.JSON(http.StatusCreated, &models.Response{
-		Status:  http.StatusCreated,
-		Message: constants.TrackAddedToPlaylistMessage,
-	})
+	return ctx.JSONBlob(http.StatusCreated, jsonResponse)
 }
 
 //nolint:dupl
@@ -1076,10 +1376,21 @@ func (api *APIMicroservices) DeleteTrack(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	var requestData models.PlaylistTrack
@@ -1100,14 +1411,24 @@ func (api *APIMicroservices) DeleteTrack(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
+	response := &models.Response{
+		Status:  http.StatusOK,
+		Message: constants.TrackDeletedFromPlaylistMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, &models.Response{
-		Status:  http.StatusOK,
-		Message: constants.TrackDeletedFromPlaylistMessage,
-	})
+	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
 //nolint:dupl
@@ -1133,10 +1454,21 @@ func (api *APIMicroservices) GetUserPlaylists(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	playlistsProto, err := api.musicMicroservice.UserPlaylists(context.Background(), &music.UserPlaylistsOptions{UserID: int64(userID)})
@@ -1147,11 +1479,20 @@ func (api *APIMicroservices) GetUserPlaylists(ctx echo.Context) error {
 	var userPlaylists models.UserPlaylists
 	userPlaylists.BindProto(playlistsProto)
 
+	jsonUserPlaylists, err := easyjson.Marshal(userPlaylists)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, userPlaylists)
+	return ctx.JSONBlob(http.StatusOK, jsonUserPlaylists)
 }
 
 func (api *APIMicroservices) GetPlaylistPage(ctx echo.Context) error {
@@ -1191,11 +1532,20 @@ func (api *APIMicroservices) GetPlaylistPage(ctx echo.Context) error {
 	var playlistPage models.PlaylistPage
 	playlistPage.BindProto(playlistPageDataProto)
 
+	jsonPlaylistPage, err := easyjson.Marshal(playlistPage)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, playlistPage)
+	return ctx.JSONBlob(http.StatusOK, jsonPlaylistPage)
 }
 
 //nolint:dupl
@@ -1222,10 +1572,21 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	trackID, err := strconv.Atoi(ctx.Param("id"))
@@ -1245,14 +1606,24 @@ func (api *APIMicroservices) AddTrackToFavorites(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
+	response := &models.Response{
+		Status:  http.StatusCreated,
+		Message: constants.TrackAddedToFavoritesMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusCreated),
 	)
-	return ctx.JSON(http.StatusCreated, &models.Response{
-		Status:  http.StatusCreated,
-		Message: constants.TrackAddedToFavoritesMessage,
-	})
+	return ctx.JSONBlob(http.StatusCreated, jsonResponse)
 }
 
 //nolint:dupl
@@ -1279,10 +1650,21 @@ func (api *APIMicroservices) DeleteTrackFromFavorites(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	trackID, err := strconv.Atoi(ctx.Param("id"))
@@ -1302,14 +1684,24 @@ func (api *APIMicroservices) DeleteTrackFromFavorites(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
+	response := &models.Response{
+		Status:  http.StatusCreated,
+		Message: constants.TrackDeletedFromFavoritesMessage,
+	}
+	jsonResponse, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusCreated),
 	)
-	return ctx.JSON(http.StatusCreated, &models.Response{
-		Status:  http.StatusCreated,
-		Message: constants.TrackDeletedFromFavoritesMessage,
-	})
+	return ctx.JSONBlob(http.StatusCreated, jsonResponse)
 }
 
 func (api *APIMicroservices) GetUserFavorites(ctx echo.Context) error {
@@ -1334,10 +1726,21 @@ func (api *APIMicroservices) GetUserFavorites(ctx echo.Context) error {
 			zap.String("ID", requestID),
 			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
 			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-		return ctx.JSON(http.StatusOK, &models.Response{
+
+		response := &models.Response{
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
-		})
+		}
+		jsonResponse, err := easyjson.Marshal(response)
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+
+		return ctx.JSONBlob(http.StatusOK, jsonResponse)
 	}
 
 	tracksListProto, err := api.musicMicroservice.GetFavoriteTracks(context.Background(),
@@ -1346,18 +1749,27 @@ func (api *APIMicroservices) GetUserFavorites(ctx echo.Context) error {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
 
-	tracks := make([]models.Track, 0)
+	tracks := models.Tracks{}
 	for _, current := range tracksListProto.Tracks {
 		var track models.Track
 		track.BindProto(current)
 		tracks = append(tracks, track)
 	}
+
+	jsonTracks, err := easyjson.Marshal(tracks)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-
-	return ctx.JSON(http.StatusOK, tracks)
+	return ctx.JSONBlob(http.StatusOK, jsonTracks)
 }
 
 func (api *APIMicroservices) DeletePlaylistArtwork(ctx echo.Context) error {
@@ -1408,11 +1820,21 @@ func (api *APIMicroservices) DeletePlaylistArtwork(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
+	response := &models.PlaylistArtworkColor{ArtworkColor: constants.PlaylistArtworkDefaultColor}
+	jsonPlaylistArtworkColor, err := easyjson.Marshal(response)
+	if err != nil {
+		api.logger.Error(
+			zap.String("ID", requestID),
+			zap.String("ERROR", err.Error()),
+			zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
 	api.logger.Info(
 		zap.String("ID", requestID),
 		zap.Int("ANSWER STATUS", http.StatusOK),
 	)
-	return ctx.JSON(http.StatusOK, &models.PlaylistArtworkColor{ArtworkColor: constants.PlaylistArtworkDefaultColor})
+	return ctx.JSONBlob(http.StatusOK, jsonPlaylistArtworkColor)
 }
 
 func (api *APIMicroservices) Init(server *echo.Echo) {

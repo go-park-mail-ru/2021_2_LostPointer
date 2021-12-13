@@ -4,6 +4,9 @@ import (
 	"2021_2_LostPointer/internal/microservices/music/proto"
 )
 
+//easyjson:json
+type Tracks []Track
+
 type Track struct {
 	ID            int64  `json:"id,omitempty"`
 	Title         string `json:"title,omitempty"`

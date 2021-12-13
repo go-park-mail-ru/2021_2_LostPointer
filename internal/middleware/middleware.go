@@ -5,6 +5,7 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/internal/monitoring/delivery"
+	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -40,29 +41,27 @@ func (middleware *Middleware) InitMiddlewareHandlers(server *echo.Echo) {
 
 func (middleware *Middleware) CheckAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		//cookie, err := ctx.Cookie("Session_cookie")
-		//userID := &authorization.UserID{
-		//	ID: -1,
-		//}
-		//if err == nil {
-		//	userID, err = middleware.authMicroservice.GetUserByCookie(context.Background(), &authorization.Cookie{
-		//		Cookies: cookie.Value,
-		//	})
-		//	if err != nil {
-		//		cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
-		//		ctx.SetCookie(cookie)
-		//		ctx.Set("USER_ID", -1)
-		//		return next(ctx)
-		//	}
-		//}
-		//if err != nil {
-		//	cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
-		//	ctx.SetCookie(cookie)
-		//}
-		//
-		//ctx.Set("USER_ID", int(userID.ID))
+		cookie, err := ctx.Cookie("Session_cookie")
+		userID := &authorization.UserID{
+			ID: -1,
+		}
+		if err == nil {
+			userID, err = middleware.authMicroservice.GetUserByCookie(context.Background(), &authorization.Cookie{
+				Cookies: cookie.Value,
+			})
+			if err != nil {
+				cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
+				ctx.SetCookie(cookie)
+				ctx.Set("USER_ID", -1)
+				return next(ctx)
+			}
+		}
+		if err != nil {
+			cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
+			ctx.SetCookie(cookie)
+		}
 
-		ctx.Set("USER_ID", 268)
+		ctx.Set("USER_ID", int(userID.ID))
 
 		return next(ctx)
 	}

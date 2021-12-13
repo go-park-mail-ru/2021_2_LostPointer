@@ -5,13 +5,13 @@ import (
 	"2021_2_LostPointer/internal/csrf"
 	"2021_2_LostPointer/pkg/image"
 	"context"
-	"github.com/mailru/easyjson"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/mailru/easyjson"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -46,6 +46,7 @@ func NewAPIMicroservices(logger *zap.SugaredLogger, imageService image.ImagesSer
 	}
 }
 
+//nolint:dupl
 func (api *APIMicroservices) ParseErrorByCode(ctx echo.Context, requestID string, err error) error {
 	if currentError, temp := status.FromError(err); temp {
 		if currentError.Code() == codes.Internal {
@@ -230,6 +231,7 @@ func (api *APIMicroservices) Register(ctx echo.Context) error {
 	return ctx.JSONBlob(http.StatusCreated, jsonResponse)
 }
 
+//nolint:dupl
 func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -293,6 +295,7 @@ func (api *APIMicroservices) GetUserAvatar(ctx echo.Context) error {
 	return ctx.JSONBlob(http.StatusOK, jsonAvatarResponse)
 }
 
+//nolint:dupl
 func (api *APIMicroservices) Logout(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -312,11 +315,11 @@ func (api *APIMicroservices) Logout(ctx echo.Context) error {
 			Status:  http.StatusUnauthorized,
 			Message: constants.UserIsNotAuthorizedMessage,
 		}
-		jsonResponse, err := easyjson.Marshal(response)
-		if err != nil {
+		jsonResponse, marshalErr := easyjson.Marshal(response)
+		if marshalErr != nil {
 			api.logger.Error(
 				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
+				zap.String("ERROR", marshalErr.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.NoContent(http.StatusInternalServerError)
 		}
@@ -426,6 +429,7 @@ func (api *APIMicroservices) GetSettings(ctx echo.Context) error {
 	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
+//nolint:dupl,cyclop
 func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -553,6 +557,7 @@ func (api *APIMicroservices) UpdateSettings(ctx echo.Context) error {
 	return ctx.JSONBlob(http.StatusOK, jsonResponse)
 }
 
+//nolint:dupl
 func (api *APIMicroservices) GenerateCSRF(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -945,6 +950,7 @@ func (api *APIMicroservices) SearchMusic(ctx echo.Context) error {
 	return ctx.JSONBlob(http.StatusOK, jsonSearchResult)
 }
 
+//nolint:dupl,cyclop
 func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -1056,7 +1062,7 @@ func (api *APIMicroservices) CreatePlaylist(ctx echo.Context) error {
 	return ctx.JSONBlob(http.StatusCreated, jsonPlaylistID)
 }
 
-//nolint:cyclop
+//nolint:cyclop,dupl
 func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -1189,6 +1195,7 @@ func (api *APIMicroservices) UpdatePlaylist(ctx echo.Context) error {
 	return ctx.JSONBlob(http.StatusOK, jsonPlaylistArtworkColor)
 }
 
+//nolint:dupl
 func (api *APIMicroservices) DeletePlaylist(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
@@ -1704,6 +1711,7 @@ func (api *APIMicroservices) DeleteTrackFromFavorites(ctx echo.Context) error {
 	return ctx.JSONBlob(http.StatusCreated, jsonResponse)
 }
 
+//nolint:dupl
 func (api *APIMicroservices) GetUserFavorites(ctx echo.Context) error {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {

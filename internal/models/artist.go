@@ -2,6 +2,9 @@ package models
 
 import "2021_2_LostPointer/internal/microservices/music/proto"
 
+//easyjson:json
+type Artists []Artist
+
 type Artist struct {
 	ID     int64   `json:"id,omitempty"`
 	Name   string  `json:"name"`

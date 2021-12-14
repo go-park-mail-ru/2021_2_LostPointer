@@ -77,7 +77,7 @@ func TestAPIMicroservices_Login(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"User is authorized\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"User is authorized\"}",
 		},
 		{
 			name:     "Handler returned status 400",
@@ -92,7 +92,7 @@ func TestAPIMicroservices_Login(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name:     "No RequestID",
@@ -181,7 +181,7 @@ func TestAPIMicroservices_Register(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusCreated,
-			expectedJSON:   "{\"status\":201,\"message\":\"User was created successfully\"}\n",
+			expectedJSON:   "{\"status\":201,\"message\":\"User was created successfully\"}",
 		},
 		{
 			name: "Handler returned status 400",
@@ -191,7 +191,7 @@ func TestAPIMicroservices_Register(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name:     "No RequestID",
@@ -283,7 +283,7 @@ func TestAPIMicroservices_GetUserAvatar(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"avatar\":\"testFilename\"}\n",
+			expectedJSON:   "{\"status\":200,\"avatar\":\"testFilename\"}",
 		},
 		{
 			name: "Handler returned status 400",
@@ -293,7 +293,7 @@ func TestAPIMicroservices_GetUserAvatar(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name: "No RequestID",
@@ -323,7 +323,7 @@ func TestAPIMicroservices_GetUserAvatar(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			userID:         -1,
 		},
 	}
@@ -398,7 +398,7 @@ func TestAPIMicroservices_Logout(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"Logged out\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"Logged out\"}",
 		},
 		{
 			name: "Handler returned status 409",
@@ -427,7 +427,7 @@ func TestAPIMicroservices_Logout(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			doNotSetCookie: true,
 		},
 	}
@@ -512,7 +512,7 @@ func TestAPIMicroservices_GetSettings(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{}\n",
+			expectedJSON:   "{}",
 		},
 		{
 			name: "Handler returned status 400",
@@ -522,7 +522,7 @@ func TestAPIMicroservices_GetSettings(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name: "No RequestID",
@@ -552,7 +552,7 @@ func TestAPIMicroservices_GetSettings(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			userID:         -1,
 		},
 	}
@@ -731,7 +731,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "[{\"album\":{},\"artist\":{\"name\":\"\"}}]\n",
+			expectedJSON:   "[{\"album\":{},\"artist\":{\"name\":\"\"}}]",
 		},
 		{
 			name: "Handler returned status 400",
@@ -744,7 +744,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name: "No RequestID",
@@ -776,7 +776,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "[]\n",
+			expectedJSON:   "[]",
 			userID:         -1,
 		},
 	}
@@ -852,7 +852,7 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "[{}]\n",
+			expectedJSON:   "[{}]",
 		},
 		{
 			name: "Handler returned status 400",
@@ -862,7 +862,7 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name: "No RequestID",
@@ -947,7 +947,7 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "[{\"name\":\"\"}]\n",
+			expectedJSON:   "[{\"name\":\"\"}]",
 		},
 		{
 			name: "Handler returned status 400",
@@ -957,7 +957,7 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name: "No RequestID",
@@ -1048,7 +1048,7 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"name\":\"\"}\n",
+			expectedJSON:   "{\"name\":\"\"}",
 		},
 		{
 			name: "Handler returned status 400",
@@ -1061,7 +1061,7 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name: "No RequestID",
@@ -1086,7 +1086,7 @@ func TestAPIMicroservices_GetArtistProfile(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			userID:         -1,
 		},
 		{
@@ -1194,7 +1194,7 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"Incremented track listen count\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"Incremented track listen count\"}",
 			trackID:        ID,
 		},
 		{
@@ -1205,7 +1205,7 @@ func TestAPIMicroservices_IncrementListenCount(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			trackID:        ID,
 		},
 		{
@@ -1298,7 +1298,7 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"artist\":{\"name\":\"\"}}\n",
+			expectedJSON:   "{\"artist\":{\"name\":\"\"}}",
 		},
 		{
 			name: "Handler returned status 400",
@@ -1310,7 +1310,7 @@ func TestAPIMicroservices_GetAlbumPage(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name: "No RequestID",
@@ -1432,7 +1432,7 @@ func TestAPIMicroservices_SearchMusic(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{}\n",
+			expectedJSON:   "{}",
 			formValue:      "testText",
 		},
 		{
@@ -1445,7 +1445,7 @@ func TestAPIMicroservices_SearchMusic(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 		},
 		{
 			name: "No RequestID",
@@ -1555,7 +1555,7 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusCreated,
-			expectedJSON:   "{\"status\":201,\"message\":\"Track was successfully added to playlist\"}\n",
+			expectedJSON:   "{\"status\":201,\"message\":\"Track was successfully added to playlist\"}",
 			trackID:        2,
 			playlistID:     1,
 			userID:         3,
@@ -1572,7 +1572,7 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			trackID:        2,
 			playlistID:     1,
 			userID:         3,
@@ -1617,7 +1617,7 @@ func TestAPIMicroservices_AddTrack(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			userID:         -1,
 		},
 	}
@@ -1701,7 +1701,7 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"Track was successfully deleted from playlist\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"Track was successfully deleted from playlist\"}",
 			trackID:        2,
 			playlistID:     1,
 			userID:         3,
@@ -1718,7 +1718,7 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			trackID:        2,
 			playlistID:     1,
 			userID:         3,
@@ -1763,7 +1763,7 @@ func TestAPIMicroservices_DeletePlaylist(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			userID:         -1,
 		},
 	}
@@ -1845,7 +1845,7 @@ func TestAPIMicroservices_GetUserPlaylists(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{}\n",
+			expectedJSON:   "{}",
 			userID:         1,
 		},
 		{
@@ -1858,7 +1858,7 @@ func TestAPIMicroservices_GetUserPlaylists(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			userID:         1,
 		},
 		{
@@ -1895,7 +1895,7 @@ func TestAPIMicroservices_GetUserPlaylists(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			userID:         -1,
 		},
 	}
@@ -1981,7 +1981,7 @@ func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"id\":2,\"title\":\"testTitle\"}\n",
+			expectedJSON:   "{\"id\":2,\"title\":\"testTitle\"}",
 			userID:         1,
 			playlistID:     2,
 		},
@@ -1996,7 +1996,7 @@ func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			userID:         1,
 			playlistID:     2,
 		},
@@ -2036,7 +2036,7 @@ func TestAPIMicroservices_GetPlaylistPage(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			userID:         -1,
 		},
 		{
@@ -2136,21 +2136,21 @@ func TestAPIMicroservices_ParseErrorByCode(t *testing.T) {
 		{
 			name:           "Parse 400 error",
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			requestID:      "1",
 			error:          status.Error(codes.InvalidArgument, errors.New("error").Error()),
 		},
 		{
 			name:           "Parse 403 error",
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":403,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":403,\"message\":\"error\"}",
 			requestID:      "1",
 			error:          status.Error(codes.PermissionDenied, errors.New("error").Error()),
 		},
 		{
 			name:           "Parse 404 error",
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":404,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":404,\"message\":\"error\"}",
 			requestID:      "1",
 			error:          status.Error(codes.NotFound, errors.New("error").Error()),
 		},
@@ -2229,7 +2229,7 @@ func TestAPIMicroservices_AddTrackToFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusCreated,
-			expectedJSON:   "{\"status\":201,\"message\":\"Track was successfully added to favorites\"}\n",
+			expectedJSON:   "{\"status\":201,\"message\":\"Track was successfully added to favorites\"}",
 			trackID:        1,
 			userID:         1,
 		},
@@ -2244,7 +2244,7 @@ func TestAPIMicroservices_AddTrackToFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			trackID:        1,
 			userID:         1,
 		},
@@ -2285,7 +2285,7 @@ func TestAPIMicroservices_AddTrackToFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			userID:         -1,
 		},
 		{
@@ -2388,7 +2388,7 @@ func TestAPIMicroservices_DeleteTrackFromFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusCreated,
-			expectedJSON:   "{\"status\":201,\"message\":\"Track was successfully deleted from favorites\"}\n",
+			expectedJSON:   "{\"status\":201,\"message\":\"Track was successfully deleted from favorites\"}",
 			trackID:        1,
 			userID:         1,
 		},
@@ -2403,7 +2403,7 @@ func TestAPIMicroservices_DeleteTrackFromFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			trackID:        1,
 			userID:         1,
 		},
@@ -2444,7 +2444,7 @@ func TestAPIMicroservices_DeleteTrackFromFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			userID:         -1,
 		},
 		{
@@ -2546,7 +2546,7 @@ func TestAPIMicroservices_GetUserFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "[]\n",
+			expectedJSON:   "[]",
 			trackID:        1,
 			userID:         1,
 		},
@@ -2560,7 +2560,7 @@ func TestAPIMicroservices_GetUserFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":400,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"error\"}",
 			trackID:        1,
 			userID:         1,
 		},
@@ -2599,7 +2599,7 @@ func TestAPIMicroservices_GetUserFavorites(t *testing.T) {
 				return moq
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is not authorized\"}",
 			userID:         -1,
 		},
 	}

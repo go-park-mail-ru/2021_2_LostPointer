@@ -5,39 +5,41 @@ import (
 )
 
 //easyjson:json
-type Tracks []Track
+type (
+	Tracks []Track
 
-type Track struct {
-	ID            int64  `json:"id,omitempty"`
-	Title         string `json:"title,omitempty"`
-	Explicit      bool   `json:"explicit,omitempty"`
-	Genre         string `json:"genre,omitempty"`
-	Number        int64  `json:"number,omitempty"`
-	File          string `json:"file,omitempty"`
-	ListenCount   int64  `json:"listen_count,omitempty"`
-	Duration      int64  `json:"duration,omitempty"`
-	Lossless      bool   `json:"lossless,omitempty"`
-	Album         Album  `json:"album,omitempty"`
-	Artist        Artist `json:"artist,omitempty"`
-	IsInFavorites bool   `json:"is_in_favorites,omitempty"`
-}
+	Track struct {
+		ID            int64  `json:"id,omitempty"`
+		Title         string `json:"title,omitempty"`
+		Explicit      bool   `json:"explicit,omitempty"`
+		Genre         string `json:"genre,omitempty"`
+		Number        int64  `json:"number,omitempty"`
+		File          string `json:"file,omitempty"`
+		ListenCount   int64  `json:"listen_count,omitempty"`
+		Duration      int64  `json:"duration,omitempty"`
+		Lossless      bool   `json:"lossless,omitempty"`
+		Album         Album  `json:"album,omitempty"`
+		Artist        Artist `json:"artist,omitempty"`
+		IsInFavorites bool   `json:"is_in_favorites,omitempty"`
+	}
 
-type TrackAlbum struct {
-	ID            int64  `json:"id,omitempty"`
-	Title         string `json:"title,omitempty"`
-	Explicit      bool   `json:"explicit"`
-	Genre         string `json:"genre,omitempty"`
-	Number        int64  `json:"number,omitempty"`
-	File          string `json:"file,omitempty"`
-	ListenCount   int64  `json:"listen_count,omitempty"`
-	Duration      int64  `json:"duration,omitempty"`
-	Lossless      bool   `json:"lossless,omitempty"`
-	IsInFavorites bool   `json:"is_in_favorites,omitempty"`
-}
+	TrackAlbum struct {
+		ID            int64  `json:"id,omitempty"`
+		Title         string `json:"title,omitempty"`
+		Explicit      bool   `json:"explicit"`
+		Genre         string `json:"genre,omitempty"`
+		Number        int64  `json:"number,omitempty"`
+		File          string `json:"file,omitempty"`
+		ListenCount   int64  `json:"listen_count,omitempty"`
+		Duration      int64  `json:"duration,omitempty"`
+		Lossless      bool   `json:"lossless,omitempty"`
+		IsInFavorites bool   `json:"is_in_favorites,omitempty"`
+	}
 
-type TrackID struct {
-	ID int64 `json:"id,omitempty" form:"id" query:"id"`
-}
+	TrackID struct {
+		ID int64 `json:"id,omitempty" form:"id" query:"id"`
+	}
+)
 
 func (t *TrackAlbum) BindProto(track *proto.AlbumTrack) {
 	bindedTrack := &TrackAlbum{

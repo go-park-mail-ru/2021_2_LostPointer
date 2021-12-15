@@ -5,30 +5,32 @@ import (
 )
 
 //easyjson:json
-type Albums []Album
+type (
+	Albums []Album
 
-type Album struct {
-	ID             int64  `json:"id,omitempty"`
-	Title          string `json:"title,omitempty"`
-	Year           int64  `json:"year,omitempty"`
-	Artist         string `json:"artist,omitempty"`
-	Artwork        string `json:"artwork,omitempty"`
-	TracksCount    int64  `json:"tracks_count,omitempty"`
-	TracksDuration int64  `json:"tracks_duration,omitempty"`
-	ArtworkColor   string `json:"artwork_color,omitempty"`
-}
+	Album struct {
+		ID             int64  `json:"id,omitempty"`
+		Title          string `json:"title,omitempty"`
+		Year           int64  `json:"year,omitempty"`
+		Artist         string `json:"artist,omitempty"`
+		Artwork        string `json:"artwork,omitempty"`
+		TracksCount    int64  `json:"tracks_count,omitempty"`
+		TracksDuration int64  `json:"tracks_duration,omitempty"`
+		ArtworkColor   string `json:"artwork_color,omitempty"`
+	}
 
-type AlbumPage struct {
-	ID             int64        `json:"id,omitempty"`
-	Title          string       `json:"title,omitempty"`
-	Year           int64        `json:"year,omitempty"`
-	Artwork        string       `json:"artwork,omitempty"`
-	TracksCount    int64        `json:"tracks_count,omitempty"`
-	TracksDuration int64        `json:"tracks_duration,omitempty"`
-	ArtworkColor   string       `json:"artwork_color,omitempty"`
-	Artist         Artist       `json:"artist"`
-	Tracks         []TrackAlbum `json:"tracks,omitempty"`
-}
+	AlbumPage struct {
+		ID             int64        `json:"id,omitempty"`
+		Title          string       `json:"title,omitempty"`
+		Year           int64        `json:"year,omitempty"`
+		Artwork        string       `json:"artwork,omitempty"`
+		TracksCount    int64        `json:"tracks_count,omitempty"`
+		TracksDuration int64        `json:"tracks_duration,omitempty"`
+		ArtworkColor   string       `json:"artwork_color,omitempty"`
+		Artist         Artist       `json:"artist"`
+		Tracks         []TrackAlbum `json:"tracks,omitempty"`
+	}
+)
 
 func (a *AlbumPage) BindProto(album *proto.AlbumPageResponse) {
 	tracks := make([]TrackAlbum, 0)

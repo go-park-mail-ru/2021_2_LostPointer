@@ -1,18 +1,19 @@
 package repository
 
 import (
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/stretchr/testify/assert"
-
-	"2021_2_LostPointer/internal/constants"
-	"2021_2_LostPointer/internal/microservices/profile/proto"
 	"database/sql/driver"
 	"errors"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
+
+	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/microservices/profile/proto"
 )
 
 func TestUserSettingsStorage_GetSettings(t *testing.T) {

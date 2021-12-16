@@ -25,13 +25,13 @@ func InitializeDatabase() *sql.DB {
 		os.Getenv("DBPORT"),
 		os.Getenv("DBNAME"),
 	)
-	db, err := sql.Open("postgres", connectionString)
+	database, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		log.Fatalln("NO CONNECTION TO DATABASE", err.Error())
 	}
-	db.SetConnMaxLifetime(time.Second * 300)
+	database.SetConnMaxLifetime(time.Second * 300)
 
-	return db
+	return database
 }
 
 func main() {

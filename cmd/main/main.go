@@ -20,6 +20,7 @@ import (
 	"2021_2_LostPointer/pkg/image"
 )
 
+//nolint:ireturn
 func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, profileMicroservice.ProfileClient,
 	musicMicroservice.MusicClient, playlistsMicroservice.PlaylistsClient, []*grpc.ClientConn) {
 	connections := make([]*grpc.ClientConn, 0)
@@ -105,8 +106,6 @@ func main() {
 
 	appHandler.Init(server)
 	middlewareHandler.InitMiddlewareHandlers(server)
-
-	server.Static("/tracks", os.Getenv("TRACKS_PATH"))
 
 	server.Logger.Fatal(server.Start(fmt.Sprintf("%s:%s", os.Getenv("SERVER_HOST"), os.Getenv("SERVER_PORT"))))
 }

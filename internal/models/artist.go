@@ -2,14 +2,19 @@ package models
 
 import "2021_2_LostPointer/internal/microservices/music/proto"
 
-type Artist struct {
-	ID     int64   `json:"id,omitempty"`
-	Name   string  `json:"name"`
-	Avatar string  `json:"avatar,omitempty"`
-	Video  string  `json:"video,omitempty"`
-	Tracks []Track `json:"tracks,omitempty"`
-	Albums []Album `json:"albums,omitempty"`
-}
+//easyjson:json
+type (
+	Artists []Artist
+
+	Artist struct {
+		ID     int64   `json:"id,omitempty"`
+		Name   string  `json:"name"`
+		Avatar string  `json:"avatar,omitempty"`
+		Video  string  `json:"video,omitempty"`
+		Tracks []Track `json:"tracks,omitempty"`
+		Albums []Album `json:"albums,omitempty"`
+	}
+)
 
 func (a *Artist) BindProto(artist *proto.Artist) {
 	tracks := make([]Track, 0)

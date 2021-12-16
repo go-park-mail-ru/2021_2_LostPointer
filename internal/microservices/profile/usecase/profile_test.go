@@ -1,16 +1,18 @@
 package usecase
 
 import (
+	"context"
+	"errors"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"2021_2_LostPointer/internal/constants"
 	customErrors "2021_2_LostPointer/internal/errors"
 	"2021_2_LostPointer/internal/microservices/profile/mock"
 	"2021_2_LostPointer/internal/microservices/profile/proto"
-	"context"
-	"errors"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"testing"
 )
 
 func TestProfileService_GetSettings(t *testing.T) {
@@ -57,16 +59,17 @@ func TestProfileService_GetSettings(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			storage := NewProfileService(test.storageMock)
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewProfileService(currentTest.storageMock)
 
-			res, err := storage.GetSettings(context.Background(), test.input)
-			if test.expectedErr {
+			res, err := storage.GetSettings(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
-				assert.Equal(t, err, test.err)
+				assert.Equal(t, err, currentTest.err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, test.expected, res)
+				assert.Equal(t, currentTest.expected, res)
 			}
 		})
 	}
@@ -369,7 +372,7 @@ func TestProfileService_UpdateSettings(t *testing.T) {
 				},
 			},
 			input: &proto.UpdateSettingsOptions{
-				NewPassword: "Av",
+				NewPassword: "Av8",
 				OldPassword: "Avt8430055!",
 				OldSettings: &proto.UserSettings{},
 			},
@@ -397,16 +400,17 @@ func TestProfileService_UpdateSettings(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			storage := NewProfileService(test.storageMock)
+		currentTest := test
+		t.Run(currentTest.name, func(t *testing.T) {
+			storage := NewProfileService(currentTest.storageMock)
 
-			res, err := storage.UpdateSettings(context.Background(), test.input)
-			if test.expectedErr {
+			res, err := storage.UpdateSettings(context.Background(), currentTest.input)
+			if currentTest.expectedErr {
 				assert.Error(t, err)
-				assert.Equal(t, err, test.err)
+				assert.Equal(t, err, currentTest.err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, test.expected, res)
+				assert.Equal(t, currentTest.expected, res)
 			}
 		})
 	}

@@ -14,11 +14,10 @@ networks:
 
 services:
   main:
-    build:
-      context: .
-      dockerfile: ./cmd/main/Dockerfile
+    image: vershovbmstu/lostpointer_deploy_main:latest
     env_file:
       - .env-prod
+    restart: always
     depends_on:
       - authorization
       - profile
@@ -29,46 +28,42 @@ services:
     networks:
       lp_network:
         ipv4_address: 10.5.0.2
-#    volumes:
-#      - /home/ubuntu/users:/app/users
-#      - /home/ubuntu/playlists:/app/playlists
+    volumes:
+      - /home/ubuntu/users:/app/users
+      - /home/ubuntu/playlists:/app/playlists
 
   authorization:
-    build:
-      context: .
-      dockerfile: ./cmd/authorization/Dockerfile
+    image: vershovbmstu/lostpointer_deploy_authorization:latest
     env_file:
       - .env-prod
+    restart: always
     networks:
       lp_network:
         ipv4_address: 10.5.0.3
 
   profile:
-    build:
-      context: .
-      dockerfile: ./cmd/profile/Dockerfile
+    image: vershovbmstu/lostpointer_deploy_profile:latest
     env_file:
       - .env-prod
+    restart: always
     networks:
       lp_network:
         ipv4_address: 10.5.0.4
 
   music:
-    build:
-      context: .
-      dockerfile: ./cmd/music/Dockerfile
+    image: vershovbmstu/lostpointer_deploy_music:latest
     env_file:
       - .env-prod
+    restart: always
     networks:
       lp_network:
         ipv4_address: 10.5.0.5
 
   playlists:
-    build:
-      context: .
-      dockerfile: ./cmd/playlists/Dockerfile
+    image: vershovbmstu/lostpointer_deploy_playlists:latest
     env_file:
       - .env-prod
+    restart: always
     networks:
       lp_network:
         ipv4_address: 10.5.0.6

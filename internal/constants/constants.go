@@ -33,25 +33,30 @@ const (
 	PlaylistArtworkDefaultColor    = "#8071c2"
 
 	// Сообщения
-	EmailNotUniqueMessage           = "Email is not unique"
-	NicknameNotUniqueMessage        = "Nickname is not unique"
-	WrongPasswordMessage            = "Old password is wrong"
-	OldPasswordFieldIsEmptyMessage  = "Old password field is empty"
-	NewPasswordFieldIsEmptyMessage  = "New password field is empty"
-	UserIsNotAuthorizedMessage      = "User is not authorized"
-	LoggedOutMessage                = "Logged out"
-	SettingsUploadedMessage         = "Settings were uploaded successfully"
-	UserCreatedMessage              = "User was created successfully"
-	UserAuthorizedMessage           = "User is authorized"
-	RequestIDTypeAssertionFailed    = "Type assertion for \"REQUEST_ID\" failed"
-	UserIDTypeAssertionFailed       = "Type assertion for \"USER_ID\" failed"
-	PlaylistDeletedMessage          = "Playlist deleted"
-	TrackAddedToPlaylistMessage     = "Track was successfully added to playlist"
-	TrackAlreadyInPlaylistMessage   = "Track was already added to playlist"
-	TrackDeletedFromPlaylistMessage = "Track was successfully deleted from playlist"
-	NotPlaylistOwnerMessage         = "You are not owner of this playlist"
-	PlaylistNotFoundMessage         = "Playlist doesn't exist"
-	PanicRecover                    = "Panic!"
+	EmailNotUniqueMessage            = "Email is not unique"
+	NicknameNotUniqueMessage         = "Nickname is not unique"
+	WrongPasswordMessage             = "Old password is wrong"
+	OldPasswordFieldIsEmptyMessage   = "Old password field is empty"
+	NewPasswordFieldIsEmptyMessage   = "New password field is empty"
+	UserIsNotAuthorizedMessage       = "User is not authorized"
+	LoggedOutMessage                 = "Logged out"
+	SettingsUploadedMessage          = "Settings were uploaded successfully"
+	UserCreatedMessage               = "User was created successfully"
+	UserAuthorizedMessage            = "User is authorized"
+	RequestIDTypeAssertionFailed     = "Type assertion for \"REQUEST_ID\" failed"
+	UserIDTypeAssertionFailed        = "Type assertion for \"USER_ID\" failed"
+	PlaylistDeletedMessage           = "Playlist deleted"
+	TrackAddedToPlaylistMessage      = "Track was successfully added to playlist"
+	TrackAlreadyInPlaylistMessage    = "Track was already added to playlist"
+	TrackDeletedFromPlaylistMessage  = "Track was successfully deleted from playlist"
+	NotPlaylistOwnerMessage          = "You are not owner of this playlist"
+	PlaylistNotFoundMessage          = "Playlist doesn't exist"
+	PanicRecover                     = "Panic!"
+	TrackAlreadyInFavorites          = "Track is already in favorites"
+	TrackNotInFavorites              = "Track not in favorites"
+	TrackAddedToFavoritesMessage     = "Track was successfully added to favorites"
+	TrackDeletedFromFavoritesMessage = "Track was successfully deleted from favorites"
+	TrackNotFound                    = "Track not found"
 
 	// Ограничения/лимиты
 	ArtistTracksSelectionAmount    = 10
@@ -60,8 +65,8 @@ const (
 	HomePageAlbumsSelectionAmount  = 4
 	HomePageArtistsSelectionAmount = 4
 	SearchTracksAmount             = 4
-	SearchArtistsAmount            = 5
-	SearchAlbumsAmount             = 5
+	SearchArtistsAmount            = 4
+	SearchAlbumsAmount             = 3
 
 	// Прочее
 	SaltLength        = 8

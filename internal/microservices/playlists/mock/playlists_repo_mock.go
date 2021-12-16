@@ -9,16 +9,16 @@ import (
 	"sync"
 )
 
-// Ensure, that MockPlaylistsStorage does implement playlists.PlaylistsStorage.
+// Ensure, that MockStorage does implement playlists.Storage.
 // If this is not the case, regenerate this file with moq.
-var _ playlists.PlaylistsStorage = &MockPlaylistsStorage{}
+var _ playlists.Storage = &MockStorage{}
 
-// MockPlaylistsStorage is a mock implementation of playlists.PlaylistsStorage.
+// MockStorage is a mock implementation of playlists.Storage.
 //
-// 	func TestSomethingThatUsesPlaylistsStorage(t *testing.T) {
+// 	func TestSomethingThatUsesStorage(t *testing.T) {
 //
-// 		// make and configure a mocked playlists.PlaylistsStorage
-// 		mockedPlaylistsStorage := &MockPlaylistsStorage{
+// 		// make and configure a mocked playlists.Storage
+// 		mockedStorage := &MockStorage{
 // 			AddTrackFunc: func(n1 int64, n2 int64) error {
 // 				panic("mock out the AddTrack method")
 // 			},
@@ -57,11 +57,11 @@ var _ playlists.PlaylistsStorage = &MockPlaylistsStorage{}
 // 			},
 // 		}
 //
-// 		// use mockedPlaylistsStorage in code that requires playlists.PlaylistsStorage
+// 		// use mockedStorage in code that requires playlists.Storage
 // 		// and then make assertions.
 //
 // 	}
-type MockPlaylistsStorage struct {
+type MockStorage struct {
 	// AddTrackFunc mocks the AddTrack method.
 	AddTrackFunc func(n1 int64, n2 int64) error
 
@@ -200,9 +200,9 @@ type MockPlaylistsStorage struct {
 }
 
 // AddTrack calls AddTrackFunc.
-func (mock *MockPlaylistsStorage) AddTrack(n1 int64, n2 int64) error {
+func (mock *MockStorage) AddTrack(n1 int64, n2 int64) error {
 	if mock.AddTrackFunc == nil {
-		panic("MockPlaylistsStorage.AddTrackFunc: method is nil but PlaylistsStorage.AddTrack was just called")
+		panic("MockStorage.AddTrackFunc: method is nil but Storage.AddTrack was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -219,8 +219,8 @@ func (mock *MockPlaylistsStorage) AddTrack(n1 int64, n2 int64) error {
 
 // AddTrackCalls gets all the calls that were made to AddTrack.
 // Check the length with:
-//     len(mockedPlaylistsStorage.AddTrackCalls())
-func (mock *MockPlaylistsStorage) AddTrackCalls() []struct {
+//     len(mockedStorage.AddTrackCalls())
+func (mock *MockStorage) AddTrackCalls() []struct {
 	N1 int64
 	N2 int64
 } {
@@ -235,9 +235,9 @@ func (mock *MockPlaylistsStorage) AddTrackCalls() []struct {
 }
 
 // CreatePlaylist calls CreatePlaylistFunc.
-func (mock *MockPlaylistsStorage) CreatePlaylist(n int64, s1 string, s2 string, s3 string, b bool) (*proto.CreatePlaylistResponse, error) {
+func (mock *MockStorage) CreatePlaylist(n int64, s1 string, s2 string, s3 string, b bool) (*proto.CreatePlaylistResponse, error) {
 	if mock.CreatePlaylistFunc == nil {
-		panic("MockPlaylistsStorage.CreatePlaylistFunc: method is nil but PlaylistsStorage.CreatePlaylist was just called")
+		panic("MockStorage.CreatePlaylistFunc: method is nil but Storage.CreatePlaylist was just called")
 	}
 	callInfo := struct {
 		N  int64
@@ -260,8 +260,8 @@ func (mock *MockPlaylistsStorage) CreatePlaylist(n int64, s1 string, s2 string, 
 
 // CreatePlaylistCalls gets all the calls that were made to CreatePlaylist.
 // Check the length with:
-//     len(mockedPlaylistsStorage.CreatePlaylistCalls())
-func (mock *MockPlaylistsStorage) CreatePlaylistCalls() []struct {
+//     len(mockedStorage.CreatePlaylistCalls())
+func (mock *MockStorage) CreatePlaylistCalls() []struct {
 	N  int64
 	S1 string
 	S2 string
@@ -282,9 +282,9 @@ func (mock *MockPlaylistsStorage) CreatePlaylistCalls() []struct {
 }
 
 // DeletePlaylist calls DeletePlaylistFunc.
-func (mock *MockPlaylistsStorage) DeletePlaylist(n int64) error {
+func (mock *MockStorage) DeletePlaylist(n int64) error {
 	if mock.DeletePlaylistFunc == nil {
-		panic("MockPlaylistsStorage.DeletePlaylistFunc: method is nil but PlaylistsStorage.DeletePlaylist was just called")
+		panic("MockStorage.DeletePlaylistFunc: method is nil but Storage.DeletePlaylist was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -299,8 +299,8 @@ func (mock *MockPlaylistsStorage) DeletePlaylist(n int64) error {
 
 // DeletePlaylistCalls gets all the calls that were made to DeletePlaylist.
 // Check the length with:
-//     len(mockedPlaylistsStorage.DeletePlaylistCalls())
-func (mock *MockPlaylistsStorage) DeletePlaylistCalls() []struct {
+//     len(mockedStorage.DeletePlaylistCalls())
+func (mock *MockStorage) DeletePlaylistCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -313,9 +313,9 @@ func (mock *MockPlaylistsStorage) DeletePlaylistCalls() []struct {
 }
 
 // DeletePlaylistArtwork calls DeletePlaylistArtworkFunc.
-func (mock *MockPlaylistsStorage) DeletePlaylistArtwork(n int64) error {
+func (mock *MockStorage) DeletePlaylistArtwork(n int64) error {
 	if mock.DeletePlaylistArtworkFunc == nil {
-		panic("MockPlaylistsStorage.DeletePlaylistArtworkFunc: method is nil but PlaylistsStorage.DeletePlaylistArtwork was just called")
+		panic("MockStorage.DeletePlaylistArtworkFunc: method is nil but Storage.DeletePlaylistArtwork was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -330,8 +330,8 @@ func (mock *MockPlaylistsStorage) DeletePlaylistArtwork(n int64) error {
 
 // DeletePlaylistArtworkCalls gets all the calls that were made to DeletePlaylistArtwork.
 // Check the length with:
-//     len(mockedPlaylistsStorage.DeletePlaylistArtworkCalls())
-func (mock *MockPlaylistsStorage) DeletePlaylistArtworkCalls() []struct {
+//     len(mockedStorage.DeletePlaylistArtworkCalls())
+func (mock *MockStorage) DeletePlaylistArtworkCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -344,9 +344,9 @@ func (mock *MockPlaylistsStorage) DeletePlaylistArtworkCalls() []struct {
 }
 
 // DeleteTrack calls DeleteTrackFunc.
-func (mock *MockPlaylistsStorage) DeleteTrack(n1 int64, n2 int64) error {
+func (mock *MockStorage) DeleteTrack(n1 int64, n2 int64) error {
 	if mock.DeleteTrackFunc == nil {
-		panic("MockPlaylistsStorage.DeleteTrackFunc: method is nil but PlaylistsStorage.DeleteTrack was just called")
+		panic("MockStorage.DeleteTrackFunc: method is nil but Storage.DeleteTrack was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -363,8 +363,8 @@ func (mock *MockPlaylistsStorage) DeleteTrack(n1 int64, n2 int64) error {
 
 // DeleteTrackCalls gets all the calls that were made to DeleteTrack.
 // Check the length with:
-//     len(mockedPlaylistsStorage.DeleteTrackCalls())
-func (mock *MockPlaylistsStorage) DeleteTrackCalls() []struct {
+//     len(mockedStorage.DeleteTrackCalls())
+func (mock *MockStorage) DeleteTrackCalls() []struct {
 	N1 int64
 	N2 int64
 } {
@@ -379,9 +379,9 @@ func (mock *MockPlaylistsStorage) DeleteTrackCalls() []struct {
 }
 
 // DoesPlaylistExist calls DoesPlaylistExistFunc.
-func (mock *MockPlaylistsStorage) DoesPlaylistExist(n int64) (bool, error) {
+func (mock *MockStorage) DoesPlaylistExist(n int64) (bool, error) {
 	if mock.DoesPlaylistExistFunc == nil {
-		panic("MockPlaylistsStorage.DoesPlaylistExistFunc: method is nil but PlaylistsStorage.DoesPlaylistExist was just called")
+		panic("MockStorage.DoesPlaylistExistFunc: method is nil but Storage.DoesPlaylistExist was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -396,8 +396,8 @@ func (mock *MockPlaylistsStorage) DoesPlaylistExist(n int64) (bool, error) {
 
 // DoesPlaylistExistCalls gets all the calls that were made to DoesPlaylistExist.
 // Check the length with:
-//     len(mockedPlaylistsStorage.DoesPlaylistExistCalls())
-func (mock *MockPlaylistsStorage) DoesPlaylistExistCalls() []struct {
+//     len(mockedStorage.DoesPlaylistExistCalls())
+func (mock *MockStorage) DoesPlaylistExistCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -410,9 +410,9 @@ func (mock *MockPlaylistsStorage) DoesPlaylistExistCalls() []struct {
 }
 
 // GetOldPlaylistSettings calls GetOldPlaylistSettingsFunc.
-func (mock *MockPlaylistsStorage) GetOldPlaylistSettings(n int64) (string, error) {
+func (mock *MockStorage) GetOldPlaylistSettings(n int64) (string, error) {
 	if mock.GetOldPlaylistSettingsFunc == nil {
-		panic("MockPlaylistsStorage.GetOldPlaylistSettingsFunc: method is nil but PlaylistsStorage.GetOldPlaylistSettings was just called")
+		panic("MockStorage.GetOldPlaylistSettingsFunc: method is nil but Storage.GetOldPlaylistSettings was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -427,8 +427,8 @@ func (mock *MockPlaylistsStorage) GetOldPlaylistSettings(n int64) (string, error
 
 // GetOldPlaylistSettingsCalls gets all the calls that were made to GetOldPlaylistSettings.
 // Check the length with:
-//     len(mockedPlaylistsStorage.GetOldPlaylistSettingsCalls())
-func (mock *MockPlaylistsStorage) GetOldPlaylistSettingsCalls() []struct {
+//     len(mockedStorage.GetOldPlaylistSettingsCalls())
+func (mock *MockStorage) GetOldPlaylistSettingsCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -441,9 +441,9 @@ func (mock *MockPlaylistsStorage) GetOldPlaylistSettingsCalls() []struct {
 }
 
 // IsAdded calls IsAddedFunc.
-func (mock *MockPlaylistsStorage) IsAdded(n1 int64, n2 int64) (bool, error) {
+func (mock *MockStorage) IsAdded(n1 int64, n2 int64) (bool, error) {
 	if mock.IsAddedFunc == nil {
-		panic("MockPlaylistsStorage.IsAddedFunc: method is nil but PlaylistsStorage.IsAdded was just called")
+		panic("MockStorage.IsAddedFunc: method is nil but Storage.IsAdded was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -460,8 +460,8 @@ func (mock *MockPlaylistsStorage) IsAdded(n1 int64, n2 int64) (bool, error) {
 
 // IsAddedCalls gets all the calls that were made to IsAdded.
 // Check the length with:
-//     len(mockedPlaylistsStorage.IsAddedCalls())
-func (mock *MockPlaylistsStorage) IsAddedCalls() []struct {
+//     len(mockedStorage.IsAddedCalls())
+func (mock *MockStorage) IsAddedCalls() []struct {
 	N1 int64
 	N2 int64
 } {
@@ -476,9 +476,9 @@ func (mock *MockPlaylistsStorage) IsAddedCalls() []struct {
 }
 
 // IsOwner calls IsOwnerFunc.
-func (mock *MockPlaylistsStorage) IsOwner(n1 int64, n2 int64) (bool, error) {
+func (mock *MockStorage) IsOwner(n1 int64, n2 int64) (bool, error) {
 	if mock.IsOwnerFunc == nil {
-		panic("MockPlaylistsStorage.IsOwnerFunc: method is nil but PlaylistsStorage.IsOwner was just called")
+		panic("MockStorage.IsOwnerFunc: method is nil but Storage.IsOwner was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -495,8 +495,8 @@ func (mock *MockPlaylistsStorage) IsOwner(n1 int64, n2 int64) (bool, error) {
 
 // IsOwnerCalls gets all the calls that were made to IsOwner.
 // Check the length with:
-//     len(mockedPlaylistsStorage.IsOwnerCalls())
-func (mock *MockPlaylistsStorage) IsOwnerCalls() []struct {
+//     len(mockedStorage.IsOwnerCalls())
+func (mock *MockStorage) IsOwnerCalls() []struct {
 	N1 int64
 	N2 int64
 } {
@@ -511,9 +511,9 @@ func (mock *MockPlaylistsStorage) IsOwnerCalls() []struct {
 }
 
 // UpdatePlaylistAccess calls UpdatePlaylistAccessFunc.
-func (mock *MockPlaylistsStorage) UpdatePlaylistAccess(n int64, b bool) error {
+func (mock *MockStorage) UpdatePlaylistAccess(n int64, b bool) error {
 	if mock.UpdatePlaylistAccessFunc == nil {
-		panic("MockPlaylistsStorage.UpdatePlaylistAccessFunc: method is nil but PlaylistsStorage.UpdatePlaylistAccess was just called")
+		panic("MockStorage.UpdatePlaylistAccessFunc: method is nil but Storage.UpdatePlaylistAccess was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -530,8 +530,8 @@ func (mock *MockPlaylistsStorage) UpdatePlaylistAccess(n int64, b bool) error {
 
 // UpdatePlaylistAccessCalls gets all the calls that were made to UpdatePlaylistAccess.
 // Check the length with:
-//     len(mockedPlaylistsStorage.UpdatePlaylistAccessCalls())
-func (mock *MockPlaylistsStorage) UpdatePlaylistAccessCalls() []struct {
+//     len(mockedStorage.UpdatePlaylistAccessCalls())
+func (mock *MockStorage) UpdatePlaylistAccessCalls() []struct {
 	N int64
 	B bool
 } {
@@ -546,9 +546,9 @@ func (mock *MockPlaylistsStorage) UpdatePlaylistAccessCalls() []struct {
 }
 
 // UpdatePlaylistArtwork calls UpdatePlaylistArtworkFunc.
-func (mock *MockPlaylistsStorage) UpdatePlaylistArtwork(n int64, s1 string, s2 string) error {
+func (mock *MockStorage) UpdatePlaylistArtwork(n int64, s1 string, s2 string) error {
 	if mock.UpdatePlaylistArtworkFunc == nil {
-		panic("MockPlaylistsStorage.UpdatePlaylistArtworkFunc: method is nil but PlaylistsStorage.UpdatePlaylistArtwork was just called")
+		panic("MockStorage.UpdatePlaylistArtworkFunc: method is nil but Storage.UpdatePlaylistArtwork was just called")
 	}
 	callInfo := struct {
 		N  int64
@@ -567,8 +567,8 @@ func (mock *MockPlaylistsStorage) UpdatePlaylistArtwork(n int64, s1 string, s2 s
 
 // UpdatePlaylistArtworkCalls gets all the calls that were made to UpdatePlaylistArtwork.
 // Check the length with:
-//     len(mockedPlaylistsStorage.UpdatePlaylistArtworkCalls())
-func (mock *MockPlaylistsStorage) UpdatePlaylistArtworkCalls() []struct {
+//     len(mockedStorage.UpdatePlaylistArtworkCalls())
+func (mock *MockStorage) UpdatePlaylistArtworkCalls() []struct {
 	N  int64
 	S1 string
 	S2 string
@@ -585,9 +585,9 @@ func (mock *MockPlaylistsStorage) UpdatePlaylistArtworkCalls() []struct {
 }
 
 // UpdatePlaylistTitle calls UpdatePlaylistTitleFunc.
-func (mock *MockPlaylistsStorage) UpdatePlaylistTitle(n int64, s string) error {
+func (mock *MockStorage) UpdatePlaylistTitle(n int64, s string) error {
 	if mock.UpdatePlaylistTitleFunc == nil {
-		panic("MockPlaylistsStorage.UpdatePlaylistTitleFunc: method is nil but PlaylistsStorage.UpdatePlaylistTitle was just called")
+		panic("MockStorage.UpdatePlaylistTitleFunc: method is nil but Storage.UpdatePlaylistTitle was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -604,8 +604,8 @@ func (mock *MockPlaylistsStorage) UpdatePlaylistTitle(n int64, s string) error {
 
 // UpdatePlaylistTitleCalls gets all the calls that were made to UpdatePlaylistTitle.
 // Check the length with:
-//     len(mockedPlaylistsStorage.UpdatePlaylistTitleCalls())
-func (mock *MockPlaylistsStorage) UpdatePlaylistTitleCalls() []struct {
+//     len(mockedStorage.UpdatePlaylistTitleCalls())
+func (mock *MockStorage) UpdatePlaylistTitleCalls() []struct {
 	N int64
 	S string
 } {

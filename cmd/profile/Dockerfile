@@ -1,8 +1,7 @@
-FROM golang:1.17.3-alpine3.14 AS build
+#Build
+FROM golang:1.17.3-alpine3.15 AS build
 
 WORKDIR /app
-
-ENV CGO_ENABLED=0
 COPY ./go.mod .
 COPY ./go.sum .
 RUN go mod download
@@ -11,6 +10,10 @@ COPY ./. .
 
 RUN go build ./cmd/profile/profile.go
 
-ADD cmd/profile .
+#Environment
+FROM alpine:latest
+
+WORKDIR /app
+COPY --from=build /app/profile .
 
 CMD ["./profile"]

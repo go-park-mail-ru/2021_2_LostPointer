@@ -1,5 +1,5 @@
 SELECT 'CREATE DATABASE lostpointer'
-    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'lostpointer')\gexec
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'lostpointer')\gexec
 \c lostpointer
 
 SET statement_timeout = 0;
@@ -221,7 +221,10 @@ ALTER SEQUENCE public.playlist_tracks_id_seq OWNED BY public.playlist_tracks.id;
 CREATE TABLE public.playlists (
                                   id integer NOT NULL,
                                   title character varying NOT NULL,
-                                  "user" integer NOT NULL
+                                  user_id integer NOT NULL,
+                                  artwork varchar default 'default_playlist_artwork' NOT NULL,
+                                  artwork_color varchar default '#8071c2' NOT NULL,
+                                  is_public boolean default false
 );
 
 
@@ -380,6 +383,41 @@ CREATE TABLE public.users (
 
 ALTER TABLE public.users OWNER TO postgres;
 
+
+--
+-- Name: likes; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.likes (
+                              id integer NOT NULL,
+                              user_id integer NOT NULL,
+                              track_id integer NOT NULL
+);
+
+
+ALTER TABLE public.likes OWNER TO postgres;
+
+--
+-- Name: likes_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.likes_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.likes_id_seq OWNER TO postgres;
+
+--
+-- Name: likes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.likes_id_seq OWNED BY public.likes.id;
+
 --
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
@@ -473,6 +511,13 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Name: likes id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.likes ALTER COLUMN id SET DEFAULT nextval('public.likes_id_seq'::regclass);
+
+
+--
 -- Data for Name: albums; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -494,7 +539,7 @@ COPY public.artists (id, name, avatar, video, avatar_color)
 -- Data for Name: friends; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.friends (id, "user", friend) 
+COPY public.friends (id, "user", friend)
     FROM '/docker-entrypoint-initdb.d/csv/friends.csv'
     DELIMITER ';' quote E'\b' CSV;
 
@@ -503,7 +548,7 @@ COPY public.friends (id, "user", friend)
 -- Data for Name: genres; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.genres (id, name) 
+COPY public.genres (id, name)
     FROM '/docker-entrypoint-initdb.d/csv/genres.csv'
     DELIMITER ';' quote E'\b' CSV;
 
@@ -559,6 +604,15 @@ COPY public.tracks (id, title, artist, album, explicit, genre, number, file, lis
 
 COPY public.users (id, email, password, salt, avatar, nickname)
     FROM '/docker-entrypoint-initdb.d/csv/users.csv'
+    DELIMITER ';' quote E'\b' CSV;
+
+
+--
+-- Data for Name: likes; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.likes (id, user_id, track_id)
+    FROM '/docker-entrypoint-initdb.d/csv/likes.csv'
     DELIMITER ';' quote E'\b' CSV;
 
 
@@ -630,6 +684,13 @@ SELECT pg_catalog.setval('public.tracks_id_seq', 5336, true);
 --
 
 SELECT pg_catalog.setval('public.users_id_seq', 271, true);
+
+
+--
+-- Name: likes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.likes_id_seq', 1, false);
 
 
 --
@@ -777,6 +838,14 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: likes likes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.likes
+    ADD CONSTRAINT likes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: concatenation_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -906,6 +975,22 @@ ALTER TABLE ONLY public.tracks
 
 ALTER TABLE ONLY public.friends
     ADD CONSTRAINT "user" FOREIGN KEY ("user") REFERENCES public.users(id);
+
+
+--
+-- Name: likes user_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.likes
+    ADD CONSTRAINT likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: playlists playlist_user; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.likes
+    ADD CONSTRAINT likes_track_id_fkey FOREIGN KEY (track_id) REFERENCES public.tracks(id) ON DELETE CASCADE;
 
 
 --

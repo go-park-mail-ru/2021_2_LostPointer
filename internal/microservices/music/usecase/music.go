@@ -1,26 +1,27 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/internal/microservices/music"
 	"context"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/microservices/music"
 	"2021_2_LostPointer/internal/microservices/music/proto"
 )
 
 type MusicService struct {
-	storage music.MusicStorage
+	storage music.Storage
 }
 
-func NewMusicService(storage music.MusicStorage) *MusicService {
+func NewMusicService(storage music.Storage) *MusicService {
 	return &MusicService{storage: storage}
 }
 
 func (service *MusicService) RandomTracks(ctx context.Context, metadata *proto.RandomTracksOptions) (*proto.Tracks, error) {
-	tracks, err := service.storage.RandomTracks(metadata.Amount, metadata.IsAuthorized)
+	tracks, err := service.storage.RandomTracks(metadata.Amount, metadata.UserID, metadata.IsAuthorized)
 	if err != nil {
 		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
 	}
@@ -52,7 +53,7 @@ func (service *MusicService) ArtistProfile(ctx context.Context, metadata *proto.
 		return &proto.Artist{}, status.Error(codes.Internal, err.Error())
 	}
 
-	artistData.Tracks, err = service.storage.ArtistTracks(metadata.ArtistID, metadata.IsAuthorized, constants.ArtistTracksSelectionAmount)
+	artistData.Tracks, err = service.storage.ArtistTracks(metadata.ArtistID, metadata.UserID, metadata.IsAuthorized, constants.ArtistTracksSelectionAmount)
 	if err != nil {
 		return &proto.Artist{}, status.Error(codes.Internal, err.Error())
 	}
@@ -80,7 +81,7 @@ func (service *MusicService) AlbumPage(ctx context.Context, metadata *proto.Albu
 		return &proto.AlbumPageResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
-	album.Tracks, err = service.storage.AlbumTracks(metadata.AlbumID, metadata.IsAuthorized)
+	album.Tracks, err = service.storage.AlbumTracks(metadata.AlbumID, metadata.UserID, metadata.IsAuthorized)
 	if err != nil {
 		return &proto.AlbumPageResponse{}, status.Error(codes.Internal, err.Error())
 	}
@@ -89,14 +90,18 @@ func (service *MusicService) AlbumPage(ctx context.Context, metadata *proto.Albu
 }
 
 func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) (*proto.FindResponse, error) {
-	tracks, err := service.storage.FindTracksByFullWord(data.Text, data.IsAuthorized)
+	data.Text = strings.TrimSpace(data.Text)
+	if len(data.Text) == 0 {
+		return &proto.FindResponse{}, nil
+	}
+	tracks, err := service.storage.FindTracksByFullWord(data.Text, data.UserID, data.IsAuthorized)
 	if err != nil {
 		return &proto.FindResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	var FindTracksByPartial []*proto.Track
 	if len(tracks) < constants.SearchTracksAmount {
-		FindTracksByPartial, err = service.storage.FindTracksByPartial(data.Text, data.IsAuthorized)
+		FindTracksByPartial, err = service.storage.FindTracksByPartial(data.Text, data.UserID, data.IsAuthorized)
 		if err != nil {
 			return &proto.FindResponse{}, status.Error(codes.Internal, err.Error())
 		}
@@ -162,7 +167,7 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 		return &proto.PlaylistPageResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
-	playlistTracks, err := service.storage.PlaylistTracks(data.PlaylistID)
+	playlistTracks, err := service.storage.PlaylistTracks(data.PlaylistID, data.UserID)
 	if err != nil {
 		return &proto.PlaylistPageResponse{}, status.Error(codes.Internal, err.Error())
 	}
@@ -178,6 +183,52 @@ func (service *MusicService) PlaylistPage(ctx context.Context, data *proto.Playl
 	}
 
 	return playlistData, nil
+}
+
+func (service *MusicService) AddTrackToFavorites(ctx context.Context, data *proto.AddTrackToFavoritesOptions) (*proto.AddTrackToFavoritesResponse, error) {
+	isExist, err := service.storage.IsTrackInFavorites(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+	if isExist {
+		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.PermissionDenied, constants.TrackAlreadyInFavorites)
+	}
+
+	err = service.storage.AddTrackToFavorite(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.NotFound, constants.TrackNotFound)
+	}
+
+	return &proto.AddTrackToFavoritesResponse{}, nil
+}
+
+func (service *MusicService) DeleteTrackFromFavorites(ctx context.Context, data *proto.DeleteTrackFromFavoritesOptions) (*proto.DeleteTrackFromFavoritesResponse, error) {
+	isExist, err := service.storage.IsTrackInFavorites(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.DeleteTrackFromFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+	if !isExist {
+		return &proto.DeleteTrackFromFavoritesResponse{}, status.Error(codes.PermissionDenied, constants.TrackNotInFavorites)
+	}
+
+	err = service.storage.DeleteTrackFromFavorites(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.DeleteTrackFromFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return &proto.DeleteTrackFromFavoritesResponse{}, nil
+}
+
+func (service *MusicService) GetFavoriteTracks(ctx context.Context, data *proto.UserFavoritesOptions) (*proto.Tracks, error) {
+	tracks := new(proto.Tracks)
+	var err error
+
+	tracks.Tracks, err = service.storage.GetFavorites(data.UserID)
+	if err != nil {
+		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return tracks, nil
 }
 
 func contains(tracks []*proto.Track, trackID int64) bool {

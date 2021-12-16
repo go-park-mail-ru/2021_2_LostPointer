@@ -36,6 +36,26 @@ func (m *MockMusicClient) EXPECT() *MockMusicClientMockRecorder {
 	return m.recorder
 }
 
+// AddTrackToFavorites mocks base method.
+func (m *MockMusicClient) AddTrackToFavorites(ctx context.Context, in *proto.AddTrackToFavoritesOptions, opts ...grpc.CallOption) (*proto.AddTrackToFavoritesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddTrackToFavorites", varargs...)
+	ret0, _ := ret[0].(*proto.AddTrackToFavoritesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddTrackToFavorites indicates an expected call of AddTrackToFavorites.
+func (mr *MockMusicClientMockRecorder) AddTrackToFavorites(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTrackToFavorites", reflect.TypeOf((*MockMusicClient)(nil).AddTrackToFavorites), varargs...)
+}
+
 // AlbumPage mocks base method.
 func (m *MockMusicClient) AlbumPage(ctx context.Context, in *proto.AlbumPageOptions, opts ...grpc.CallOption) (*proto.AlbumPageResponse, error) {
 	m.ctrl.T.Helper()
@@ -76,6 +96,26 @@ func (mr *MockMusicClientMockRecorder) ArtistProfile(ctx, in interface{}, opts .
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArtistProfile", reflect.TypeOf((*MockMusicClient)(nil).ArtistProfile), varargs...)
 }
 
+// DeleteTrackFromFavorites mocks base method.
+func (m *MockMusicClient) DeleteTrackFromFavorites(ctx context.Context, in *proto.DeleteTrackFromFavoritesOptions, opts ...grpc.CallOption) (*proto.DeleteTrackFromFavoritesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteTrackFromFavorites", varargs...)
+	ret0, _ := ret[0].(*proto.DeleteTrackFromFavoritesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteTrackFromFavorites indicates an expected call of DeleteTrackFromFavorites.
+func (mr *MockMusicClientMockRecorder) DeleteTrackFromFavorites(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrackFromFavorites", reflect.TypeOf((*MockMusicClient)(nil).DeleteTrackFromFavorites), varargs...)
+}
+
 // Find mocks base method.
 func (m *MockMusicClient) Find(ctx context.Context, in *proto.FindOptions, opts ...grpc.CallOption) (*proto.FindResponse, error) {
 	m.ctrl.T.Helper()
@@ -94,6 +134,26 @@ func (mr *MockMusicClientMockRecorder) Find(ctx, in interface{}, opts ...interfa
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockMusicClient)(nil).Find), varargs...)
+}
+
+// GetFavoriteTracks mocks base method.
+func (m *MockMusicClient) GetFavoriteTracks(ctx context.Context, in *proto.UserFavoritesOptions, opts ...grpc.CallOption) (*proto.Tracks, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetFavoriteTracks", varargs...)
+	ret0, _ := ret[0].(*proto.Tracks)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavoriteTracks indicates an expected call of GetFavoriteTracks.
+func (mr *MockMusicClientMockRecorder) GetFavoriteTracks(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoriteTracks", reflect.TypeOf((*MockMusicClient)(nil).GetFavoriteTracks), varargs...)
 }
 
 // IncrementListenCount mocks base method.
@@ -239,6 +299,21 @@ func (m *MockMusicServer) EXPECT() *MockMusicServerMockRecorder {
 	return m.recorder
 }
 
+// AddTrackToFavorites mocks base method.
+func (m *MockMusicServer) AddTrackToFavorites(arg0 context.Context, arg1 *proto.AddTrackToFavoritesOptions) (*proto.AddTrackToFavoritesResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddTrackToFavorites", arg0, arg1)
+	ret0, _ := ret[0].(*proto.AddTrackToFavoritesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddTrackToFavorites indicates an expected call of AddTrackToFavorites.
+func (mr *MockMusicServerMockRecorder) AddTrackToFavorites(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTrackToFavorites", reflect.TypeOf((*MockMusicServer)(nil).AddTrackToFavorites), arg0, arg1)
+}
+
 // AlbumPage mocks base method.
 func (m *MockMusicServer) AlbumPage(arg0 context.Context, arg1 *proto.AlbumPageOptions) (*proto.AlbumPageResponse, error) {
 	m.ctrl.T.Helper()
@@ -269,6 +344,21 @@ func (mr *MockMusicServerMockRecorder) ArtistProfile(arg0, arg1 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArtistProfile", reflect.TypeOf((*MockMusicServer)(nil).ArtistProfile), arg0, arg1)
 }
 
+// DeleteTrackFromFavorites mocks base method.
+func (m *MockMusicServer) DeleteTrackFromFavorites(arg0 context.Context, arg1 *proto.DeleteTrackFromFavoritesOptions) (*proto.DeleteTrackFromFavoritesResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTrackFromFavorites", arg0, arg1)
+	ret0, _ := ret[0].(*proto.DeleteTrackFromFavoritesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteTrackFromFavorites indicates an expected call of DeleteTrackFromFavorites.
+func (mr *MockMusicServerMockRecorder) DeleteTrackFromFavorites(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrackFromFavorites", reflect.TypeOf((*MockMusicServer)(nil).DeleteTrackFromFavorites), arg0, arg1)
+}
+
 // Find mocks base method.
 func (m *MockMusicServer) Find(arg0 context.Context, arg1 *proto.FindOptions) (*proto.FindResponse, error) {
 	m.ctrl.T.Helper()
@@ -282,6 +372,21 @@ func (m *MockMusicServer) Find(arg0 context.Context, arg1 *proto.FindOptions) (*
 func (mr *MockMusicServerMockRecorder) Find(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockMusicServer)(nil).Find), arg0, arg1)
+}
+
+// GetFavoriteTracks mocks base method.
+func (m *MockMusicServer) GetFavoriteTracks(arg0 context.Context, arg1 *proto.UserFavoritesOptions) (*proto.Tracks, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavoriteTracks", arg0, arg1)
+	ret0, _ := ret[0].(*proto.Tracks)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavoriteTracks indicates an expected call of GetFavoriteTracks.
+func (mr *MockMusicServerMockRecorder) GetFavoriteTracks(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoriteTracks", reflect.TypeOf((*MockMusicServer)(nil).GetFavoriteTracks), arg0, arg1)
 }
 
 // IncrementListenCount mocks base method.

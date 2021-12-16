@@ -9,20 +9,23 @@ import (
 	"sync"
 )
 
-// Ensure, that MockMusicStorage does implement music.MusicStorage.
+// Ensure, that MockStorage does implement music.Storage.
 // If this is not the case, regenerate this file with moq.
-var _ music.MusicStorage = &MockMusicStorage{}
+var _ music.Storage = &MockStorage{}
 
-// MockMusicStorage is a mock implementation of music.MusicStorage.
+// MockStorage is a mock implementation of music.Storage.
 //
-// 	func TestSomethingThatUsesMusicStorage(t *testing.T) {
+// 	func TestSomethingThatUsesStorage(t *testing.T) {
 //
-// 		// make and configure a mocked music.MusicStorage
-// 		mockedMusicStorage := &MockMusicStorage{
+// 		// make and configure a mocked music.Storage
+// 		mockedStorage := &MockStorage{
+// 			AddTrackToFavoriteFunc: func(userID int64, trackID int64) error {
+// 				panic("mock out the AddTrackToFavorite method")
+// 			},
 // 			AlbumDataFunc: func(n int64) (*proto.AlbumPageResponse, error) {
 // 				panic("mock out the AlbumData method")
 // 			},
-// 			AlbumTracksFunc: func(n int64, b bool) ([]*proto.AlbumTrack, error) {
+// 			AlbumTracksFunc: func(n1 int64, n2 int64, b bool) ([]*proto.AlbumTrack, error) {
 // 				panic("mock out the AlbumTracks method")
 // 			},
 // 			ArtistAlbumsFunc: func(n1 int64, n2 int64) ([]*proto.Album, error) {
@@ -31,8 +34,11 @@ var _ music.MusicStorage = &MockMusicStorage{}
 // 			ArtistInfoFunc: func(n int64) (*proto.Artist, error) {
 // 				panic("mock out the ArtistInfo method")
 // 			},
-// 			ArtistTracksFunc: func(n1 int64, b bool, n2 int64) ([]*proto.Track, error) {
+// 			ArtistTracksFunc: func(n1 int64, n2 int64, b bool, n3 int64) ([]*proto.Track, error) {
 // 				panic("mock out the ArtistTracks method")
+// 			},
+// 			DeleteTrackFromFavoritesFunc: func(userID int64, trackID int64) error {
+// 				panic("mock out the DeleteTrackFromFavorites method")
 // 			},
 // 			DoesPlaylistExistFunc: func(n int64) (bool, error) {
 // 				panic("mock out the DoesPlaylistExist method")
@@ -43,11 +49,14 @@ var _ music.MusicStorage = &MockMusicStorage{}
 // 			FindArtistsFunc: func(s string) ([]*proto.Artist, error) {
 // 				panic("mock out the FindArtists method")
 // 			},
-// 			FindTracksByFullWordFunc: func(s string, b bool) ([]*proto.Track, error) {
+// 			FindTracksByFullWordFunc: func(s string, n int64, b bool) ([]*proto.Track, error) {
 // 				panic("mock out the FindTracksByFullWord method")
 // 			},
-// 			FindTracksByPartialFunc: func(s string, b bool) ([]*proto.Track, error) {
+// 			FindTracksByPartialFunc: func(s string, n int64, b bool) ([]*proto.Track, error) {
 // 				panic("mock out the FindTracksByPartial method")
+// 			},
+// 			GetFavoritesFunc: func(userID int64) ([]*proto.Track, error) {
+// 				panic("mock out the GetFavorites method")
 // 			},
 // 			IncrementListenCountFunc: func(n int64) error {
 // 				panic("mock out the IncrementListenCount method")
@@ -58,10 +67,13 @@ var _ music.MusicStorage = &MockMusicStorage{}
 // 			IsPlaylistPublicFunc: func(n int64) (bool, error) {
 // 				panic("mock out the IsPlaylistPublic method")
 // 			},
+// 			IsTrackInFavoritesFunc: func(userID int64, trackID int64) (bool, error) {
+// 				panic("mock out the IsTrackInFavorites method")
+// 			},
 // 			PlaylistInfoFunc: func(n int64) (*proto.PlaylistData, error) {
 // 				panic("mock out the PlaylistInfo method")
 // 			},
-// 			PlaylistTracksFunc: func(n int64) ([]*proto.Track, error) {
+// 			PlaylistTracksFunc: func(n1 int64, n2 int64) ([]*proto.Track, error) {
 // 				panic("mock out the PlaylistTracks method")
 // 			},
 // 			RandomAlbumsFunc: func(n int64) (*proto.Albums, error) {
@@ -70,7 +82,7 @@ var _ music.MusicStorage = &MockMusicStorage{}
 // 			RandomArtistsFunc: func(n int64) (*proto.Artists, error) {
 // 				panic("mock out the RandomArtists method")
 // 			},
-// 			RandomTracksFunc: func(n int64, b bool) (*proto.Tracks, error) {
+// 			RandomTracksFunc: func(n1 int64, n2 int64, b bool) (*proto.Tracks, error) {
 // 				panic("mock out the RandomTracks method")
 // 			},
 // 			UserPlaylistsFunc: func(n int64) ([]*proto.PlaylistData, error) {
@@ -78,16 +90,19 @@ var _ music.MusicStorage = &MockMusicStorage{}
 // 			},
 // 		}
 //
-// 		// use mockedMusicStorage in code that requires music.MusicStorage
+// 		// use mockedStorage in code that requires music.Storage
 // 		// and then make assertions.
 //
 // 	}
-type MockMusicStorage struct {
+type MockStorage struct {
+	// AddTrackToFavoriteFunc mocks the AddTrackToFavorite method.
+	AddTrackToFavoriteFunc func(userID int64, trackID int64) error
+
 	// AlbumDataFunc mocks the AlbumData method.
 	AlbumDataFunc func(n int64) (*proto.AlbumPageResponse, error)
 
 	// AlbumTracksFunc mocks the AlbumTracks method.
-	AlbumTracksFunc func(n int64, b bool) ([]*proto.AlbumTrack, error)
+	AlbumTracksFunc func(n1 int64, n2 int64, b bool) ([]*proto.AlbumTrack, error)
 
 	// ArtistAlbumsFunc mocks the ArtistAlbums method.
 	ArtistAlbumsFunc func(n1 int64, n2 int64) ([]*proto.Album, error)
@@ -96,7 +111,10 @@ type MockMusicStorage struct {
 	ArtistInfoFunc func(n int64) (*proto.Artist, error)
 
 	// ArtistTracksFunc mocks the ArtistTracks method.
-	ArtistTracksFunc func(n1 int64, b bool, n2 int64) ([]*proto.Track, error)
+	ArtistTracksFunc func(n1 int64, n2 int64, b bool, n3 int64) ([]*proto.Track, error)
+
+	// DeleteTrackFromFavoritesFunc mocks the DeleteTrackFromFavorites method.
+	DeleteTrackFromFavoritesFunc func(userID int64, trackID int64) error
 
 	// DoesPlaylistExistFunc mocks the DoesPlaylistExist method.
 	DoesPlaylistExistFunc func(n int64) (bool, error)
@@ -108,10 +126,13 @@ type MockMusicStorage struct {
 	FindArtistsFunc func(s string) ([]*proto.Artist, error)
 
 	// FindTracksByFullWordFunc mocks the FindTracksByFullWord method.
-	FindTracksByFullWordFunc func(s string, b bool) ([]*proto.Track, error)
+	FindTracksByFullWordFunc func(s string, n int64, b bool) ([]*proto.Track, error)
 
 	// FindTracksByPartialFunc mocks the FindTracksByPartial method.
-	FindTracksByPartialFunc func(s string, b bool) ([]*proto.Track, error)
+	FindTracksByPartialFunc func(s string, n int64, b bool) ([]*proto.Track, error)
+
+	// GetFavoritesFunc mocks the GetFavorites method.
+	GetFavoritesFunc func(userID int64) ([]*proto.Track, error)
 
 	// IncrementListenCountFunc mocks the IncrementListenCount method.
 	IncrementListenCountFunc func(n int64) error
@@ -122,11 +143,14 @@ type MockMusicStorage struct {
 	// IsPlaylistPublicFunc mocks the IsPlaylistPublic method.
 	IsPlaylistPublicFunc func(n int64) (bool, error)
 
+	// IsTrackInFavoritesFunc mocks the IsTrackInFavorites method.
+	IsTrackInFavoritesFunc func(userID int64, trackID int64) (bool, error)
+
 	// PlaylistInfoFunc mocks the PlaylistInfo method.
 	PlaylistInfoFunc func(n int64) (*proto.PlaylistData, error)
 
 	// PlaylistTracksFunc mocks the PlaylistTracks method.
-	PlaylistTracksFunc func(n int64) ([]*proto.Track, error)
+	PlaylistTracksFunc func(n1 int64, n2 int64) ([]*proto.Track, error)
 
 	// RandomAlbumsFunc mocks the RandomAlbums method.
 	RandomAlbumsFunc func(n int64) (*proto.Albums, error)
@@ -135,13 +159,20 @@ type MockMusicStorage struct {
 	RandomArtistsFunc func(n int64) (*proto.Artists, error)
 
 	// RandomTracksFunc mocks the RandomTracks method.
-	RandomTracksFunc func(n int64, b bool) (*proto.Tracks, error)
+	RandomTracksFunc func(n1 int64, n2 int64, b bool) (*proto.Tracks, error)
 
 	// UserPlaylistsFunc mocks the UserPlaylists method.
 	UserPlaylistsFunc func(n int64) ([]*proto.PlaylistData, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddTrackToFavorite holds details about calls to the AddTrackToFavorite method.
+		AddTrackToFavorite []struct {
+			// UserID is the userID argument value.
+			UserID int64
+			// TrackID is the trackID argument value.
+			TrackID int64
+		}
 		// AlbumData holds details about calls to the AlbumData method.
 		AlbumData []struct {
 			// N is the n argument value.
@@ -149,8 +180,10 @@ type MockMusicStorage struct {
 		}
 		// AlbumTracks holds details about calls to the AlbumTracks method.
 		AlbumTracks []struct {
-			// N is the n argument value.
-			N int64
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 			// B is the b argument value.
 			B bool
 		}
@@ -170,10 +203,19 @@ type MockMusicStorage struct {
 		ArtistTracks []struct {
 			// N1 is the n1 argument value.
 			N1 int64
-			// B is the b argument value.
-			B bool
 			// N2 is the n2 argument value.
 			N2 int64
+			// B is the b argument value.
+			B bool
+			// N3 is the n3 argument value.
+			N3 int64
+		}
+		// DeleteTrackFromFavorites holds details about calls to the DeleteTrackFromFavorites method.
+		DeleteTrackFromFavorites []struct {
+			// UserID is the userID argument value.
+			UserID int64
+			// TrackID is the trackID argument value.
+			TrackID int64
 		}
 		// DoesPlaylistExist holds details about calls to the DoesPlaylistExist method.
 		DoesPlaylistExist []struct {
@@ -194,6 +236,8 @@ type MockMusicStorage struct {
 		FindTracksByFullWord []struct {
 			// S is the s argument value.
 			S string
+			// N is the n argument value.
+			N int64
 			// B is the b argument value.
 			B bool
 		}
@@ -201,8 +245,15 @@ type MockMusicStorage struct {
 		FindTracksByPartial []struct {
 			// S is the s argument value.
 			S string
+			// N is the n argument value.
+			N int64
 			// B is the b argument value.
 			B bool
+		}
+		// GetFavorites holds details about calls to the GetFavorites method.
+		GetFavorites []struct {
+			// UserID is the userID argument value.
+			UserID int64
 		}
 		// IncrementListenCount holds details about calls to the IncrementListenCount method.
 		IncrementListenCount []struct {
@@ -221,6 +272,13 @@ type MockMusicStorage struct {
 			// N is the n argument value.
 			N int64
 		}
+		// IsTrackInFavorites holds details about calls to the IsTrackInFavorites method.
+		IsTrackInFavorites []struct {
+			// UserID is the userID argument value.
+			UserID int64
+			// TrackID is the trackID argument value.
+			TrackID int64
+		}
 		// PlaylistInfo holds details about calls to the PlaylistInfo method.
 		PlaylistInfo []struct {
 			// N is the n argument value.
@@ -228,8 +286,10 @@ type MockMusicStorage struct {
 		}
 		// PlaylistTracks holds details about calls to the PlaylistTracks method.
 		PlaylistTracks []struct {
-			// N is the n argument value.
-			N int64
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 		}
 		// RandomAlbums holds details about calls to the RandomAlbums method.
 		RandomAlbums []struct {
@@ -243,8 +303,10 @@ type MockMusicStorage struct {
 		}
 		// RandomTracks holds details about calls to the RandomTracks method.
 		RandomTracks []struct {
-			// N is the n argument value.
-			N int64
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 			// B is the b argument value.
 			B bool
 		}
@@ -254,31 +316,70 @@ type MockMusicStorage struct {
 			N int64
 		}
 	}
-	lockAlbumData            sync.RWMutex
-	lockAlbumTracks          sync.RWMutex
-	lockArtistAlbums         sync.RWMutex
-	lockArtistInfo           sync.RWMutex
-	lockArtistTracks         sync.RWMutex
-	lockDoesPlaylistExist    sync.RWMutex
-	lockFindAlbums           sync.RWMutex
-	lockFindArtists          sync.RWMutex
-	lockFindTracksByFullWord sync.RWMutex
-	lockFindTracksByPartial  sync.RWMutex
-	lockIncrementListenCount sync.RWMutex
-	lockIsPlaylistOwner      sync.RWMutex
-	lockIsPlaylistPublic     sync.RWMutex
-	lockPlaylistInfo         sync.RWMutex
-	lockPlaylistTracks       sync.RWMutex
-	lockRandomAlbums         sync.RWMutex
-	lockRandomArtists        sync.RWMutex
-	lockRandomTracks         sync.RWMutex
-	lockUserPlaylists        sync.RWMutex
+	lockAddTrackToFavorite       sync.RWMutex
+	lockAlbumData                sync.RWMutex
+	lockAlbumTracks              sync.RWMutex
+	lockArtistAlbums             sync.RWMutex
+	lockArtistInfo               sync.RWMutex
+	lockArtistTracks             sync.RWMutex
+	lockDeleteTrackFromFavorites sync.RWMutex
+	lockDoesPlaylistExist        sync.RWMutex
+	lockFindAlbums               sync.RWMutex
+	lockFindArtists              sync.RWMutex
+	lockFindTracksByFullWord     sync.RWMutex
+	lockFindTracksByPartial      sync.RWMutex
+	lockGetFavorites             sync.RWMutex
+	lockIncrementListenCount     sync.RWMutex
+	lockIsPlaylistOwner          sync.RWMutex
+	lockIsPlaylistPublic         sync.RWMutex
+	lockIsTrackInFavorites       sync.RWMutex
+	lockPlaylistInfo             sync.RWMutex
+	lockPlaylistTracks           sync.RWMutex
+	lockRandomAlbums             sync.RWMutex
+	lockRandomArtists            sync.RWMutex
+	lockRandomTracks             sync.RWMutex
+	lockUserPlaylists            sync.RWMutex
+}
+
+// AddTrackToFavorite calls AddTrackToFavoriteFunc.
+func (mock *MockStorage) AddTrackToFavorite(userID int64, trackID int64) error {
+	if mock.AddTrackToFavoriteFunc == nil {
+		panic("MockStorage.AddTrackToFavoriteFunc: method is nil but Storage.AddTrackToFavorite was just called")
+	}
+	callInfo := struct {
+		UserID  int64
+		TrackID int64
+	}{
+		UserID:  userID,
+		TrackID: trackID,
+	}
+	mock.lockAddTrackToFavorite.Lock()
+	mock.calls.AddTrackToFavorite = append(mock.calls.AddTrackToFavorite, callInfo)
+	mock.lockAddTrackToFavorite.Unlock()
+	return mock.AddTrackToFavoriteFunc(userID, trackID)
+}
+
+// AddTrackToFavoriteCalls gets all the calls that were made to AddTrackToFavorite.
+// Check the length with:
+//     len(mockedStorage.AddTrackToFavoriteCalls())
+func (mock *MockStorage) AddTrackToFavoriteCalls() []struct {
+	UserID  int64
+	TrackID int64
+} {
+	var calls []struct {
+		UserID  int64
+		TrackID int64
+	}
+	mock.lockAddTrackToFavorite.RLock()
+	calls = mock.calls.AddTrackToFavorite
+	mock.lockAddTrackToFavorite.RUnlock()
+	return calls
 }
 
 // AlbumData calls AlbumDataFunc.
-func (mock *MockMusicStorage) AlbumData(n int64) (*proto.AlbumPageResponse, error) {
+func (mock *MockStorage) AlbumData(n int64) (*proto.AlbumPageResponse, error) {
 	if mock.AlbumDataFunc == nil {
-		panic("MockMusicStorage.AlbumDataFunc: method is nil but MusicStorage.AlbumData was just called")
+		panic("MockStorage.AlbumDataFunc: method is nil but Storage.AlbumData was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -293,8 +394,8 @@ func (mock *MockMusicStorage) AlbumData(n int64) (*proto.AlbumPageResponse, erro
 
 // AlbumDataCalls gets all the calls that were made to AlbumData.
 // Check the length with:
-//     len(mockedMusicStorage.AlbumDataCalls())
-func (mock *MockMusicStorage) AlbumDataCalls() []struct {
+//     len(mockedStorage.AlbumDataCalls())
+func (mock *MockStorage) AlbumDataCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -307,33 +408,37 @@ func (mock *MockMusicStorage) AlbumDataCalls() []struct {
 }
 
 // AlbumTracks calls AlbumTracksFunc.
-func (mock *MockMusicStorage) AlbumTracks(n int64, b bool) ([]*proto.AlbumTrack, error) {
+func (mock *MockStorage) AlbumTracks(n1 int64, n2 int64, b bool) ([]*proto.AlbumTrack, error) {
 	if mock.AlbumTracksFunc == nil {
-		panic("MockMusicStorage.AlbumTracksFunc: method is nil but MusicStorage.AlbumTracks was just called")
+		panic("MockStorage.AlbumTracksFunc: method is nil but Storage.AlbumTracks was just called")
 	}
 	callInfo := struct {
-		N int64
-		B bool
+		N1 int64
+		N2 int64
+		B  bool
 	}{
-		N: n,
-		B: b,
+		N1: n1,
+		N2: n2,
+		B:  b,
 	}
 	mock.lockAlbumTracks.Lock()
 	mock.calls.AlbumTracks = append(mock.calls.AlbumTracks, callInfo)
 	mock.lockAlbumTracks.Unlock()
-	return mock.AlbumTracksFunc(n, b)
+	return mock.AlbumTracksFunc(n1, n2, b)
 }
 
 // AlbumTracksCalls gets all the calls that were made to AlbumTracks.
 // Check the length with:
-//     len(mockedMusicStorage.AlbumTracksCalls())
-func (mock *MockMusicStorage) AlbumTracksCalls() []struct {
-	N int64
-	B bool
+//     len(mockedStorage.AlbumTracksCalls())
+func (mock *MockStorage) AlbumTracksCalls() []struct {
+	N1 int64
+	N2 int64
+	B  bool
 } {
 	var calls []struct {
-		N int64
-		B bool
+		N1 int64
+		N2 int64
+		B  bool
 	}
 	mock.lockAlbumTracks.RLock()
 	calls = mock.calls.AlbumTracks
@@ -342,9 +447,9 @@ func (mock *MockMusicStorage) AlbumTracksCalls() []struct {
 }
 
 // ArtistAlbums calls ArtistAlbumsFunc.
-func (mock *MockMusicStorage) ArtistAlbums(n1 int64, n2 int64) ([]*proto.Album, error) {
+func (mock *MockStorage) ArtistAlbums(n1 int64, n2 int64) ([]*proto.Album, error) {
 	if mock.ArtistAlbumsFunc == nil {
-		panic("MockMusicStorage.ArtistAlbumsFunc: method is nil but MusicStorage.ArtistAlbums was just called")
+		panic("MockStorage.ArtistAlbumsFunc: method is nil but Storage.ArtistAlbums was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -361,8 +466,8 @@ func (mock *MockMusicStorage) ArtistAlbums(n1 int64, n2 int64) ([]*proto.Album, 
 
 // ArtistAlbumsCalls gets all the calls that were made to ArtistAlbums.
 // Check the length with:
-//     len(mockedMusicStorage.ArtistAlbumsCalls())
-func (mock *MockMusicStorage) ArtistAlbumsCalls() []struct {
+//     len(mockedStorage.ArtistAlbumsCalls())
+func (mock *MockStorage) ArtistAlbumsCalls() []struct {
 	N1 int64
 	N2 int64
 } {
@@ -377,9 +482,9 @@ func (mock *MockMusicStorage) ArtistAlbumsCalls() []struct {
 }
 
 // ArtistInfo calls ArtistInfoFunc.
-func (mock *MockMusicStorage) ArtistInfo(n int64) (*proto.Artist, error) {
+func (mock *MockStorage) ArtistInfo(n int64) (*proto.Artist, error) {
 	if mock.ArtistInfoFunc == nil {
-		panic("MockMusicStorage.ArtistInfoFunc: method is nil but MusicStorage.ArtistInfo was just called")
+		panic("MockStorage.ArtistInfoFunc: method is nil but Storage.ArtistInfo was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -394,8 +499,8 @@ func (mock *MockMusicStorage) ArtistInfo(n int64) (*proto.Artist, error) {
 
 // ArtistInfoCalls gets all the calls that were made to ArtistInfo.
 // Check the length with:
-//     len(mockedMusicStorage.ArtistInfoCalls())
-func (mock *MockMusicStorage) ArtistInfoCalls() []struct {
+//     len(mockedStorage.ArtistInfoCalls())
+func (mock *MockStorage) ArtistInfoCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -408,37 +513,41 @@ func (mock *MockMusicStorage) ArtistInfoCalls() []struct {
 }
 
 // ArtistTracks calls ArtistTracksFunc.
-func (mock *MockMusicStorage) ArtistTracks(n1 int64, b bool, n2 int64) ([]*proto.Track, error) {
+func (mock *MockStorage) ArtistTracks(n1 int64, n2 int64, b bool, n3 int64) ([]*proto.Track, error) {
 	if mock.ArtistTracksFunc == nil {
-		panic("MockMusicStorage.ArtistTracksFunc: method is nil but MusicStorage.ArtistTracks was just called")
+		panic("MockStorage.ArtistTracksFunc: method is nil but Storage.ArtistTracks was just called")
 	}
 	callInfo := struct {
 		N1 int64
-		B  bool
 		N2 int64
+		B  bool
+		N3 int64
 	}{
 		N1: n1,
-		B:  b,
 		N2: n2,
+		B:  b,
+		N3: n3,
 	}
 	mock.lockArtistTracks.Lock()
 	mock.calls.ArtistTracks = append(mock.calls.ArtistTracks, callInfo)
 	mock.lockArtistTracks.Unlock()
-	return mock.ArtistTracksFunc(n1, b, n2)
+	return mock.ArtistTracksFunc(n1, n2, b, n3)
 }
 
 // ArtistTracksCalls gets all the calls that were made to ArtistTracks.
 // Check the length with:
-//     len(mockedMusicStorage.ArtistTracksCalls())
-func (mock *MockMusicStorage) ArtistTracksCalls() []struct {
+//     len(mockedStorage.ArtistTracksCalls())
+func (mock *MockStorage) ArtistTracksCalls() []struct {
 	N1 int64
-	B  bool
 	N2 int64
+	B  bool
+	N3 int64
 } {
 	var calls []struct {
 		N1 int64
-		B  bool
 		N2 int64
+		B  bool
+		N3 int64
 	}
 	mock.lockArtistTracks.RLock()
 	calls = mock.calls.ArtistTracks
@@ -446,10 +555,45 @@ func (mock *MockMusicStorage) ArtistTracksCalls() []struct {
 	return calls
 }
 
+// DeleteTrackFromFavorites calls DeleteTrackFromFavoritesFunc.
+func (mock *MockStorage) DeleteTrackFromFavorites(userID int64, trackID int64) error {
+	if mock.DeleteTrackFromFavoritesFunc == nil {
+		panic("MockStorage.DeleteTrackFromFavoritesFunc: method is nil but Storage.DeleteTrackFromFavorites was just called")
+	}
+	callInfo := struct {
+		UserID  int64
+		TrackID int64
+	}{
+		UserID:  userID,
+		TrackID: trackID,
+	}
+	mock.lockDeleteTrackFromFavorites.Lock()
+	mock.calls.DeleteTrackFromFavorites = append(mock.calls.DeleteTrackFromFavorites, callInfo)
+	mock.lockDeleteTrackFromFavorites.Unlock()
+	return mock.DeleteTrackFromFavoritesFunc(userID, trackID)
+}
+
+// DeleteTrackFromFavoritesCalls gets all the calls that were made to DeleteTrackFromFavorites.
+// Check the length with:
+//     len(mockedStorage.DeleteTrackFromFavoritesCalls())
+func (mock *MockStorage) DeleteTrackFromFavoritesCalls() []struct {
+	UserID  int64
+	TrackID int64
+} {
+	var calls []struct {
+		UserID  int64
+		TrackID int64
+	}
+	mock.lockDeleteTrackFromFavorites.RLock()
+	calls = mock.calls.DeleteTrackFromFavorites
+	mock.lockDeleteTrackFromFavorites.RUnlock()
+	return calls
+}
+
 // DoesPlaylistExist calls DoesPlaylistExistFunc.
-func (mock *MockMusicStorage) DoesPlaylistExist(n int64) (bool, error) {
+func (mock *MockStorage) DoesPlaylistExist(n int64) (bool, error) {
 	if mock.DoesPlaylistExistFunc == nil {
-		panic("MockMusicStorage.DoesPlaylistExistFunc: method is nil but MusicStorage.DoesPlaylistExist was just called")
+		panic("MockStorage.DoesPlaylistExistFunc: method is nil but Storage.DoesPlaylistExist was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -464,8 +608,8 @@ func (mock *MockMusicStorage) DoesPlaylistExist(n int64) (bool, error) {
 
 // DoesPlaylistExistCalls gets all the calls that were made to DoesPlaylistExist.
 // Check the length with:
-//     len(mockedMusicStorage.DoesPlaylistExistCalls())
-func (mock *MockMusicStorage) DoesPlaylistExistCalls() []struct {
+//     len(mockedStorage.DoesPlaylistExistCalls())
+func (mock *MockStorage) DoesPlaylistExistCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -478,9 +622,9 @@ func (mock *MockMusicStorage) DoesPlaylistExistCalls() []struct {
 }
 
 // FindAlbums calls FindAlbumsFunc.
-func (mock *MockMusicStorage) FindAlbums(s string) ([]*proto.Album, error) {
+func (mock *MockStorage) FindAlbums(s string) ([]*proto.Album, error) {
 	if mock.FindAlbumsFunc == nil {
-		panic("MockMusicStorage.FindAlbumsFunc: method is nil but MusicStorage.FindAlbums was just called")
+		panic("MockStorage.FindAlbumsFunc: method is nil but Storage.FindAlbums was just called")
 	}
 	callInfo := struct {
 		S string
@@ -495,8 +639,8 @@ func (mock *MockMusicStorage) FindAlbums(s string) ([]*proto.Album, error) {
 
 // FindAlbumsCalls gets all the calls that were made to FindAlbums.
 // Check the length with:
-//     len(mockedMusicStorage.FindAlbumsCalls())
-func (mock *MockMusicStorage) FindAlbumsCalls() []struct {
+//     len(mockedStorage.FindAlbumsCalls())
+func (mock *MockStorage) FindAlbumsCalls() []struct {
 	S string
 } {
 	var calls []struct {
@@ -509,9 +653,9 @@ func (mock *MockMusicStorage) FindAlbumsCalls() []struct {
 }
 
 // FindArtists calls FindArtistsFunc.
-func (mock *MockMusicStorage) FindArtists(s string) ([]*proto.Artist, error) {
+func (mock *MockStorage) FindArtists(s string) ([]*proto.Artist, error) {
 	if mock.FindArtistsFunc == nil {
-		panic("MockMusicStorage.FindArtistsFunc: method is nil but MusicStorage.FindArtists was just called")
+		panic("MockStorage.FindArtistsFunc: method is nil but Storage.FindArtists was just called")
 	}
 	callInfo := struct {
 		S string
@@ -526,8 +670,8 @@ func (mock *MockMusicStorage) FindArtists(s string) ([]*proto.Artist, error) {
 
 // FindArtistsCalls gets all the calls that were made to FindArtists.
 // Check the length with:
-//     len(mockedMusicStorage.FindArtistsCalls())
-func (mock *MockMusicStorage) FindArtistsCalls() []struct {
+//     len(mockedStorage.FindArtistsCalls())
+func (mock *MockStorage) FindArtistsCalls() []struct {
 	S string
 } {
 	var calls []struct {
@@ -540,32 +684,36 @@ func (mock *MockMusicStorage) FindArtistsCalls() []struct {
 }
 
 // FindTracksByFullWord calls FindTracksByFullWordFunc.
-func (mock *MockMusicStorage) FindTracksByFullWord(s string, b bool) ([]*proto.Track, error) {
+func (mock *MockStorage) FindTracksByFullWord(s string, n int64, b bool) ([]*proto.Track, error) {
 	if mock.FindTracksByFullWordFunc == nil {
-		panic("MockMusicStorage.FindTracksByFullWordFunc: method is nil but MusicStorage.FindTracksByFullWord was just called")
+		panic("MockStorage.FindTracksByFullWordFunc: method is nil but Storage.FindTracksByFullWord was just called")
 	}
 	callInfo := struct {
 		S string
+		N int64
 		B bool
 	}{
 		S: s,
+		N: n,
 		B: b,
 	}
 	mock.lockFindTracksByFullWord.Lock()
 	mock.calls.FindTracksByFullWord = append(mock.calls.FindTracksByFullWord, callInfo)
 	mock.lockFindTracksByFullWord.Unlock()
-	return mock.FindTracksByFullWordFunc(s, b)
+	return mock.FindTracksByFullWordFunc(s, n, b)
 }
 
 // FindTracksByFullWordCalls gets all the calls that were made to FindTracksByFullWord.
 // Check the length with:
-//     len(mockedMusicStorage.FindTracksByFullWordCalls())
-func (mock *MockMusicStorage) FindTracksByFullWordCalls() []struct {
+//     len(mockedStorage.FindTracksByFullWordCalls())
+func (mock *MockStorage) FindTracksByFullWordCalls() []struct {
 	S string
+	N int64
 	B bool
 } {
 	var calls []struct {
 		S string
+		N int64
 		B bool
 	}
 	mock.lockFindTracksByFullWord.RLock()
@@ -575,32 +723,36 @@ func (mock *MockMusicStorage) FindTracksByFullWordCalls() []struct {
 }
 
 // FindTracksByPartial calls FindTracksByPartialFunc.
-func (mock *MockMusicStorage) FindTracksByPartial(s string, b bool) ([]*proto.Track, error) {
+func (mock *MockStorage) FindTracksByPartial(s string, n int64, b bool) ([]*proto.Track, error) {
 	if mock.FindTracksByPartialFunc == nil {
-		panic("MockMusicStorage.FindTracksByPartialFunc: method is nil but MusicStorage.FindTracksByPartial was just called")
+		panic("MockStorage.FindTracksByPartialFunc: method is nil but Storage.FindTracksByPartial was just called")
 	}
 	callInfo := struct {
 		S string
+		N int64
 		B bool
 	}{
 		S: s,
+		N: n,
 		B: b,
 	}
 	mock.lockFindTracksByPartial.Lock()
 	mock.calls.FindTracksByPartial = append(mock.calls.FindTracksByPartial, callInfo)
 	mock.lockFindTracksByPartial.Unlock()
-	return mock.FindTracksByPartialFunc(s, b)
+	return mock.FindTracksByPartialFunc(s, n, b)
 }
 
 // FindTracksByPartialCalls gets all the calls that were made to FindTracksByPartial.
 // Check the length with:
-//     len(mockedMusicStorage.FindTracksByPartialCalls())
-func (mock *MockMusicStorage) FindTracksByPartialCalls() []struct {
+//     len(mockedStorage.FindTracksByPartialCalls())
+func (mock *MockStorage) FindTracksByPartialCalls() []struct {
 	S string
+	N int64
 	B bool
 } {
 	var calls []struct {
 		S string
+		N int64
 		B bool
 	}
 	mock.lockFindTracksByPartial.RLock()
@@ -609,10 +761,41 @@ func (mock *MockMusicStorage) FindTracksByPartialCalls() []struct {
 	return calls
 }
 
+// GetFavorites calls GetFavoritesFunc.
+func (mock *MockStorage) GetFavorites(userID int64) ([]*proto.Track, error) {
+	if mock.GetFavoritesFunc == nil {
+		panic("MockStorage.GetFavoritesFunc: method is nil but Storage.GetFavorites was just called")
+	}
+	callInfo := struct {
+		UserID int64
+	}{
+		UserID: userID,
+	}
+	mock.lockGetFavorites.Lock()
+	mock.calls.GetFavorites = append(mock.calls.GetFavorites, callInfo)
+	mock.lockGetFavorites.Unlock()
+	return mock.GetFavoritesFunc(userID)
+}
+
+// GetFavoritesCalls gets all the calls that were made to GetFavorites.
+// Check the length with:
+//     len(mockedStorage.GetFavoritesCalls())
+func (mock *MockStorage) GetFavoritesCalls() []struct {
+	UserID int64
+} {
+	var calls []struct {
+		UserID int64
+	}
+	mock.lockGetFavorites.RLock()
+	calls = mock.calls.GetFavorites
+	mock.lockGetFavorites.RUnlock()
+	return calls
+}
+
 // IncrementListenCount calls IncrementListenCountFunc.
-func (mock *MockMusicStorage) IncrementListenCount(n int64) error {
+func (mock *MockStorage) IncrementListenCount(n int64) error {
 	if mock.IncrementListenCountFunc == nil {
-		panic("MockMusicStorage.IncrementListenCountFunc: method is nil but MusicStorage.IncrementListenCount was just called")
+		panic("MockStorage.IncrementListenCountFunc: method is nil but Storage.IncrementListenCount was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -627,8 +810,8 @@ func (mock *MockMusicStorage) IncrementListenCount(n int64) error {
 
 // IncrementListenCountCalls gets all the calls that were made to IncrementListenCount.
 // Check the length with:
-//     len(mockedMusicStorage.IncrementListenCountCalls())
-func (mock *MockMusicStorage) IncrementListenCountCalls() []struct {
+//     len(mockedStorage.IncrementListenCountCalls())
+func (mock *MockStorage) IncrementListenCountCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -641,9 +824,9 @@ func (mock *MockMusicStorage) IncrementListenCountCalls() []struct {
 }
 
 // IsPlaylistOwner calls IsPlaylistOwnerFunc.
-func (mock *MockMusicStorage) IsPlaylistOwner(n1 int64, n2 int64) (bool, error) {
+func (mock *MockStorage) IsPlaylistOwner(n1 int64, n2 int64) (bool, error) {
 	if mock.IsPlaylistOwnerFunc == nil {
-		panic("MockMusicStorage.IsPlaylistOwnerFunc: method is nil but MusicStorage.IsPlaylistOwner was just called")
+		panic("MockStorage.IsPlaylistOwnerFunc: method is nil but Storage.IsPlaylistOwner was just called")
 	}
 	callInfo := struct {
 		N1 int64
@@ -660,8 +843,8 @@ func (mock *MockMusicStorage) IsPlaylistOwner(n1 int64, n2 int64) (bool, error) 
 
 // IsPlaylistOwnerCalls gets all the calls that were made to IsPlaylistOwner.
 // Check the length with:
-//     len(mockedMusicStorage.IsPlaylistOwnerCalls())
-func (mock *MockMusicStorage) IsPlaylistOwnerCalls() []struct {
+//     len(mockedStorage.IsPlaylistOwnerCalls())
+func (mock *MockStorage) IsPlaylistOwnerCalls() []struct {
 	N1 int64
 	N2 int64
 } {
@@ -676,9 +859,9 @@ func (mock *MockMusicStorage) IsPlaylistOwnerCalls() []struct {
 }
 
 // IsPlaylistPublic calls IsPlaylistPublicFunc.
-func (mock *MockMusicStorage) IsPlaylistPublic(n int64) (bool, error) {
+func (mock *MockStorage) IsPlaylistPublic(n int64) (bool, error) {
 	if mock.IsPlaylistPublicFunc == nil {
-		panic("MockMusicStorage.IsPlaylistPublicFunc: method is nil but MusicStorage.IsPlaylistPublic was just called")
+		panic("MockStorage.IsPlaylistPublicFunc: method is nil but Storage.IsPlaylistPublic was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -693,8 +876,8 @@ func (mock *MockMusicStorage) IsPlaylistPublic(n int64) (bool, error) {
 
 // IsPlaylistPublicCalls gets all the calls that were made to IsPlaylistPublic.
 // Check the length with:
-//     len(mockedMusicStorage.IsPlaylistPublicCalls())
-func (mock *MockMusicStorage) IsPlaylistPublicCalls() []struct {
+//     len(mockedStorage.IsPlaylistPublicCalls())
+func (mock *MockStorage) IsPlaylistPublicCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -706,10 +889,45 @@ func (mock *MockMusicStorage) IsPlaylistPublicCalls() []struct {
 	return calls
 }
 
+// IsTrackInFavorites calls IsTrackInFavoritesFunc.
+func (mock *MockStorage) IsTrackInFavorites(userID int64, trackID int64) (bool, error) {
+	if mock.IsTrackInFavoritesFunc == nil {
+		panic("MockStorage.IsTrackInFavoritesFunc: method is nil but Storage.IsTrackInFavorites was just called")
+	}
+	callInfo := struct {
+		UserID  int64
+		TrackID int64
+	}{
+		UserID:  userID,
+		TrackID: trackID,
+	}
+	mock.lockIsTrackInFavorites.Lock()
+	mock.calls.IsTrackInFavorites = append(mock.calls.IsTrackInFavorites, callInfo)
+	mock.lockIsTrackInFavorites.Unlock()
+	return mock.IsTrackInFavoritesFunc(userID, trackID)
+}
+
+// IsTrackInFavoritesCalls gets all the calls that were made to IsTrackInFavorites.
+// Check the length with:
+//     len(mockedStorage.IsTrackInFavoritesCalls())
+func (mock *MockStorage) IsTrackInFavoritesCalls() []struct {
+	UserID  int64
+	TrackID int64
+} {
+	var calls []struct {
+		UserID  int64
+		TrackID int64
+	}
+	mock.lockIsTrackInFavorites.RLock()
+	calls = mock.calls.IsTrackInFavorites
+	mock.lockIsTrackInFavorites.RUnlock()
+	return calls
+}
+
 // PlaylistInfo calls PlaylistInfoFunc.
-func (mock *MockMusicStorage) PlaylistInfo(n int64) (*proto.PlaylistData, error) {
+func (mock *MockStorage) PlaylistInfo(n int64) (*proto.PlaylistData, error) {
 	if mock.PlaylistInfoFunc == nil {
-		panic("MockMusicStorage.PlaylistInfoFunc: method is nil but MusicStorage.PlaylistInfo was just called")
+		panic("MockStorage.PlaylistInfoFunc: method is nil but Storage.PlaylistInfo was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -724,8 +942,8 @@ func (mock *MockMusicStorage) PlaylistInfo(n int64) (*proto.PlaylistData, error)
 
 // PlaylistInfoCalls gets all the calls that were made to PlaylistInfo.
 // Check the length with:
-//     len(mockedMusicStorage.PlaylistInfoCalls())
-func (mock *MockMusicStorage) PlaylistInfoCalls() []struct {
+//     len(mockedStorage.PlaylistInfoCalls())
+func (mock *MockStorage) PlaylistInfoCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -738,29 +956,33 @@ func (mock *MockMusicStorage) PlaylistInfoCalls() []struct {
 }
 
 // PlaylistTracks calls PlaylistTracksFunc.
-func (mock *MockMusicStorage) PlaylistTracks(n int64) ([]*proto.Track, error) {
+func (mock *MockStorage) PlaylistTracks(n1 int64, n2 int64) ([]*proto.Track, error) {
 	if mock.PlaylistTracksFunc == nil {
-		panic("MockMusicStorage.PlaylistTracksFunc: method is nil but MusicStorage.PlaylistTracks was just called")
+		panic("MockStorage.PlaylistTracksFunc: method is nil but Storage.PlaylistTracks was just called")
 	}
 	callInfo := struct {
-		N int64
+		N1 int64
+		N2 int64
 	}{
-		N: n,
+		N1: n1,
+		N2: n2,
 	}
 	mock.lockPlaylistTracks.Lock()
 	mock.calls.PlaylistTracks = append(mock.calls.PlaylistTracks, callInfo)
 	mock.lockPlaylistTracks.Unlock()
-	return mock.PlaylistTracksFunc(n)
+	return mock.PlaylistTracksFunc(n1, n2)
 }
 
 // PlaylistTracksCalls gets all the calls that were made to PlaylistTracks.
 // Check the length with:
-//     len(mockedMusicStorage.PlaylistTracksCalls())
-func (mock *MockMusicStorage) PlaylistTracksCalls() []struct {
-	N int64
+//     len(mockedStorage.PlaylistTracksCalls())
+func (mock *MockStorage) PlaylistTracksCalls() []struct {
+	N1 int64
+	N2 int64
 } {
 	var calls []struct {
-		N int64
+		N1 int64
+		N2 int64
 	}
 	mock.lockPlaylistTracks.RLock()
 	calls = mock.calls.PlaylistTracks
@@ -769,9 +991,9 @@ func (mock *MockMusicStorage) PlaylistTracksCalls() []struct {
 }
 
 // RandomAlbums calls RandomAlbumsFunc.
-func (mock *MockMusicStorage) RandomAlbums(n int64) (*proto.Albums, error) {
+func (mock *MockStorage) RandomAlbums(n int64) (*proto.Albums, error) {
 	if mock.RandomAlbumsFunc == nil {
-		panic("MockMusicStorage.RandomAlbumsFunc: method is nil but MusicStorage.RandomAlbums was just called")
+		panic("MockStorage.RandomAlbumsFunc: method is nil but Storage.RandomAlbums was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -786,8 +1008,8 @@ func (mock *MockMusicStorage) RandomAlbums(n int64) (*proto.Albums, error) {
 
 // RandomAlbumsCalls gets all the calls that were made to RandomAlbums.
 // Check the length with:
-//     len(mockedMusicStorage.RandomAlbumsCalls())
-func (mock *MockMusicStorage) RandomAlbumsCalls() []struct {
+//     len(mockedStorage.RandomAlbumsCalls())
+func (mock *MockStorage) RandomAlbumsCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -800,9 +1022,9 @@ func (mock *MockMusicStorage) RandomAlbumsCalls() []struct {
 }
 
 // RandomArtists calls RandomArtistsFunc.
-func (mock *MockMusicStorage) RandomArtists(n int64) (*proto.Artists, error) {
+func (mock *MockStorage) RandomArtists(n int64) (*proto.Artists, error) {
 	if mock.RandomArtistsFunc == nil {
-		panic("MockMusicStorage.RandomArtistsFunc: method is nil but MusicStorage.RandomArtists was just called")
+		panic("MockStorage.RandomArtistsFunc: method is nil but Storage.RandomArtists was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -817,8 +1039,8 @@ func (mock *MockMusicStorage) RandomArtists(n int64) (*proto.Artists, error) {
 
 // RandomArtistsCalls gets all the calls that were made to RandomArtists.
 // Check the length with:
-//     len(mockedMusicStorage.RandomArtistsCalls())
-func (mock *MockMusicStorage) RandomArtistsCalls() []struct {
+//     len(mockedStorage.RandomArtistsCalls())
+func (mock *MockStorage) RandomArtistsCalls() []struct {
 	N int64
 } {
 	var calls []struct {
@@ -831,33 +1053,37 @@ func (mock *MockMusicStorage) RandomArtistsCalls() []struct {
 }
 
 // RandomTracks calls RandomTracksFunc.
-func (mock *MockMusicStorage) RandomTracks(n int64, b bool) (*proto.Tracks, error) {
+func (mock *MockStorage) RandomTracks(n1 int64, n2 int64, b bool) (*proto.Tracks, error) {
 	if mock.RandomTracksFunc == nil {
-		panic("MockMusicStorage.RandomTracksFunc: method is nil but MusicStorage.RandomTracks was just called")
+		panic("MockStorage.RandomTracksFunc: method is nil but Storage.RandomTracks was just called")
 	}
 	callInfo := struct {
-		N int64
-		B bool
+		N1 int64
+		N2 int64
+		B  bool
 	}{
-		N: n,
-		B: b,
+		N1: n1,
+		N2: n2,
+		B:  b,
 	}
 	mock.lockRandomTracks.Lock()
 	mock.calls.RandomTracks = append(mock.calls.RandomTracks, callInfo)
 	mock.lockRandomTracks.Unlock()
-	return mock.RandomTracksFunc(n, b)
+	return mock.RandomTracksFunc(n1, n2, b)
 }
 
 // RandomTracksCalls gets all the calls that were made to RandomTracks.
 // Check the length with:
-//     len(mockedMusicStorage.RandomTracksCalls())
-func (mock *MockMusicStorage) RandomTracksCalls() []struct {
-	N int64
-	B bool
+//     len(mockedStorage.RandomTracksCalls())
+func (mock *MockStorage) RandomTracksCalls() []struct {
+	N1 int64
+	N2 int64
+	B  bool
 } {
 	var calls []struct {
-		N int64
-		B bool
+		N1 int64
+		N2 int64
+		B  bool
 	}
 	mock.lockRandomTracks.RLock()
 	calls = mock.calls.RandomTracks
@@ -866,9 +1092,9 @@ func (mock *MockMusicStorage) RandomTracksCalls() []struct {
 }
 
 // UserPlaylists calls UserPlaylistsFunc.
-func (mock *MockMusicStorage) UserPlaylists(n int64) ([]*proto.PlaylistData, error) {
+func (mock *MockStorage) UserPlaylists(n int64) ([]*proto.PlaylistData, error) {
 	if mock.UserPlaylistsFunc == nil {
-		panic("MockMusicStorage.UserPlaylistsFunc: method is nil but MusicStorage.UserPlaylists was just called")
+		panic("MockStorage.UserPlaylistsFunc: method is nil but Storage.UserPlaylists was just called")
 	}
 	callInfo := struct {
 		N int64
@@ -883,8 +1109,8 @@ func (mock *MockMusicStorage) UserPlaylists(n int64) ([]*proto.PlaylistData, err
 
 // UserPlaylistsCalls gets all the calls that were made to UserPlaylists.
 // Check the length with:
-//     len(mockedMusicStorage.UserPlaylistsCalls())
-func (mock *MockMusicStorage) UserPlaylistsCalls() []struct {
+//     len(mockedStorage.UserPlaylistsCalls())
+func (mock *MockStorage) UserPlaylistsCalls() []struct {
 	N int64
 } {
 	var calls []struct {

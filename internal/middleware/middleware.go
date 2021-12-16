@@ -7,9 +7,8 @@ import (
 	"2021_2_LostPointer/internal/monitoring/delivery"
 	"context"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -37,7 +36,6 @@ func NewMiddlewareHandler(authMicroservice authorization.AuthorizationClient, lo
 func (middleware *Middleware) InitMiddlewareHandlers(server *echo.Echo) {
 	server.Use(middleware.AccessLog)
 	server.Use(middleware.CheckAuthorization)
-	server.Use(middleware.CORS)
 	server.Use(middleware.CSRF)
 }
 
@@ -71,16 +69,20 @@ func (middleware *Middleware) CheckAuthorization(next echo.HandlerFunc) echo.Han
 
 func (middleware *Middleware) PanicRecovering(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
+		//nolint:errcheck
 		defer func() error {
 			if err := recover(); err != nil {
-				requestID := ctx.Get("REQUEST_ID").(string)
+				requestID, ok := ctx.Get("REQUEST_ID").(string)
+				if !ok {
+					return ctx.NoContent(http.StatusInternalServerError)
+				}
 				middleware.logger.Info(
 					zap.String("ID", requestID),
 					zap.String("ERROR", err.(error).Error()),
 					zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 				)
 
-				fmt.Println("panic")
+				log.Println("panic")
 
 				status := strconv.Itoa(ctx.Response().Status)
 				path := ctx.Request().URL.Path
@@ -166,22 +168,5 @@ func (middleware Middleware) CSRF(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 		return next(rwContext)
-	}
-}
-
-func (middleware *Middleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-
-		c.Response().Header().Set("Access-Control-Allow-Origin", os.Getenv("CORS_ORIGIN"))
-		c.Response().Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS, PUT, DELETE, POST, PATCH")
-		c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, X-Login, Set-Cookie, Content-Type, Content-Length, Accept-Encoding, X-Csrf-Token, csrf-token, Authorization")
-		c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Response().Header().Set("Vary", "Cookie")
-
-		if c.Request().Method == http.MethodOptions {
-			return c.NoContent(http.StatusOK)
-		}
-
-		return next(c)
 	}
 }

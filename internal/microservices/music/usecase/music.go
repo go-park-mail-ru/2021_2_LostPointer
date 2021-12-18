@@ -1,8 +1,11 @@
 package usecase
 
 import (
+	"2021_2_LostPointer/internal/models"
 	"context"
+	"github.com/go-redis/redis/v8"
 	"log"
+	"math/rand"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -21,18 +24,53 @@ func NewMusicService(storage music.Storage) *MusicService {
 	return &MusicService{storage: storage}
 }
 
+func getRandomID(slice []string, amount int) []string {
+	log.Println("Slice:", slice)
+
+	l := len(slice)
+	random := make([]string, 0)
+	for i := 0; i < amount; i++ {
+		random = append(random, slice[rand.Intn(l)])
+	}
+
+	return random
+}
+
 func (service *MusicService) RandomTracks(ctx context.Context, metadata *proto.RandomTracksOptions) (*proto.Tracks, error) {
-	selectionData, err := service.storage.GetSelection(metadata.UserID)
+	selection, err := service.storage.GetSelections(metadata.UserID)
+	if err == redis.Nil {
+		favoriteTracks, err := service.storage.GetFavoritesID(metadata.UserID)
+		if err != nil {
+			return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+		}
+
+		tracksSelection, err := service.storage.GenerateSelections(metadata.UserID, favoriteTracks)
+		if err != nil {
+			return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+		}
+
+		selectionData := &models.Selection{Tracks: tracksSelection}
+		selection.Tracks = tracksSelection
+		err = service.storage.StoreSelection(metadata.UserID, selectionData)
+		if err != nil {
+			return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	tracksID := getRandomID(selection.Tracks, constants.HomePageTracksSelectionFavoritesAmount)
+	tracksSelection, err := service.storage.GetTracksByTrackID(tracksID, metadata.UserID, metadata.IsAuthorized)
 	if err != nil {
+		log.Println("Error 1")
 		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
 	}
-	log.Println("Selection:\n", selectionData)
 
-	tracks, err := service.storage.RandomTracks(metadata.Amount, metadata.UserID, metadata.IsAuthorized)
+	tracksRandom, err := service.storage.RandomTracks(metadata.Amount - int64(len(tracksSelection)), metadata.UserID, metadata.IsAuthorized)
 	if err != nil {
+		log.Println("Error 2")
 		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
 	}
 
+	tracks := &proto.Tracks{Tracks: append(tracksSelection, tracksRandom...)}
 	return tracks, nil
 }
 

@@ -59,14 +59,15 @@ const (
 	TrackNotFound                    = "Track not found"
 
 	// Ограничения/лимиты
-	ArtistTracksSelectionAmount    = 10
-	ArtistAlbumsSelectionAmount    = 8
-	HomePageTracksSelectionAmount  = 10
-	HomePageAlbumsSelectionAmount  = 4
-	HomePageArtistsSelectionAmount = 4
-	SearchTracksAmount             = 4
-	SearchArtistsAmount            = 4
-	SearchAlbumsAmount             = 3
+	ArtistTracksSelectionAmount            = 10
+	ArtistAlbumsSelectionAmount            = 8
+	HomePageTracksSelectionAmount          = 10
+	HomePageAlbumsSelectionAmount          = 4
+	HomePageArtistsSelectionAmount         = 4
+	SearchTracksAmount                     = 4
+	SearchArtistsAmount                    = 4
+	SearchAlbumsAmount                     = 3
+	HomePageTracksSelectionFavoritesAmount = HomePageTracksSelectionAmount * 2 / 3
 
 	// Прочее
 	SaltLength        = 8

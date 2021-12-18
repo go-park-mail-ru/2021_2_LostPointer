@@ -102,7 +102,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: copy file via rsync
+      - name: Copy file via rsync
         run : |
           rsync -a ./docker-compose-cd.yml ${{ secrets.TARGET_PATH }}
       - name: Pull docker images

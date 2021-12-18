@@ -4,17 +4,21 @@ import (
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/music/proto"
 	"2021_2_LostPointer/pkg/wrapper"
+	"context"
 	"database/sql"
+	"github.com/go-redis/redis/v8"
 	"log"
 	"os"
+	"strconv"
 )
 
 type MusicStorage struct {
 	db *sql.DB
+	redis *redis.Client
 }
 
-func NewMusicStorage(db *sql.DB) *MusicStorage {
-	return &MusicStorage{db: db}
+func NewMusicStorage(db *sql.DB, redis *redis.Client) *MusicStorage {
+	return &MusicStorage{db: db, redis: redis}
 }
 
 func (storage *MusicStorage) RandomTracks(amount int64, userID int64, isAuthorized bool) (*proto.Tracks, error) {
@@ -774,4 +778,16 @@ func (storage *MusicStorage) IsTrackInFavorites(userID int64, trackID int64) (bo
 	}
 
 	return isExist, nil
+}
+
+func (storage *MusicStorage) GetSelection(userID int64) ([]int64, error) {
+	selection := make([]int64, 0)
+
+	data, err := storage.redis.Get(context.Background(), strconv.FormatInt(userID, 10)).Result()
+	if err != nil {
+		return selection, err
+	}
+	log.Println("Data:", data)
+
+	return selection, nil
 }

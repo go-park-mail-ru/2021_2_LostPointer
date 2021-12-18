@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -21,6 +22,12 @@ func NewMusicService(storage music.Storage) *MusicService {
 }
 
 func (service *MusicService) RandomTracks(ctx context.Context, metadata *proto.RandomTracksOptions) (*proto.Tracks, error) {
+	selectionData, err := service.storage.GetSelection(metadata.UserID)
+	if err != nil {
+		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+	}
+	log.Println("Selection:\n", selectionData)
+
 	tracks, err := service.storage.RandomTracks(metadata.Amount, metadata.UserID, metadata.IsAuthorized)
 	if err != nil {
 		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())

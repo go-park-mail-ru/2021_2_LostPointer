@@ -29,4 +29,5 @@ type Storage interface {
 	DeleteTrackFromFavorites(userID int64, trackID int64) error
 	GetFavorites(userID int64) ([]*proto.Track, error)
 	IsTrackInFavorites(userID int64, trackID int64) (bool, error)
+	GetSelection(userID int64) ([]int64, error)
 }

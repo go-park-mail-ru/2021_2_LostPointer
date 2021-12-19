@@ -96,7 +96,7 @@ jobs:
           tags: vershovbmstu/lostpointer_deploy_main:latest
  
   deploy:
-#    needs: build
+    needs: build
     name: Deploy
     runs-on: self-hosted
     steps:

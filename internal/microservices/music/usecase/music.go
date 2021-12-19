@@ -26,6 +26,9 @@ func NewMusicService(storage music.Storage) *MusicService {
 func selectRandom(slice []string, amount int) []string {
 	l := len(slice)
 	random := make([]string, 0)
+	if l == 0 {
+		return random
+	}
 	for i := 0; i < amount; i++ {
 		random = append(random, slice[rand.Intn(l)])
 	}
@@ -70,28 +73,33 @@ func (service *MusicService) storeCompilation(userID int64) (*models.Selection, 
 
 func (service *MusicService) RandomTracks(ctx context.Context, metadata *proto.RandomTracksOptions) (*proto.Tracks, error) {
 	var (
-		userCompilation *models.Selection
-		err             error
+		userCompilation   *models.Selection
+		compilationTracks []*proto.Track
+		randomTracks      []*proto.Track
+		err               error
 	)
 
 	userCompilation, err = service.storage.GetCompilation(metadata.UserID)
-	if err == redis.Nil { // No key in redis for current user
+	if err == redis.Nil && metadata.IsAuthorized { // No key in redis for current user
 		userCompilation, err = service.storeCompilation(metadata.UserID)
 		if err != nil {
 			return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
 		}
 	}
 
-	compilationTracks, err := service.storage.GetTracksByID( // Tracks from compilation for user
-		selectRandom(userCompilation.Tracks, constants.HomePageCompilationTracksAmount), // Slice of random ID
-		metadata.UserID,
-		metadata.IsAuthorized,
-	)
-	if err != nil {
-		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+	compilationTracksID := selectRandom(userCompilation.Tracks, constants.HomePageCompilationTracksAmount) // Slice of random ID
+	if len(compilationTracksID) != 0 {
+		compilationTracks, err = service.storage.GetTracksByID( // Tracks from compilation for user
+			compilationTracksID,
+			metadata.UserID,
+			metadata.IsAuthorized,
+		)
+		if err != nil {
+			return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+		}
 	}
 
-	randomTracks, err := service.storage.RandomTracks(
+	randomTracks, err = service.storage.RandomTracks(
 		metadata.Amount-int64(len(compilationTracks)), // Calculate amount of random tracks for selection
 		metadata.UserID,
 		metadata.IsAuthorized,

@@ -30,9 +30,10 @@ type Storage interface {
 	DeleteTrackFromFavorites(int64, int64) error
 	GetFavorites(int64) ([]*proto.Track, error)
 	IsTrackInFavorites(int64, int64) (bool, error)
-	GetSelections(int64) (*models.Selection, error)
-	GenerateSelections(int64, []string) ([]string, error)
-	GetFavoritesID(int64) ([]string, error)
-	StoreSelection(int64, *models.Selection) error
-	GetTracksByTrackID([]string, int64, bool) ([]*proto.Track, error)
+	GetCompilation(int64) (*models.Selection, error)
+	GetTracksCompilation(int64, []string) ([]string, error)
+	GetFavoriteTracksID(int64) ([]string, error)
+	StoreCompilation(int64, *models.Selection) error
+	GetTracksByID([]string, int64, bool) ([]*proto.Track, error)
+
 }

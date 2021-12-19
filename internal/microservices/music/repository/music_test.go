@@ -1701,11 +1701,11 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 		expectedError bool
 	}{
 		{
-			name:         "find constants.SearchTracksAmount tracks with text",
+			name:         "find constants.SearchPageTracksAmount tracks with text",
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -1725,11 +1725,11 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 		    FROM search
 		    WHERE concatenation @@ plainto_tsquery($2)
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchPageTracksAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -1740,7 +1740,7 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -1760,11 +1760,11 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 		    FROM search
 		    WHERE concatenation @@ plainto_tsquery($2)
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnError(errors.New("error"))
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchPageTracksAmount)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -1777,7 +1777,7 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 			mock: func() {
 				var newArg = 1
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite", "newArg"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites, newArg)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -1797,11 +1797,11 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 		    FROM search
 		    WHERE concatenation @@ plainto_tsquery($2)
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchPageTracksAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -1812,7 +1812,7 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 			name: "find tracks unauthorized",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -1832,11 +1832,11 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 		    FROM search
 		    WHERE concatenation @@ plainto_tsquery($2)
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchPageTracksAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, trackWithoutFile)
 				}
 				return tracks
@@ -1847,7 +1847,7 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"}).RowError(1, errors.New("error"))
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -1867,11 +1867,11 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 		    FROM search
 		    WHERE concatenation @@ plainto_tsquery($2)
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(text), driver.Value(constants.SearchPageTracksAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -1942,11 +1942,11 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 		expectedError bool
 	}{
 		{
-			name:         "find constants.SearchTracksAmount tracks with text",
+			name:         "find constants.SearchPageTracksAmount tracks with text",
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -1966,11 +1966,11 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 		    FROM test
 		    WHERE concat ILIKE $2
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchPageTracksAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -1981,7 +1981,7 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2001,11 +2001,11 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 		    FROM test
 		    WHERE concat ILIKE $2
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnError(errors.New("error"))
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchPageTracksAmount)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -2018,7 +2018,7 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 			mock: func() {
 				var newArg = 1
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite", "newArg"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites, newArg)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2038,11 +2038,11 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 		    FROM test
 		    WHERE concat ILIKE $2
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchPageTracksAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -2053,7 +2053,7 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 			name: "find tracks unauthorized",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2073,11 +2073,11 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 		    FROM test
 		    WHERE concat ILIKE $2
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchPageTracksAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, trackWithoutFile)
 				}
 				return tracks
@@ -2088,7 +2088,7 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"}).RowError(1, errors.New("error"))
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2108,11 +2108,11 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 		    FROM test
 		    WHERE concat ILIKE $2
 		)
-		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchTracksAmount)).WillReturnRows(rows)
+		ORDER BY t.listen_count DESC LIMIT $3`)).WithArgs(driver.Value(userID), driver.Value(textArgument), driver.Value(constants.SearchPageTracksAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -2170,7 +2170,7 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 			name: "find artists",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
-				for i := 0; i < constants.SearchArtistsAmount; i++ {
+				for i := 0; i < constants.SearchPageArtistsAmount; i++ {
 					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`
@@ -2178,11 +2178,11 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 		FROM artists
 		WHERE name ILIKE $1
 		LIMIT $2
-	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchArtistsAmount)).WillReturnRows(rows)
+	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchPageArtistsAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Artist {
-				artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
-				for i := 0; i < constants.SearchArtistsAmount; i++ {
+				artists := make([]*proto.Artist, 0, constants.SearchPageArtistsAmount)
+				for i := 0; i < constants.SearchPageArtistsAmount; i++ {
 					artists = append(artists, artist)
 				}
 				return artists
@@ -2192,7 +2192,7 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 			name: "query returns error",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"})
-				for i := 0; i < constants.SearchArtistsAmount; i++ {
+				for i := 0; i < constants.SearchPageArtistsAmount; i++ {
 					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`
@@ -2200,11 +2200,11 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 		FROM artists
 		WHERE name ILIKE $1
 		LIMIT $2
-	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchArtistsAmount)).WillReturnError(errors.New("error"))
+	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchPageArtistsAmount)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []*proto.Artist {
-				artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
-				for i := 0; i < constants.SearchArtistsAmount; i++ {
+				artists := make([]*proto.Artist, 0, constants.SearchPageArtistsAmount)
+				for i := 0; i < constants.SearchPageArtistsAmount; i++ {
 					artists = append(artists, artist)
 				}
 				return artists
@@ -2216,7 +2216,7 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 			mock: func() {
 				var newArg = 1
 				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar", "newArg"})
-				for i := 0; i < constants.SearchArtistsAmount; i++ {
+				for i := 0; i < constants.SearchPageArtistsAmount; i++ {
 					rows.AddRow(artist.ID, artist.Name, artist.Avatar, newArg)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`
@@ -2224,11 +2224,11 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 		FROM artists
 		WHERE name ILIKE $1
 		LIMIT $2
-	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchArtistsAmount)).WillReturnRows(rows)
+	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchPageArtistsAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Artist {
-				artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
-				for i := 0; i < constants.SearchArtistsAmount; i++ {
+				artists := make([]*proto.Artist, 0, constants.SearchPageArtistsAmount)
+				for i := 0; i < constants.SearchPageArtistsAmount; i++ {
 					artists = append(artists, artist)
 				}
 				return artists
@@ -2239,7 +2239,7 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 			name: "rows.Err() returns error",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"artists.id", "artists.name", "artists.avatar"}).RowError(1, errors.New("error"))
-				for i := 0; i < constants.SearchArtistsAmount; i++ {
+				for i := 0; i < constants.SearchPageArtistsAmount; i++ {
 					rows.AddRow(artist.ID, artist.Name, artist.Avatar)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`
@@ -2247,11 +2247,11 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 		FROM artists
 		WHERE name ILIKE $1
 		LIMIT $2
-	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchArtistsAmount)).WillReturnRows(rows)
+	`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchPageArtistsAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Artist {
-				artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
-				for i := 0; i < constants.SearchArtistsAmount; i++ {
+				artists := make([]*proto.Artist, 0, constants.SearchPageArtistsAmount)
+				for i := 0; i < constants.SearchPageArtistsAmount; i++ {
 					artists = append(artists, artist)
 				}
 				return artists
@@ -2308,7 +2308,7 @@ func TestMusicStorage_FindAlbums(t *testing.T) {
 			name: "find albums",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"})
-				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+				for i := 0; i < constants.SearchPageAlbumsAmount; i++ {
 					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2322,11 +2322,11 @@ func TestMusicStorage_FindAlbums(t *testing.T) {
 		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
 		ORDER BY year DESC
 		LIMIT $2
-		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchAlbumsAmount)).WillReturnRows(rows)
+		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchPageAlbumsAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Album {
-				albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
-				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+				albums := make([]*proto.Album, 0, constants.SearchPageAlbumsAmount)
+				for i := 0; i < constants.SearchPageAlbumsAmount; i++ {
 					albums = append(albums, album)
 				}
 				return albums
@@ -2336,7 +2336,7 @@ func TestMusicStorage_FindAlbums(t *testing.T) {
 			name: "query returns error",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration"})
-				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+				for i := 0; i < constants.SearchPageAlbumsAmount; i++ {
 					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2350,11 +2350,11 @@ func TestMusicStorage_FindAlbums(t *testing.T) {
 		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
 		ORDER BY year DESC
 		LIMIT $2
-		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchAlbumsAmount)).WillReturnError(errors.New("error"))
+		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchPageAlbumsAmount)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []*proto.Album {
-				albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
-				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+				albums := make([]*proto.Album, 0, constants.SearchPageAlbumsAmount)
+				for i := 0; i < constants.SearchPageAlbumsAmount; i++ {
 					albums = append(albums, album)
 				}
 				return albums
@@ -2366,7 +2366,7 @@ func TestMusicStorage_FindAlbums(t *testing.T) {
 			mock: func() {
 				var newArg = 1
 				rows := sqlmock.NewRows([]string{"a.id", "a.title", "a.year", "a.artwork", "a.track_count", "artwork_color", "art.name", "tracksDuration", "newArg"})
-				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+				for i := 0; i < constants.SearchPageAlbumsAmount; i++ {
 					rows.AddRow(album.ID, album.Title, album.Year, album.Artwork, album.TracksAmount, album.ArtworkColor, album.Artist, album.TracksDuration, newArg)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2380,11 +2380,11 @@ func TestMusicStorage_FindAlbums(t *testing.T) {
 		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
 		ORDER BY year DESC
 		LIMIT $2
-		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchAlbumsAmount)).WillReturnRows(rows)
+		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchPageAlbumsAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Album {
-				albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
-				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+				albums := make([]*proto.Album, 0, constants.SearchPageAlbumsAmount)
+				for i := 0; i < constants.SearchPageAlbumsAmount; i++ {
 					albums = append(albums, album)
 				}
 				return albums
@@ -2409,11 +2409,11 @@ func TestMusicStorage_FindAlbums(t *testing.T) {
 		GROUP BY alb.id, alb.title, alb.year, art.name, alb.artwork, alb.track_count
 		ORDER BY year DESC
 		LIMIT $2
-		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchAlbumsAmount)).WillReturnRows(rows)
+		`)).WithArgs(driver.Value(textArgument), driver.Value(constants.SearchPageAlbumsAmount)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Album {
-				albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
-				for i := 0; i < constants.SearchAlbumsAmount; i++ {
+				albums := make([]*proto.Album, 0, constants.SearchPageAlbumsAmount)
+				for i := 0; i < constants.SearchPageAlbumsAmount; i++ {
 					albums = append(albums, album)
 				}
 				return albums
@@ -2553,7 +2553,7 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2575,8 +2575,8 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 		)`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -2587,7 +2587,7 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2609,8 +2609,8 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 		)`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnError(errors.New("error"))
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -2623,7 +2623,7 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 			mock: func() {
 				var newArg = 1
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite", "newArg"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites, newArg)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2645,8 +2645,8 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 		)`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks
@@ -2657,7 +2657,7 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 			name: "find tracks unauthorized",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2679,8 +2679,8 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 		)`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, trackWithoutFile)
 				}
 				return tracks
@@ -2691,7 +2691,7 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 			isAuthorized: true,
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"}).RowError(1, errors.New("error"))
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
 				}
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
@@ -2713,8 +2713,8 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 		)`)).WithArgs(driver.Value(userID), driver.Value(playlistID)).WillReturnRows(rows)
 			},
 			expected: func() []*proto.Track {
-				tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
-				for i := 0; i < constants.SearchTracksAmount; i++ {
+				tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
+				for i := 0; i < constants.SearchPageTracksAmount; i++ {
 					tracks = append(tracks, track)
 				}
 				return tracks

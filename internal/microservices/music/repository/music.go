@@ -368,7 +368,7 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, userID int64, isA
 		)
 		ORDER BY t.listen_count DESC LIMIT $3`
 
-	rows, err := storage.db.Query(query, userID, text, constants.SearchTracksAmount)
+	rows, err := storage.db.Query(query, userID, text, constants.SearchPageTracksAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +379,7 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, userID int64, isA
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -423,7 +423,7 @@ func (storage *MusicStorage) FindTracksByPartial(text string, userID int64, isAu
 		)
 		ORDER BY t.listen_count DESC LIMIT $3`
 
-	rows, err := storage.db.Query(query, userID, "%"+text+"%", constants.SearchTracksAmount)
+	rows, err := storage.db.Query(query, userID, "%"+text+"%", constants.SearchPageTracksAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -434,7 +434,7 @@ func (storage *MusicStorage) FindTracksByPartial(text string, userID int64, isAu
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -464,7 +464,7 @@ func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
 		WHERE name ILIKE $1
 		LIMIT $2
 	`
-	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchArtistsAmount)
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchPageArtistsAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +475,7 @@ func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
 		}
 	}()
 
-	artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
+	artists := make([]*proto.Artist, 0, constants.SearchPageArtistsAmount)
 	for rows.Next() {
 		artist := &proto.Artist{}
 		artist.Tracks = []*proto.Track{}
@@ -506,7 +506,7 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 		ORDER BY year DESC
 		LIMIT $2
 		`
-	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchAlbumsAmount)
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchPageAlbumsAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -517,7 +517,7 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 		}
 	}()
 
-	albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
+	albums := make([]*proto.Album, 0, constants.SearchPageAlbumsAmount)
 	for rows.Next() {
 		album := &proto.Album{}
 		if err = rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.TracksAmount, &album.ArtworkColor, &album.Artist,
@@ -612,7 +612,7 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64, userID int64) ([]*
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
 	//nolint:dupl
 	for rows.Next() {
 		track := &proto.Track{}
@@ -781,10 +781,9 @@ func (storage *MusicStorage) IsTrackInFavorites(userID int64, trackID int64) (bo
 	return isExist, nil
 }
 
-func (storage *MusicStorage) GetSelections(userID int64) (*models.Selection, error) {
+func (storage *MusicStorage) GetCompilation(userID int64) (*models.Selection, error) {
 	selection := &models.Selection{}
 
-	log.Println("UserID:", strconv.FormatInt(userID, 10))
 	data, err := storage.redis.Get(context.Background(), strconv.FormatInt(userID, 10)).Result()
 	if err == redis.Nil {
 		return &models.Selection{}, err
@@ -798,7 +797,7 @@ func (storage *MusicStorage) GetSelections(userID int64) (*models.Selection, err
 	return selection, nil
 }
 
-func (storage *MusicStorage) GenerateSelections(userID int64, favoriteTracks []string) ([]string, error) {
+func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks []string) ([]string, error) {
 	var (
 		err error
 		genreID, artistID string
@@ -850,7 +849,6 @@ func (storage *MusicStorage) GenerateSelections(userID int64, favoriteTracks []s
 		favoriteGenresStr +
 		`)) AND id NOT IN (` +
 		favoriteTracksStr + `)`
-	log.Println("Query string", query)
 	rows, err = storage.db.Query(query)
 	if err != nil {
 		return selections, err
@@ -876,7 +874,7 @@ func (storage *MusicStorage) GenerateSelections(userID int64, favoriteTracks []s
 	return selections, nil
 }
 
-func (storage *MusicStorage) GetFavoritesID(userID int64) ([]string, error) {
+func (storage *MusicStorage) GetFavoriteTracksID(userID int64) ([]string, error) {
 	var (
 		err     error
 		trackID string
@@ -909,7 +907,9 @@ func (storage *MusicStorage) GetFavoritesID(userID int64) ([]string, error) {
 	return favorites, nil
 }
 
-func (storage *MusicStorage) StoreSelection(userID int64, selection *models.Selection) error {
+func (storage *MusicStorage) StoreCompilation(userID int64, selection *models.Selection) error {
+	log.Println("Called store compilation in redis")
+
 	err := storage.redis.Set(context.Background(), strconv.FormatInt(userID, 10), selection, constants.CookieLifetime).Err()
 	if err != nil {
 		return err
@@ -918,7 +918,7 @@ func (storage *MusicStorage) StoreSelection(userID int64, selection *models.Sele
 	return nil
 }
 
-func (storage *MusicStorage) GetTracksByTrackID(tracksID []string, userID int64, isAuthorized bool) ([]*proto.Track, error) {
+func (storage *MusicStorage) GetTracksByID(tracksID []string, userID int64, isAuthorized bool) ([]*proto.Track, error) {
 	tracksStr := strings.Join(tracksID, ", ")
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +

@@ -58,18 +58,16 @@ const (
 	TrackDeletedFromFavoritesMessage = "Track was successfully deleted from favorites"
 	TrackNotFound                    = "Track not found"
 
-	// Ограничения/лимиты
-	ArtistTracksSelectionAmount            = 10
-	ArtistAlbumsSelectionAmount            = 8
-	HomePageTracksSelectionAmount          = 10
-	HomePageAlbumsSelectionAmount          = 4
-	HomePageArtistsSelectionAmount         = 4
-	SearchTracksAmount                     = 4
-	SearchArtistsAmount                    = 4
-	SearchAlbumsAmount                     = 3
-	HomePageTracksSelectionFavoritesAmount = HomePageTracksSelectionAmount * 2 / 3
+	ArtistPageTracksAmount          = 10                           // Amount of tracks in selection for artist page
+	ArtistPageAlbumsAmount          = 8                            // Amount of albums in selection for artist page
+	HomePageTracksAmount            = 10                           // Amount of tracks in selection for home page
+	HomePageAlbumsAmount            = 4                            // Amount of albums in selection for home page
+	HomePageArtistsAmount           = 4                            // Amount of artists in selection for home page
+	SearchPageTracksAmount          = 4                            // Amount of relevant tracks in selection for search page
+	SearchPageArtistsAmount         = 4                            // Amount of relevant artists in selection for search page
+	SearchPageAlbumsAmount          = 3                            // Amount of relevant albums in selection for search page
+	HomePageCompilationTracksAmount = HomePageTracksAmount * 2 / 3 // Amount of tracks in compilation for home page
 
-	// Прочее
 	SaltLength        = 8
 	CookieLifetime    = time.Hour * 24 * 30
 	CSRFTokenLifetime = 900

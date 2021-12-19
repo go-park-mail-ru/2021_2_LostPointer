@@ -894,7 +894,7 @@ func TestMusicService_AddTrackToFavorites(t *testing.T) {
 				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
 					return false, nil
 				},
-				AddTrackToFavoriteFunc: func(int64, int64) error {
+				AddTrackToFavoritesFunc: func(int64, int64) error {
 					return nil
 				},
 			},
@@ -910,7 +910,7 @@ func TestMusicService_AddTrackToFavorites(t *testing.T) {
 				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
 					return true, nil
 				},
-				AddTrackToFavoriteFunc: func(int64, int64) error {
+				AddTrackToFavoritesFunc: func(int64, int64) error {
 					return nil
 				},
 			},
@@ -928,7 +928,7 @@ func TestMusicService_AddTrackToFavorites(t *testing.T) {
 				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
 					return true, errors.New("error")
 				},
-				AddTrackToFavoriteFunc: func(int64, int64) error {
+				AddTrackToFavoritesFunc: func(int64, int64) error {
 					return nil
 				},
 			},
@@ -946,7 +946,7 @@ func TestMusicService_AddTrackToFavorites(t *testing.T) {
 				IsTrackInFavoritesFunc: func(int64, int64) (bool, error) {
 					return false, nil
 				},
-				AddTrackToFavoriteFunc: func(int64, int64) error {
+				AddTrackToFavoritesFunc: func(int64, int64) error {
 					return errors.New("error")
 				},
 			},

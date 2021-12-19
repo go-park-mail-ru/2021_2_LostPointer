@@ -41,7 +41,7 @@ jobs:
 #          make lint
 
   build:
-    needs: linter
+#    needs: linter
     name: Build Docker
     runs-on: self-hosted
     steps:
@@ -96,7 +96,7 @@ jobs:
           tags: vershovbmstu/lostpointer_deploy_main:latest
  
   deploy:
-    needs: build
+#    needs: build
     name: Deploy
     runs-on: self-hosted
     steps:

@@ -695,7 +695,7 @@ func (storage *MusicStorage) DoesPlaylistExist(playlistID int64) (bool, error) {
 	return false, nil
 }
 
-func (storage *MusicStorage) AddTrackToFavorite(userID int64, trackID int64) error {
+func (storage *MusicStorage) AddTrackToFavorites(userID int64, trackID int64) error {
 	query := `INSERT INTO likes(user_id, track_id) VALUES ($1, $2)`
 
 	err := storage.db.QueryRow(query, userID, trackID).Err()

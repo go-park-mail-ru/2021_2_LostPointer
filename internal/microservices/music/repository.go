@@ -25,8 +25,8 @@ type Storage interface {
 	PlaylistTracks(int64, int64) ([]*proto.Track, error)
 	PlaylistInfo(int64) (*proto.PlaylistData, error)
 	DoesPlaylistExist(int64) (bool, error)
-	AddTrackToFavorite(userID int64, trackID int64) error
-	DeleteTrackFromFavorites(userID int64, trackID int64) error
-	GetFavorites(userID int64) ([]*proto.Track, error)
-	IsTrackInFavorites(userID int64, trackID int64) (bool, error)
+	AddTrackToFavorites(int64, int64) error
+	DeleteTrackFromFavorites(int64, int64) error
+	GetFavorites(int64) ([]*proto.Track, error)
+	IsTrackInFavorites(int64, int64) (bool, error)
 }

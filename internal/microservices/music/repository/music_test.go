@@ -3025,7 +3025,7 @@ func TestMusicStorage_AddTrackToFavorite(t *testing.T) {
 		currentTest := test
 		t.Run(currentTest.name, func(t *testing.T) {
 			currentTest.mock()
-			err := repository.AddTrackToFavorite(userID, trackID)
+			err := repository.AddTrackToFavorites(userID, trackID)
 			if currentTest.expectedError {
 				assert.Error(t, err)
 			} else {

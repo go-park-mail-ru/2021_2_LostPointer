@@ -194,7 +194,7 @@ func (service *MusicService) AddTrackToFavorites(ctx context.Context, data *prot
 		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.PermissionDenied, constants.TrackAlreadyInFavorites)
 	}
 
-	err = service.storage.AddTrackToFavorite(data.UserID, data.TrackID)
+	err = service.storage.AddTrackToFavorites(data.UserID, data.TrackID)
 	if err != nil {
 		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.NotFound, constants.TrackNotFound)
 	}

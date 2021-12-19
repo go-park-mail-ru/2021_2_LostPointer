@@ -19,8 +19,8 @@ var _ music.Storage = &MockStorage{}
 //
 // 		// make and configure a mocked music.Storage
 // 		mockedStorage := &MockStorage{
-// 			AddTrackToFavoriteFunc: func(userID int64, trackID int64) error {
-// 				panic("mock out the AddTrackToFavorite method")
+// 			AddTrackToFavoritesFunc: func(n1 int64, n2 int64) error {
+// 				panic("mock out the AddTrackToFavorites method")
 // 			},
 // 			AlbumDataFunc: func(n int64) (*proto.AlbumPageResponse, error) {
 // 				panic("mock out the AlbumData method")
@@ -37,7 +37,7 @@ var _ music.Storage = &MockStorage{}
 // 			ArtistTracksFunc: func(n1 int64, n2 int64, b bool, n3 int64) ([]*proto.Track, error) {
 // 				panic("mock out the ArtistTracks method")
 // 			},
-// 			DeleteTrackFromFavoritesFunc: func(userID int64, trackID int64) error {
+// 			DeleteTrackFromFavoritesFunc: func(n1 int64, n2 int64) error {
 // 				panic("mock out the DeleteTrackFromFavorites method")
 // 			},
 // 			DoesPlaylistExistFunc: func(n int64) (bool, error) {
@@ -55,7 +55,7 @@ var _ music.Storage = &MockStorage{}
 // 			FindTracksByPartialFunc: func(s string, n int64, b bool) ([]*proto.Track, error) {
 // 				panic("mock out the FindTracksByPartial method")
 // 			},
-// 			GetFavoritesFunc: func(userID int64) ([]*proto.Track, error) {
+// 			GetFavoritesFunc: func(n int64) ([]*proto.Track, error) {
 // 				panic("mock out the GetFavorites method")
 // 			},
 // 			IncrementListenCountFunc: func(n int64) error {
@@ -67,7 +67,7 @@ var _ music.Storage = &MockStorage{}
 // 			IsPlaylistPublicFunc: func(n int64) (bool, error) {
 // 				panic("mock out the IsPlaylistPublic method")
 // 			},
-// 			IsTrackInFavoritesFunc: func(userID int64, trackID int64) (bool, error) {
+// 			IsTrackInFavoritesFunc: func(n1 int64, n2 int64) (bool, error) {
 // 				panic("mock out the IsTrackInFavorites method")
 // 			},
 // 			PlaylistInfoFunc: func(n int64) (*proto.PlaylistData, error) {
@@ -95,8 +95,8 @@ var _ music.Storage = &MockStorage{}
 //
 // 	}
 type MockStorage struct {
-	// AddTrackToFavoriteFunc mocks the AddTrackToFavorite method.
-	AddTrackToFavoriteFunc func(userID int64, trackID int64) error
+	// AddTrackToFavoritesFunc mocks the AddTrackToFavorites method.
+	AddTrackToFavoritesFunc func(n1 int64, n2 int64) error
 
 	// AlbumDataFunc mocks the AlbumData method.
 	AlbumDataFunc func(n int64) (*proto.AlbumPageResponse, error)
@@ -114,7 +114,7 @@ type MockStorage struct {
 	ArtistTracksFunc func(n1 int64, n2 int64, b bool, n3 int64) ([]*proto.Track, error)
 
 	// DeleteTrackFromFavoritesFunc mocks the DeleteTrackFromFavorites method.
-	DeleteTrackFromFavoritesFunc func(userID int64, trackID int64) error
+	DeleteTrackFromFavoritesFunc func(n1 int64, n2 int64) error
 
 	// DoesPlaylistExistFunc mocks the DoesPlaylistExist method.
 	DoesPlaylistExistFunc func(n int64) (bool, error)
@@ -132,7 +132,7 @@ type MockStorage struct {
 	FindTracksByPartialFunc func(s string, n int64, b bool) ([]*proto.Track, error)
 
 	// GetFavoritesFunc mocks the GetFavorites method.
-	GetFavoritesFunc func(userID int64) ([]*proto.Track, error)
+	GetFavoritesFunc func(n int64) ([]*proto.Track, error)
 
 	// IncrementListenCountFunc mocks the IncrementListenCount method.
 	IncrementListenCountFunc func(n int64) error
@@ -144,7 +144,7 @@ type MockStorage struct {
 	IsPlaylistPublicFunc func(n int64) (bool, error)
 
 	// IsTrackInFavoritesFunc mocks the IsTrackInFavorites method.
-	IsTrackInFavoritesFunc func(userID int64, trackID int64) (bool, error)
+	IsTrackInFavoritesFunc func(n1 int64, n2 int64) (bool, error)
 
 	// PlaylistInfoFunc mocks the PlaylistInfo method.
 	PlaylistInfoFunc func(n int64) (*proto.PlaylistData, error)
@@ -166,12 +166,12 @@ type MockStorage struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// AddTrackToFavorite holds details about calls to the AddTrackToFavorite method.
-		AddTrackToFavorite []struct {
-			// UserID is the userID argument value.
-			UserID int64
-			// TrackID is the trackID argument value.
-			TrackID int64
+		// AddTrackToFavorites holds details about calls to the AddTrackToFavorites method.
+		AddTrackToFavorites []struct {
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 		}
 		// AlbumData holds details about calls to the AlbumData method.
 		AlbumData []struct {
@@ -212,10 +212,10 @@ type MockStorage struct {
 		}
 		// DeleteTrackFromFavorites holds details about calls to the DeleteTrackFromFavorites method.
 		DeleteTrackFromFavorites []struct {
-			// UserID is the userID argument value.
-			UserID int64
-			// TrackID is the trackID argument value.
-			TrackID int64
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 		}
 		// DoesPlaylistExist holds details about calls to the DoesPlaylistExist method.
 		DoesPlaylistExist []struct {
@@ -252,8 +252,8 @@ type MockStorage struct {
 		}
 		// GetFavorites holds details about calls to the GetFavorites method.
 		GetFavorites []struct {
-			// UserID is the userID argument value.
-			UserID int64
+			// N is the n argument value.
+			N int64
 		}
 		// IncrementListenCount holds details about calls to the IncrementListenCount method.
 		IncrementListenCount []struct {
@@ -274,10 +274,10 @@ type MockStorage struct {
 		}
 		// IsTrackInFavorites holds details about calls to the IsTrackInFavorites method.
 		IsTrackInFavorites []struct {
-			// UserID is the userID argument value.
-			UserID int64
-			// TrackID is the trackID argument value.
-			TrackID int64
+			// N1 is the n1 argument value.
+			N1 int64
+			// N2 is the n2 argument value.
+			N2 int64
 		}
 		// PlaylistInfo holds details about calls to the PlaylistInfo method.
 		PlaylistInfo []struct {
@@ -316,7 +316,7 @@ type MockStorage struct {
 			N int64
 		}
 	}
-	lockAddTrackToFavorite       sync.RWMutex
+	lockAddTrackToFavorites      sync.RWMutex
 	lockAlbumData                sync.RWMutex
 	lockAlbumTracks              sync.RWMutex
 	lockArtistAlbums             sync.RWMutex
@@ -341,38 +341,38 @@ type MockStorage struct {
 	lockUserPlaylists            sync.RWMutex
 }
 
-// AddTrackToFavorite calls AddTrackToFavoriteFunc.
-func (mock *MockStorage) AddTrackToFavorite(userID int64, trackID int64) error {
-	if mock.AddTrackToFavoriteFunc == nil {
-		panic("MockStorage.AddTrackToFavoriteFunc: method is nil but Storage.AddTrackToFavorite was just called")
+// AddTrackToFavorites calls AddTrackToFavoritesFunc.
+func (mock *MockStorage) AddTrackToFavorites(n1 int64, n2 int64) error {
+	if mock.AddTrackToFavoritesFunc == nil {
+		panic("MockStorage.AddTrackToFavoritesFunc: method is nil but Storage.AddTrackToFavorites was just called")
 	}
 	callInfo := struct {
-		UserID  int64
-		TrackID int64
+		N1 int64
+		N2 int64
 	}{
-		UserID:  userID,
-		TrackID: trackID,
+		N1: n1,
+		N2: n2,
 	}
-	mock.lockAddTrackToFavorite.Lock()
-	mock.calls.AddTrackToFavorite = append(mock.calls.AddTrackToFavorite, callInfo)
-	mock.lockAddTrackToFavorite.Unlock()
-	return mock.AddTrackToFavoriteFunc(userID, trackID)
+	mock.lockAddTrackToFavorites.Lock()
+	mock.calls.AddTrackToFavorites = append(mock.calls.AddTrackToFavorites, callInfo)
+	mock.lockAddTrackToFavorites.Unlock()
+	return mock.AddTrackToFavoritesFunc(n1, n2)
 }
 
-// AddTrackToFavoriteCalls gets all the calls that were made to AddTrackToFavorite.
+// AddTrackToFavoritesCalls gets all the calls that were made to AddTrackToFavorites.
 // Check the length with:
-//     len(mockedStorage.AddTrackToFavoriteCalls())
-func (mock *MockStorage) AddTrackToFavoriteCalls() []struct {
-	UserID  int64
-	TrackID int64
+//     len(mockedStorage.AddTrackToFavoritesCalls())
+func (mock *MockStorage) AddTrackToFavoritesCalls() []struct {
+	N1 int64
+	N2 int64
 } {
 	var calls []struct {
-		UserID  int64
-		TrackID int64
+		N1 int64
+		N2 int64
 	}
-	mock.lockAddTrackToFavorite.RLock()
-	calls = mock.calls.AddTrackToFavorite
-	mock.lockAddTrackToFavorite.RUnlock()
+	mock.lockAddTrackToFavorites.RLock()
+	calls = mock.calls.AddTrackToFavorites
+	mock.lockAddTrackToFavorites.RUnlock()
 	return calls
 }
 
@@ -556,33 +556,33 @@ func (mock *MockStorage) ArtistTracksCalls() []struct {
 }
 
 // DeleteTrackFromFavorites calls DeleteTrackFromFavoritesFunc.
-func (mock *MockStorage) DeleteTrackFromFavorites(userID int64, trackID int64) error {
+func (mock *MockStorage) DeleteTrackFromFavorites(n1 int64, n2 int64) error {
 	if mock.DeleteTrackFromFavoritesFunc == nil {
 		panic("MockStorage.DeleteTrackFromFavoritesFunc: method is nil but Storage.DeleteTrackFromFavorites was just called")
 	}
 	callInfo := struct {
-		UserID  int64
-		TrackID int64
+		N1 int64
+		N2 int64
 	}{
-		UserID:  userID,
-		TrackID: trackID,
+		N1: n1,
+		N2: n2,
 	}
 	mock.lockDeleteTrackFromFavorites.Lock()
 	mock.calls.DeleteTrackFromFavorites = append(mock.calls.DeleteTrackFromFavorites, callInfo)
 	mock.lockDeleteTrackFromFavorites.Unlock()
-	return mock.DeleteTrackFromFavoritesFunc(userID, trackID)
+	return mock.DeleteTrackFromFavoritesFunc(n1, n2)
 }
 
 // DeleteTrackFromFavoritesCalls gets all the calls that were made to DeleteTrackFromFavorites.
 // Check the length with:
 //     len(mockedStorage.DeleteTrackFromFavoritesCalls())
 func (mock *MockStorage) DeleteTrackFromFavoritesCalls() []struct {
-	UserID  int64
-	TrackID int64
+	N1 int64
+	N2 int64
 } {
 	var calls []struct {
-		UserID  int64
-		TrackID int64
+		N1 int64
+		N2 int64
 	}
 	mock.lockDeleteTrackFromFavorites.RLock()
 	calls = mock.calls.DeleteTrackFromFavorites
@@ -762,29 +762,29 @@ func (mock *MockStorage) FindTracksByPartialCalls() []struct {
 }
 
 // GetFavorites calls GetFavoritesFunc.
-func (mock *MockStorage) GetFavorites(userID int64) ([]*proto.Track, error) {
+func (mock *MockStorage) GetFavorites(n int64) ([]*proto.Track, error) {
 	if mock.GetFavoritesFunc == nil {
 		panic("MockStorage.GetFavoritesFunc: method is nil but Storage.GetFavorites was just called")
 	}
 	callInfo := struct {
-		UserID int64
+		N int64
 	}{
-		UserID: userID,
+		N: n,
 	}
 	mock.lockGetFavorites.Lock()
 	mock.calls.GetFavorites = append(mock.calls.GetFavorites, callInfo)
 	mock.lockGetFavorites.Unlock()
-	return mock.GetFavoritesFunc(userID)
+	return mock.GetFavoritesFunc(n)
 }
 
 // GetFavoritesCalls gets all the calls that were made to GetFavorites.
 // Check the length with:
 //     len(mockedStorage.GetFavoritesCalls())
 func (mock *MockStorage) GetFavoritesCalls() []struct {
-	UserID int64
+	N int64
 } {
 	var calls []struct {
-		UserID int64
+		N int64
 	}
 	mock.lockGetFavorites.RLock()
 	calls = mock.calls.GetFavorites
@@ -890,33 +890,33 @@ func (mock *MockStorage) IsPlaylistPublicCalls() []struct {
 }
 
 // IsTrackInFavorites calls IsTrackInFavoritesFunc.
-func (mock *MockStorage) IsTrackInFavorites(userID int64, trackID int64) (bool, error) {
+func (mock *MockStorage) IsTrackInFavorites(n1 int64, n2 int64) (bool, error) {
 	if mock.IsTrackInFavoritesFunc == nil {
 		panic("MockStorage.IsTrackInFavoritesFunc: method is nil but Storage.IsTrackInFavorites was just called")
 	}
 	callInfo := struct {
-		UserID  int64
-		TrackID int64
+		N1 int64
+		N2 int64
 	}{
-		UserID:  userID,
-		TrackID: trackID,
+		N1: n1,
+		N2: n2,
 	}
 	mock.lockIsTrackInFavorites.Lock()
 	mock.calls.IsTrackInFavorites = append(mock.calls.IsTrackInFavorites, callInfo)
 	mock.lockIsTrackInFavorites.Unlock()
-	return mock.IsTrackInFavoritesFunc(userID, trackID)
+	return mock.IsTrackInFavoritesFunc(n1, n2)
 }
 
 // IsTrackInFavoritesCalls gets all the calls that were made to IsTrackInFavorites.
 // Check the length with:
 //     len(mockedStorage.IsTrackInFavoritesCalls())
 func (mock *MockStorage) IsTrackInFavoritesCalls() []struct {
-	UserID  int64
-	TrackID int64
+	N1 int64
+	N2 int64
 } {
 	var calls []struct {
-		UserID  int64
-		TrackID int64
+		N1 int64
+		N2 int64
 	}
 	mock.lockIsTrackInFavorites.RLock()
 	calls = mock.calls.IsTrackInFavorites

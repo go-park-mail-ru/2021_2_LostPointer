@@ -60,7 +60,7 @@ const (
 
 	// Ограничения/лимиты
 	ArtistTracksSelectionAmount    = 10
-	ArtistAlbumsSelectionAmount    = 8
+	ArtistAlbumsSelectionAmount    = 24
 	HomePageTracksSelectionAmount  = 10
 	HomePageAlbumsSelectionAmount  = 4
 	HomePageArtistsSelectionAmount = 4

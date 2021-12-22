@@ -1456,28 +1456,6 @@ func (api *APIMicroservices) GetUserPlaylists(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	if userID == -1 {
-		api.logger.Info(
-			zap.String("ID", requestID),
-			zap.String("MESSAGE", constants.UserIsNotAuthorizedMessage),
-			zap.Int("ANSWER STATUS", http.StatusUnauthorized))
-
-		response := &models.Response{
-			Status:  http.StatusUnauthorized,
-			Message: constants.UserIsNotAuthorizedMessage,
-		}
-		jsonResponse, err := easyjson.Marshal(response)
-		if err != nil {
-			api.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.NoContent(http.StatusInternalServerError)
-		}
-
-		return ctx.JSONBlob(http.StatusOK, jsonResponse)
-	}
-
 	playlistsProto, err := api.musicMicroservice.UserPlaylists(context.Background(), &music.UserPlaylistsOptions{UserID: int64(userID)})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)

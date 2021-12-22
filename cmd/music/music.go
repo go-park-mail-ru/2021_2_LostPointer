@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"log"
 	"net"
 	"os"
@@ -34,14 +35,37 @@ func InitializeDatabase() *sql.DB {
 	return database
 }
 
+func InitializeRedis() *redis.Client {
+	var AddrConfig string
+	if len(os.Getenv("REDIS_PORT")) == 0 {
+		AddrConfig = os.Getenv("REDIS_HOST")
+	} else {
+		AddrConfig = fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
+	}
+	redisConnection := redis.NewClient(&redis.Options{
+		Addr:     AddrConfig,
+		Password: os.Getenv("REDIS_PASS"),
+		DB:       2,
+	})
+
+	return redisConnection
+}
+
 func main() {
 	dbConnection := InitializeDatabase()
-	storage := repository.NewMusicStorage(dbConnection)
+	redisConnection := InitializeRedis()
+	storage := repository.NewMusicStorage(dbConnection, redisConnection)
 	defer func() {
 		if dbConnection != nil {
 			err := dbConnection.Close()
 			if err != nil {
-				log.Fatal("Error occurred during closing database connection")
+				log.Fatalf("Could not close database connection: %v", err)
+			}
+		}
+		if redisConnection != nil {
+			err := redisConnection.Close()
+			if err != nil {
+				log.Fatalf("Could not close redis connection: %v", err)
 			}
 		}
 	}()

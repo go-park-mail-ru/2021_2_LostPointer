@@ -722,7 +722,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomTracks(gomock.Any(), &musicMicroservice.RandomTracksOptions{
-					Amount:       constants.HomePageTracksSelectionAmount,
+					Amount:       constants.HomePageTracksAmount,
 					IsAuthorized: true,
 				}).Return(&musicMicroservice.Tracks{Tracks: []*musicMicroservice.Track{{
 					Album:  &musicMicroservice.Album{},
@@ -738,7 +738,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomTracks(gomock.Any(), &musicMicroservice.RandomTracksOptions{
-					Amount:       constants.HomePageTracksSelectionAmount,
+					Amount:       constants.HomePageTracksAmount,
 					IsAuthorized: true,
 				}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
 				return moq
@@ -771,7 +771,7 @@ func TestAPIMicroservices_GetHomeTracks(t *testing.T) {
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
 				moq.EXPECT().RandomTracks(gomock.Any(), &musicMicroservice.RandomTracksOptions{
-					Amount: constants.HomePageTracksSelectionAmount, UserID: -1,
+					Amount: constants.HomePageTracksAmount, UserID: -1,
 				}).Return(&musicMicroservice.Tracks{}, nil)
 				return moq
 			},
@@ -847,7 +847,7 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 			name: "Handler returned status 200",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().RandomAlbums(gomock.Any(), &musicMicroservice.RandomAlbumsOptions{Amount: constants.HomePageAlbumsSelectionAmount}).
+				moq.EXPECT().RandomAlbums(gomock.Any(), &musicMicroservice.RandomAlbumsOptions{Amount: constants.HomePageAlbumsAmount}).
 					Return(&musicMicroservice.Albums{Albums: []*musicMicroservice.Album{{}}}, nil)
 				return moq
 			},
@@ -858,7 +858,7 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().RandomAlbums(gomock.Any(), &musicMicroservice.RandomAlbumsOptions{Amount: constants.HomePageAlbumsSelectionAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
+				moq.EXPECT().RandomAlbums(gomock.Any(), &musicMicroservice.RandomAlbumsOptions{Amount: constants.HomePageAlbumsAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
 				return moq
 			},
 			expectedStatus: http.StatusOK,
@@ -868,7 +868,7 @@ func TestAPIMicroservices_GetHomeAlbums(t *testing.T) {
 			name: "No RequestID",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().RandomAlbums(gomock.Any(), &musicMicroservice.RandomAlbumsOptions{Amount: constants.HomePageAlbumsSelectionAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				moq.EXPECT().RandomAlbums(gomock.Any(), &musicMicroservice.RandomAlbumsOptions{Amount: constants.HomePageAlbumsAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,
@@ -939,7 +939,7 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 			name: "Handler returned status 200",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount}).
+				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsAmount}).
 					Return(&musicMicroservice.Artists{Artists: []*musicMicroservice.Artist{{
 						Tracks: []*musicMicroservice.Track{},
 						Albums: []*musicMicroservice.Album{},
@@ -953,7 +953,7 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 			name: "Handler returned status 400",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
+				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error()))
 				return moq
 			},
 			expectedStatus: http.StatusOK,
@@ -963,7 +963,7 @@ func TestAPIMicroservices_GetHomeArtists(t *testing.T) {
 			name: "No RequestID",
 			mock: func(controller *gomock.Controller) *musicMock.MockMusicClient {
 				moq := musicMock.NewMockMusicClient(controller)
-				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
+				moq.EXPECT().RandomArtists(gomock.Any(), &musicMicroservice.RandomArtistsOptions{Amount: constants.HomePageArtistsAmount}).Return(nil, status.Error(codes.InvalidArgument, errors.New("error").Error())).AnyTimes()
 				return moq
 			},
 			expectedStatus:    http.StatusInternalServerError,

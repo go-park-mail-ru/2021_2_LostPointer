@@ -1,7 +1,10 @@
 package usecase
 
 import (
+	"2021_2_LostPointer/internal/models"
 	"context"
+	"github.com/go-redis/redis/v8"
+	"math/rand"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -20,12 +23,92 @@ func NewMusicService(storage music.Storage) *MusicService {
 	return &MusicService{storage: storage}
 }
 
+func selectRandom(slice []string, amount int) []string {
+	l := len(slice)
+	random := make([]string, 0)
+	if l == 0 {
+		return random
+	}
+	for i := 0; i < amount; i++ {
+		random = append(random, slice[rand.Intn(l)])
+	}
+
+	return random
+}
+
+func (service *MusicService) storeCompilation(userID int64) (*models.Selection, error) {
+	var (
+		favoriteTracksID  []string
+		tracksCompilation []string
+		userCompilation   *models.Selection
+		err               error
+	)
+
+	favoriteTracksID, err = service.storage.GetFavoriteTracksID(userID)
+	if err != nil {
+		return userCompilation, err
+	}
+
+	if len(favoriteTracksID) == 0 { // No tracks in favorites, store empty struct in redis
+		userCompilation = &models.Selection{}
+		err = service.storage.StoreCompilation(userID, userCompilation)
+		if err != nil {
+			return userCompilation, err
+		}
+	} else { // Get track compilation for user and store in redis
+		tracksCompilation, err = service.storage.GetTracksCompilation(userID, favoriteTracksID)
+		if err != nil {
+			return userCompilation, err
+		}
+
+		userCompilation = &models.Selection{Tracks: tracksCompilation}
+		err = service.storage.StoreCompilation(userID, userCompilation)
+		if err != nil {
+			return userCompilation, err
+		}
+	}
+
+	return userCompilation, nil
+}
+
 func (service *MusicService) RandomTracks(ctx context.Context, metadata *proto.RandomTracksOptions) (*proto.Tracks, error) {
-	tracks, err := service.storage.RandomTracks(metadata.Amount, metadata.UserID, metadata.IsAuthorized)
+	var (
+		userCompilation   *models.Selection
+		compilationTracks []*proto.Track
+		randomTracks      []*proto.Track
+		err               error
+	)
+
+	userCompilation, err = service.storage.GetCompilation(metadata.UserID)
+	if err == redis.Nil && metadata.IsAuthorized { // No key in redis for current user
+		userCompilation, err = service.storeCompilation(metadata.UserID)
+		if err != nil {
+			return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	compilationTracksID := selectRandom(userCompilation.Tracks, constants.HomePageCompilationTracksAmount) // Slice of random ID
+	if len(compilationTracksID) != 0 {
+		compilationTracks, err = service.storage.GetTracksByID( // Tracks from compilation for user
+			compilationTracksID,
+			metadata.UserID,
+			metadata.IsAuthorized,
+		)
+		if err != nil {
+			return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	randomTracks, err = service.storage.RandomTracks(
+		metadata.Amount-int64(len(compilationTracks)), // Calculate amount of random tracks for selection
+		metadata.UserID,
+		metadata.IsAuthorized,
+	)
 	if err != nil {
 		return &proto.Tracks{}, status.Error(codes.Internal, err.Error())
 	}
 
+	tracks := &proto.Tracks{Tracks: append(compilationTracks, randomTracks...)}
 	return tracks, nil
 }
 
@@ -53,12 +136,12 @@ func (service *MusicService) ArtistProfile(ctx context.Context, metadata *proto.
 		return &proto.Artist{}, status.Error(codes.Internal, err.Error())
 	}
 
-	artistData.Tracks, err = service.storage.ArtistTracks(metadata.ArtistID, metadata.UserID, metadata.IsAuthorized, constants.ArtistTracksSelectionAmount)
+	artistData.Tracks, err = service.storage.ArtistTracks(metadata.ArtistID, metadata.UserID, metadata.IsAuthorized, constants.ArtistPageTracksAmount)
 	if err != nil {
 		return &proto.Artist{}, status.Error(codes.Internal, err.Error())
 	}
 
-	artistData.Albums, err = service.storage.ArtistAlbums(metadata.ArtistID, constants.ArtistAlbumsSelectionAmount)
+	artistData.Albums, err = service.storage.ArtistAlbums(metadata.ArtistID, constants.ArtistPageAlbumsAmount)
 	if err != nil {
 		return &proto.Artist{}, status.Error(codes.Internal, err.Error())
 	}
@@ -100,7 +183,7 @@ func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) 
 	}
 
 	var FindTracksByPartial []*proto.Track
-	if len(tracks) < constants.SearchTracksAmount {
+	if len(tracks) < constants.SearchPageTracksAmount {
 		FindTracksByPartial, err = service.storage.FindTracksByPartial(data.Text, data.UserID, data.IsAuthorized)
 		if err != nil {
 			return &proto.FindResponse{}, status.Error(codes.Internal, err.Error())
@@ -108,7 +191,7 @@ func (service *MusicService) Find(ctx context.Context, data *proto.FindOptions) 
 	}
 
 	for _, track := range FindTracksByPartial {
-		if !contains(tracks, track.ID) && len(tracks) < constants.SearchTracksAmount {
+		if !contains(tracks, track.ID) && len(tracks) < constants.SearchPageTracksAmount {
 			tracks = append(tracks, track)
 		}
 	}
@@ -199,6 +282,12 @@ func (service *MusicService) AddTrackToFavorites(ctx context.Context, data *prot
 		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.NotFound, constants.TrackNotFound)
 	}
 
+	// Update compilation for user
+	_, err = service.storeCompilation(data.UserID)
+	if err != nil {
+		return &proto.AddTrackToFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+
 	return &proto.AddTrackToFavoritesResponse{}, nil
 }
 
@@ -212,6 +301,12 @@ func (service *MusicService) DeleteTrackFromFavorites(ctx context.Context, data 
 	}
 
 	err = service.storage.DeleteTrackFromFavorites(data.UserID, data.TrackID)
+	if err != nil {
+		return &proto.DeleteTrackFromFavoritesResponse{}, status.Error(codes.Internal, err.Error())
+	}
+
+	// Update compilation for user
+	_, err = service.storeCompilation(data.UserID)
 	if err != nil {
 		return &proto.DeleteTrackFromFavoritesResponse{}, status.Error(codes.Internal, err.Error())
 	}

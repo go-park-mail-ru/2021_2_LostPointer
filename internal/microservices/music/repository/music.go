@@ -3,21 +3,27 @@ package repository
 import (
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/music/proto"
+	"2021_2_LostPointer/internal/models"
 	"2021_2_LostPointer/pkg/wrapper"
+	"context"
 	"database/sql"
+	"github.com/go-redis/redis/v8"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type MusicStorage struct {
-	db *sql.DB
+	db    *sql.DB
+	redis *redis.Client
 }
 
-func NewMusicStorage(db *sql.DB) *MusicStorage {
-	return &MusicStorage{db: db}
+func NewMusicStorage(db *sql.DB, redis *redis.Client) *MusicStorage {
+	return &MusicStorage{db: db, redis: redis}
 }
 
-func (storage *MusicStorage) RandomTracks(amount int64, userID int64, isAuthorized bool) (*proto.Tracks, error) {
+func (storage *MusicStorage) RandomTracks(amount int64, userID int64, isAuthorized bool) ([]*proto.Track, error) {
 	query := `SELECT ` +
 		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
 		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
@@ -64,8 +70,7 @@ func (storage *MusicStorage) RandomTracks(amount int64, userID int64, isAuthoriz
 		return nil, err
 	}
 
-	tracksList := &proto.Tracks{Tracks: tracks}
-	return tracksList, nil
+	return tracks, nil
 }
 
 func (storage *MusicStorage) RandomAlbums(amount int64) (*proto.Albums, error) {
@@ -363,7 +368,7 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, userID int64, isA
 		)
 		ORDER BY t.listen_count DESC LIMIT $3`
 
-	rows, err := storage.db.Query(query, userID, text, constants.SearchTracksAmount)
+	rows, err := storage.db.Query(query, userID, text, constants.SearchPageTracksAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +379,7 @@ func (storage *MusicStorage) FindTracksByFullWord(text string, userID int64, isA
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -418,7 +423,7 @@ func (storage *MusicStorage) FindTracksByPartial(text string, userID int64, isAu
 		)
 		ORDER BY t.listen_count DESC LIMIT $3`
 
-	rows, err := storage.db.Query(query, userID, "%"+text+"%", constants.SearchTracksAmount)
+	rows, err := storage.db.Query(query, userID, "%"+text+"%", constants.SearchPageTracksAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +434,7 @@ func (storage *MusicStorage) FindTracksByPartial(text string, userID int64, isAu
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
 	for rows.Next() {
 		track := &proto.Track{}
 		track.Album = &proto.Album{}
@@ -459,7 +464,7 @@ func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
 		WHERE name ILIKE $1
 		LIMIT $2
 	`
-	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchArtistsAmount)
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchPageArtistsAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +475,7 @@ func (storage *MusicStorage) FindArtists(text string) ([]*proto.Artist, error) {
 		}
 	}()
 
-	artists := make([]*proto.Artist, 0, constants.SearchArtistsAmount)
+	artists := make([]*proto.Artist, 0, constants.SearchPageArtistsAmount)
 	for rows.Next() {
 		artist := &proto.Artist{}
 		artist.Tracks = []*proto.Track{}
@@ -501,7 +506,7 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 		ORDER BY year DESC
 		LIMIT $2
 		`
-	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchAlbumsAmount)
+	rows, err := storage.db.Query(query, "%"+text+"%", constants.SearchPageAlbumsAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -512,7 +517,7 @@ func (storage *MusicStorage) FindAlbums(text string) ([]*proto.Album, error) {
 		}
 	}()
 
-	albums := make([]*proto.Album, 0, constants.SearchAlbumsAmount)
+	albums := make([]*proto.Album, 0, constants.SearchPageAlbumsAmount)
 	for rows.Next() {
 		album := &proto.Album{}
 		if err = rows.Scan(&album.ID, &album.Title, &album.Year, &album.Artwork, &album.TracksAmount, &album.ArtworkColor, &album.Artist,
@@ -607,7 +612,7 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64, userID int64) ([]*
 		}
 	}()
 
-	tracks := make([]*proto.Track, 0, constants.SearchTracksAmount)
+	tracks := make([]*proto.Track, 0, constants.SearchPageTracksAmount)
 	//nolint:dupl
 	for rows.Next() {
 		track := &proto.Track{}
@@ -774,4 +779,192 @@ func (storage *MusicStorage) IsTrackInFavorites(userID int64, trackID int64) (bo
 	}
 
 	return isExist, nil
+}
+
+func (storage *MusicStorage) GetCompilation(userID int64) (*models.Selection, error) {
+	selection := &models.Selection{}
+
+	data, err := storage.redis.Get(context.Background(), strconv.FormatInt(userID, 10)).Result()
+	if err == redis.Nil {
+		return &models.Selection{}, err
+	}
+
+	err = selection.UnmarshalBinary([]byte(data))
+	if err != nil {
+		return &models.Selection{}, err
+	}
+
+	return selection, nil
+}
+
+func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks []string) ([]string, error) {
+	var (
+		err error
+		genreID, artistID string
+		trackID string
+	)
+	selections := make([]string, 0)
+
+	// Get user genres and artists
+	query := `SELECT DISTINCT ` +
+		wrapper.Wrapper([]string{"id"}, "g") + ", " +
+		wrapper.Wrapper([]string{"id"}, "a") +
+		`
+		FROM likes l JOIN tracks t on l.track_id = t.id
+		JOIN artists a on t.artist = a.id
+		JOIN genres g on t.genre = g.id
+		WHERE l.user_id=$1
+		`
+	rows, err := storage.db.Query(query, userID)
+	if err != nil {
+		return selections, err
+	}
+
+	favoriteGenres := make([]string, 0)
+	favoriteArtists := make([]string, 0)
+	for rows.Next() {
+		if err = rows.Scan(&genreID, &artistID); err != nil {
+			return selections, err
+		}
+
+		favoriteGenres = append(favoriteGenres, genreID)
+		favoriteArtists = append(favoriteArtists, artistID)
+	}
+	if err = rows.Err(); err != nil {
+		return selections, err
+	}
+	err = rows.Close()
+	if err != nil {
+		log.Fatalf("Could not close rows, error: %v", err)
+	}
+
+	favoriteGenresStr := strings.Join(favoriteGenres, ", ")
+	favoriteArtistsStr := strings.Join(favoriteArtists, ", ")
+	favoriteTracksStr := strings.Join(favoriteTracks, ", ")
+
+	// Get trackID selection
+	query = `SELECT DISTINCT id FROM tracks WHERE (artist IN (` +
+		favoriteArtistsStr +
+		`) OR genre IN (` +
+		favoriteGenresStr +
+		`)) AND id NOT IN (` +
+		favoriteTracksStr + `)`
+	rows, err = storage.db.Query(query)
+	if err != nil {
+		return selections, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatalf("Could not close rows, error: %v", err)
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Scan(&trackID); err != nil {
+			return selections, err
+		}
+
+		selections = append(selections, trackID)
+	}
+	if err = rows.Err(); err != nil {
+		return selections, err
+	}
+
+	return selections, nil
+}
+
+func (storage *MusicStorage) GetFavoriteTracksID(userID int64) ([]string, error) {
+	var (
+		err     error
+		trackID string
+	)
+	favorites := make([]string, 0)
+
+	query := "SELECT track_id FROM likes WHERE user_id=$1"
+	rows, err := storage.db.Query(query, userID)
+	if err != nil {
+		return favorites, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatalf("Could not close rows, error: %v", err)
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Scan(&trackID); err != nil {
+			return favorites, err
+		}
+
+		favorites = append(favorites, trackID)
+	}
+	if err = rows.Err(); err != nil {
+		return favorites, err
+	}
+
+	return favorites, nil
+}
+
+func (storage *MusicStorage) StoreCompilation(userID int64, selection *models.Selection) error {
+	log.Println("Called store compilation in redis")
+
+	err := storage.redis.Set(context.Background(), strconv.FormatInt(userID, 10), selection, constants.CookieLifetime).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (storage *MusicStorage) GetTracksByID(tracksID []string, userID int64, isAuthorized bool) ([]*proto.Track, error) {
+	tracksStr := strings.Join(tracksID, ", ")
+	query := `SELECT ` +
+		wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t") + ", " +
+		wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb") + ", " +
+		wrapper.Wrapper([]string{"id", "name"}, "art") + ", " +
+		wrapper.Wrapper([]string{"name"}, "g") + ", " +
+		`
+		l.id IS NOT NULL as favorite
+		FROM tracks t
+		JOIN genres g ON t.genre = g.id
+		JOIN albums alb ON t.album = alb.id
+		JOIN artists art ON t.artist = art.id
+		LEFT JOIN likes l on t.id = l.track_id and l.user_id = $1 WHERE t.id IN (` +
+		tracksStr + `)`
+
+	rows, err := storage.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Fatal("Error occurred during closing rows")
+		}
+	}()
+
+	tracks := make([]*proto.Track, 0)
+	//nolint:dupl
+	for rows.Next() {
+		track := &proto.Track{}
+		track.Album = &proto.Album{}
+		track.Artist = &proto.Artist{}
+		if err = rows.Scan(&track.ID, &track.Title, &track.Explicit, &track.Number, &track.File, &track.ListenCount,
+			&track.Duration, &track.Lossless, &track.Album.ID, &track.Album.Title, &track.Album.Artwork, &track.Album.ArtworkColor, &track.Artist.ID,
+			&track.Artist.Name, &track.Genre, &track.IsInFavorites); err != nil {
+			return nil, err
+		}
+		if !isAuthorized {
+			track.File = ""
+		}
+		tracks = append(tracks, track)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return tracks, nil
 }

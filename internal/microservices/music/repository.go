@@ -2,11 +2,12 @@ package music
 
 import (
 	"2021_2_LostPointer/internal/microservices/music/proto"
+	"2021_2_LostPointer/internal/models"
 )
 
 //go:generate moq -out ./mock/music_repo_mock.go -pkg mock . Storage:MockStorage
 type Storage interface {
-	RandomTracks(int64, int64, bool) (*proto.Tracks, error)
+	RandomTracks(int64, int64, bool) ([]*proto.Track, error)
 	RandomAlbums(int64) (*proto.Albums, error)
 	RandomArtists(int64) (*proto.Artists, error)
 	ArtistInfo(int64) (*proto.Artist, error)
@@ -29,4 +30,9 @@ type Storage interface {
 	DeleteTrackFromFavorites(int64, int64) error
 	GetFavorites(int64) ([]*proto.Track, error)
 	IsTrackInFavorites(int64, int64) (bool, error)
+	GetCompilation(int64) (*models.Selection, error)
+	GetTracksCompilation(int64, []string) ([]string, error)
+	GetFavoriteTracksID(int64) ([]string, error)
+	StoreCompilation(int64, *models.Selection) error
+	GetTracksByID([]string, int64, bool) ([]*proto.Track, error)
 }

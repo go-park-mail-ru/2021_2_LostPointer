@@ -638,7 +638,7 @@ func (api *APIMicroservices) GetHomeTracks(ctx echo.Context) error {
 	}
 
 	tracksListProto, err := api.musicMicroservice.RandomTracks(context.Background(),
-		&music.RandomTracksOptions{Amount: constants.HomePageTracksSelectionAmount, UserID: int64(userID), IsAuthorized: isAuthorized})
+		&music.RandomTracksOptions{Amount: constants.HomePageTracksAmount, UserID: int64(userID), IsAuthorized: isAuthorized})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
@@ -676,7 +676,7 @@ func (api *APIMicroservices) GetHomeAlbums(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	albumsListProto, err := api.musicMicroservice.RandomAlbums(context.Background(), &music.RandomAlbumsOptions{Amount: constants.HomePageAlbumsSelectionAmount})
+	albumsListProto, err := api.musicMicroservice.RandomAlbums(context.Background(), &music.RandomAlbumsOptions{Amount: constants.HomePageAlbumsAmount})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}
@@ -714,7 +714,7 @@ func (api *APIMicroservices) GetHomeArtists(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	artistsListProto, err := api.musicMicroservice.RandomArtists(context.Background(), &music.RandomArtistsOptions{Amount: constants.HomePageArtistsSelectionAmount})
+	artistsListProto, err := api.musicMicroservice.RandomArtists(context.Background(), &music.RandomArtistsOptions{Amount: constants.HomePageArtistsAmount})
 	if err != nil {
 		return api.ParseErrorByCode(ctx, requestID, err)
 	}

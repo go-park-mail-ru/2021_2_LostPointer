@@ -59,7 +59,7 @@ const (
 	TrackNotFound                    = "Track not found"
 
 	ArtistPageTracksAmount          = 10                           // Amount of tracks in selection for artist page
-	ArtistPageAlbumsAmount          = 8                            // Amount of albums in selection for artist page
+	ArtistPageAlbumsAmount          = 24                            // Amount of albums in selection for artist page
 	HomePageTracksAmount            = 10                           // Amount of tracks in selection for home page
 	HomePageAlbumsAmount            = 4                            // Amount of albums in selection for home page
 	HomePageArtistsAmount           = 4                            // Amount of artists in selection for home page

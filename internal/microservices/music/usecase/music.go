@@ -1,18 +1,18 @@
 package usecase
 
 import (
-	"2021_2_LostPointer/internal/models"
 	"context"
-	"github.com/go-redis/redis/v8"
 	"math/rand"
 	"strings"
 
+	"github.com/go-redis/redis/v8"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"2021_2_LostPointer/internal/constants"
 	"2021_2_LostPointer/internal/microservices/music"
 	"2021_2_LostPointer/internal/microservices/music/proto"
+	"2021_2_LostPointer/internal/models"
 )
 
 type MusicService struct {
@@ -23,14 +23,15 @@ func NewMusicService(storage music.Storage) *MusicService {
 	return &MusicService{storage: storage}
 }
 
+//nolint:gosec,ifshort
 func selectRandom(slice []string, amount int) []string {
-	l := len(slice)
+	length := len(slice)
 	random := make([]string, 0)
-	if l == 0 {
+	if length == 0 {
 		return random
 	}
 	for i := 0; i < amount; i++ {
-		random = append(random, slice[rand.Intn(l)])
+		random = append(random, slice[rand.Intn(length)])
 	}
 
 	return random
@@ -71,6 +72,7 @@ func (service *MusicService) storeCompilation(userID int64) (*models.Selection, 
 	return userCompilation, nil
 }
 
+//nolint:errorlint
 func (service *MusicService) RandomTracks(ctx context.Context, metadata *proto.RandomTracksOptions) (*proto.Tracks, error) {
 	var (
 		userCompilation   *models.Selection

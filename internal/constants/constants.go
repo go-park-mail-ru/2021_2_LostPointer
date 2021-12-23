@@ -33,8 +33,8 @@ const (
 	PlaylistArtworkDefaultColor    = "#8071c2"
 
 	// Сообщения
-	EmailNotUniqueMessage            = "Email is not unique"
-	NicknameNotUniqueMessage         = "Nickname is not unique"
+	EmailNotUniqueMessage            = "Email is already taken"
+	NicknameNotUniqueMessage         = "Nickname is already taken"
 	WrongPasswordMessage             = "Old password is wrong"
 	OldPasswordFieldIsEmptyMessage   = "Old password field is empty"
 	NewPasswordFieldIsEmptyMessage   = "New password field is empty"
@@ -59,7 +59,7 @@ const (
 	TrackNotFound                    = "Track not found"
 
 	ArtistPageTracksAmount          = 10                           // Amount of tracks in selection for artist page
-	ArtistPageAlbumsAmount          = 24                            // Amount of albums in selection for artist page
+	ArtistPageAlbumsAmount          = 24                           // Amount of albums in selection for artist page
 	HomePageTracksAmount            = 10                           // Amount of tracks in selection for home page
 	HomePageAlbumsAmount            = 4                            // Amount of albums in selection for home page
 	HomePageArtistsAmount           = 4                            // Amount of artists in selection for home page

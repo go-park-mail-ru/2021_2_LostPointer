@@ -61,7 +61,7 @@ const (
 	ArtistPageTracksAmount          = 10                           // Amount of tracks in selection for artist page
 	ArtistPageAlbumsAmount          = 24                           // Amount of albums in selection for artist page
 	HomePageTracksAmount            = 10                           // Amount of tracks in selection for home page
-	HomePageAlbumsAmount            = 4                            // Amount of albums in selection for home page
+	HomePageAlbumsAmount            = 5                            // Amount of albums in selection for home page
 	HomePageArtistsAmount           = 4                            // Amount of artists in selection for home page
 	SearchPageTracksAmount          = 4                            // Amount of relevant tracks in selection for search page
 	SearchPageArtistsAmount         = 4                            // Amount of relevant artists in selection for search page

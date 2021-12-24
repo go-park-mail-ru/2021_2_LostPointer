@@ -94,6 +94,14 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: vershovbmstu/lostpointer_deploy_main:latest
+      - name: Build and push cron
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./cron/playlists/top/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: vershovbmstu/lostpointer_deploy_cron:latest
  
   deploy:
     needs: build

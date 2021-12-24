@@ -814,7 +814,7 @@ func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks [
 		FROM likes l JOIN tracks t on l.track_id = t.id
 		JOIN artists a on t.artist = a.id
 		JOIN genres g on t.genre = g.id
-		WHERE l.user_id=$1 AND g.id != 52
+		WHERE l.user_id=$1
 		`
 	rows, err := storage.db.Query(query, userID)
 	if err != nil {
@@ -828,7 +828,9 @@ func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks [
 			return selections, err
 		}
 
-		favoriteGenres = append(favoriteGenres, genreID)
+		if genreID != "52" {
+			favoriteGenres = append(favoriteGenres, genreID)
+		}
 		favoriteArtists = append(favoriteArtists, artistID)
 	}
 	if err = rows.Err(); err != nil {

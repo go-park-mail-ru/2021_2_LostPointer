@@ -846,12 +846,19 @@ func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks [
 	favoriteTracksStr := strings.Join(favoriteTracks, ", ")
 
 	// Get trackID selection
-	query = `SELECT DISTINCT id FROM tracks WHERE (artist IN (` +
-		favoriteArtistsStr +
-		`) OR genre IN (` +
-		favoriteGenresStr +
-		`)) AND id NOT IN (` +
-		favoriteTracksStr + `)`
+	if len(favoriteGenres) != 0 {
+		query = `SELECT DISTINCT id FROM tracks WHERE (artist IN (` +
+			favoriteArtistsStr +
+			`) OR genre IN (` +
+			favoriteGenresStr +
+			`)) AND id NOT IN (` +
+			favoriteTracksStr + `)`
+	} else {
+		query = `SELECT DISTINCT id FROM tracks WHERE (artist IN (` +
+			favoriteArtistsStr +
+			`)) AND id NOT IN (` +
+			favoriteTracksStr + `)`
+	}
 	rows, err = storage.db.Query(query)
 	if err != nil {
 		return selections, err

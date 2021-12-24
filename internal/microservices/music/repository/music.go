@@ -599,7 +599,8 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64, userID int64) ([]*
 			SELECT track
 			FROM playlist_tracks
 			WHERE playlist=$2
-		)`
+		)
+		`
 
 	rows, err := storage.db.Query(query, userID, playlistID)
 	if err != nil {
@@ -813,7 +814,7 @@ func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks [
 		FROM likes l JOIN tracks t on l.track_id = t.id
 		JOIN artists a on t.artist = a.id
 		JOIN genres g on t.genre = g.id
-		WHERE l.user_id=$1
+		WHERE l.user_id=$1 AND g.id != 52
 		`
 	rows, err := storage.db.Query(query, userID)
 	if err != nil {

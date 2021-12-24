@@ -1,17 +1,19 @@
 package repository
 
 import (
-	"2021_2_LostPointer/internal/constants"
-	"2021_2_LostPointer/internal/microservices/music/proto"
-	"2021_2_LostPointer/internal/models"
-	"2021_2_LostPointer/pkg/wrapper"
 	"context"
 	"database/sql"
-	"github.com/go-redis/redis/v8"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/go-redis/redis/v8"
+
+	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/microservices/music/proto"
+	"2021_2_LostPointer/internal/models"
+	"2021_2_LostPointer/pkg/wrapper"
 )
 
 type MusicStorage struct {
@@ -781,6 +783,7 @@ func (storage *MusicStorage) IsTrackInFavorites(userID int64, trackID int64) (bo
 	return isExist, nil
 }
 
+//nolint:errorlint
 func (storage *MusicStorage) GetCompilation(userID int64) (*models.Selection, error) {
 	selection := &models.Selection{}
 
@@ -797,11 +800,12 @@ func (storage *MusicStorage) GetCompilation(userID int64) (*models.Selection, er
 	return selection, nil
 }
 
+//nolint:cyclop
 func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks []string) ([]string, error) {
 	var (
-		err error
+		err               error
 		genreID, artistID string
-		trackID string
+		trackID           string
 	)
 	selections := make([]string, 0)
 

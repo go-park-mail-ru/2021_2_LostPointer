@@ -1,7 +1,8 @@
 package repository
 
-/*import (
+import (
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-redis/redismock/v8"
 	"github.com/jinzhu/copier"
 	"github.com/stretchr/testify/assert"
 
@@ -18,303 +19,14 @@ package repository
 )
 
 //nolint:cyclop
-func TestMusicStorage_RandomTracks(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-		return
-	}
-	repository := NewMusicStorage(db)
-
-	const userID = 1
-
-	track := &proto.Track{
-		ID:          1,
-		Title:       "testTrackTitle",
-		Explicit:    true,
-		Genre:       "testGenre",
-		Number:      2,
-		File:        "testFile",
-		ListenCount: 3,
-		Duration:    4,
-		Lossless:    true,
-		Album: &proto.Album{
-			ID:           5,
-			Title:        "testAlbumTitle",
-			Artwork:      "testAlbumArtwork",
-			ArtworkColor: "testArtWOrkColor",
-		},
-		Artist: &proto.Artist{
-			ID:   6,
-			Name: "testArtistName",
-		},
-		IsInFavorites: true,
-	}
-	trackWithoutFile := new(proto.Track)
-	_ = copier.Copy(trackWithoutFile, track)
-	trackWithoutFile.File = ""
-
-	tests := []struct {
-		name          string
-		amount        int64
-		isAuthorized  bool
-		mock          func()
-		expected      *proto.Tracks
-		expectedError bool
-	}{
-		{
-			name:         "get 4 random tracks",
-			amount:       4,
-			isAuthorized: true,
-			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < 4; i++ {
-					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
-				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
-					wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb")+", "+
-					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
-					wrapper.Wrapper([]string{"name"}, "g")+", "+
-					`
-		l.id IS NOT NULL as favorite
-		FROM tracks t
-		JOIN genres g ON t.genre = g.id
-		JOIN albums alb ON t.album = alb.id
-		JOIN artists art ON t.artist = art.id
-		LEFT JOIN likes l on t.id = l.track_id and l.user_id = $1
-		ORDER BY RANDOM() DESC LIMIT $2`)).WithArgs(driver.Value(userID), driver.Value(4)).WillReturnRows(rows)
-			},
-			expected: func() *proto.Tracks {
-				var amount = 4
-				var tracks = new(proto.Tracks)
-				tracks.Tracks = make([]*proto.Track, 0, amount)
-				for i := 0; i < amount; i++ {
-					tracks.Tracks = append(tracks.Tracks, track)
-				}
-				return tracks
-			}(),
-		},
-		{
-			name:         "get 10 random tracks",
-			amount:       10,
-			isAuthorized: true,
-			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < 10; i++ {
-					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
-				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
-					wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb")+", "+
-					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
-					wrapper.Wrapper([]string{"name"}, "g")+", "+
-					`
-		l.id IS NOT NULL as favorite
-		FROM tracks t
-		JOIN genres g ON t.genre = g.id
-		JOIN albums alb ON t.album = alb.id
-		JOIN artists art ON t.artist = art.id
-		LEFT JOIN likes l on t.id = l.track_id and l.user_id = $1
-		ORDER BY RANDOM() DESC LIMIT $2`)).WithArgs(driver.Value(userID), driver.Value(10)).WillReturnRows(rows)
-			},
-			expected: func() *proto.Tracks {
-				var amount = 10
-				var tracks = new(proto.Tracks)
-				tracks.Tracks = make([]*proto.Track, 0, amount)
-				for i := 0; i < amount; i++ {
-					tracks.Tracks = append(tracks.Tracks, track)
-				}
-				return tracks
-			}(),
-		},
-		{
-			name:         "get 100 random tracks",
-			amount:       100,
-			isAuthorized: true,
-			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < 100; i++ {
-					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
-				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
-					wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb")+", "+
-					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
-					wrapper.Wrapper([]string{"name"}, "g")+", "+
-					`
-		l.id IS NOT NULL as favorite
-		FROM tracks t
-		JOIN genres g ON t.genre = g.id
-		JOIN albums alb ON t.album = alb.id
-		JOIN artists art ON t.artist = art.id
-		LEFT JOIN likes l on t.id = l.track_id and l.user_id = $1
-		ORDER BY RANDOM() DESC LIMIT $2`)).WithArgs(driver.Value(userID), driver.Value(100)).WillReturnRows(rows)
-			},
-			expected: func() *proto.Tracks {
-				var amount = 100
-				var tracks = new(proto.Tracks)
-				tracks.Tracks = make([]*proto.Track, 0, amount)
-				for i := 0; i < amount; i++ {
-					tracks.Tracks = append(tracks.Tracks, track)
-				}
-				return tracks
-			}(),
-		},
-		{
-			name:         "query returns error",
-			amount:       1,
-			isAuthorized: true,
-			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < 1; i++ {
-					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
-				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
-					wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb")+", "+
-					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
-					wrapper.Wrapper([]string{"name"}, "g")+", "+
-					`
-		l.id IS NOT NULL as favorite
-		FROM tracks t
-		JOIN genres g ON t.genre = g.id
-		JOIN albums alb ON t.album = alb.id
-		JOIN artists art ON t.artist = art.id
-		LEFT JOIN likes l on t.id = l.track_id and l.user_id = $1
-		ORDER BY RANDOM() DESC LIMIT $2`)).WithArgs(driver.Value(userID), driver.Value(1)).WillReturnError(errors.New("error"))
-			},
-			expected: func() *proto.Tracks {
-				var tracks = new(proto.Tracks)
-				tracks.Tracks = make([]*proto.Track, 0, 1)
-				tracks.Tracks = append(tracks.Tracks, track)
-				return tracks
-			}(),
-			expectedError: true,
-		},
-		{
-			name:         "scan returns error",
-			amount:       1,
-			isAuthorized: true,
-			mock: func() {
-				var newArg = 1
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite", "newArg"})
-				for i := 0; i < 1; i++ {
-					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites, newArg)
-				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
-					wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb")+", "+
-					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
-					wrapper.Wrapper([]string{"name"}, "g")+", "+
-					`
-		l.id IS NOT NULL as favorite
-		FROM tracks t
-		JOIN genres g ON t.genre = g.id
-		JOIN albums alb ON t.album = alb.id
-		JOIN artists art ON t.artist = art.id
-		LEFT JOIN likes l on t.id = l.track_id and l.user_id = $1
-		ORDER BY RANDOM() DESC LIMIT $2`)).WithArgs(driver.Value(userID), driver.Value(1)).WillReturnRows(rows)
-			},
-			expected: func() *proto.Tracks {
-				var tracks = new(proto.Tracks)
-				tracks.Tracks = make([]*proto.Track, 0, 1)
-				tracks.Tracks = append(tracks.Tracks, track)
-				return tracks
-			}(),
-			expectedError: true,
-		},
-		{
-			name:   "get 4 random tracks unauthorized",
-			amount: 4,
-			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"})
-				for i := 0; i < 4; i++ {
-					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, "", track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
-				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
-					wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb")+", "+
-					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
-					wrapper.Wrapper([]string{"name"}, "g")+", "+
-					`
-		l.id IS NOT NULL as favorite
-		FROM tracks t
-		JOIN genres g ON t.genre = g.id
-		JOIN albums alb ON t.album = alb.id
-		JOIN artists art ON t.artist = art.id
-		LEFT JOIN likes l on t.id = l.track_id and l.user_id = $1
-		ORDER BY RANDOM() DESC LIMIT $2`)).WithArgs(driver.Value(userID), driver.Value(4)).WillReturnRows(rows)
-			},
-			expected: func() *proto.Tracks {
-				var amount = 4
-				var tracks = new(proto.Tracks)
-				tracks.Tracks = make([]*proto.Track, 0, amount)
-				for i := 0; i < amount; i++ {
-					tracks.Tracks = append(tracks.Tracks, trackWithoutFile)
-				}
-				return tracks
-			}(),
-		},
-		{
-			name:         "rows.Err() returns error",
-			amount:       4,
-			isAuthorized: true,
-			mock: func() {
-				rows := sqlmock.NewRows([]string{"tracks.id", "tracks.title", "explicit", "number", "file", "listen_count", "duration", "lossless", "alb.id", "alb.title", "alb.artwork", "alb.artwork_color", "art.id", "art.name", "g.name", "favorite"}).RowError(0, errors.New("error"))
-				for i := 0; i < 4; i++ {
-					rows.AddRow(track.ID, track.Title, track.Explicit, track.Number, track.File, track.ListenCount, track.Duration, track.Lossless, track.Album.ID, track.Album.Title, track.Album.Artwork, track.Album.ArtworkColor, track.Artist.ID, track.Artist.Name, track.Genre, track.IsInFavorites)
-				}
-				mock.ExpectQuery(regexp.QuoteMeta(`SELECT `+
-					wrapper.Wrapper([]string{"id", "title", "explicit", "number", "file", "listen_count", "duration", "lossless"}, "t")+", "+
-					wrapper.Wrapper([]string{"id", "title", "artwork", "artwork_color"}, "alb")+", "+
-					wrapper.Wrapper([]string{"id", "name"}, "art")+", "+
-					wrapper.Wrapper([]string{"name"}, "g")+", "+
-					`
-		l.id IS NOT NULL as favorite
-		FROM tracks t
-		JOIN genres g ON t.genre = g.id
-		JOIN albums alb ON t.album = alb.id
-		JOIN artists art ON t.artist = art.id
-		LEFT JOIN likes l on t.id = l.track_id and l.user_id = $1
-		ORDER BY RANDOM() DESC LIMIT $2`)).WithArgs(driver.Value(userID), driver.Value(4)).WillReturnRows(rows)
-			},
-			expected: func() *proto.Tracks {
-				var amount = 4
-				var tracks = new(proto.Tracks)
-				tracks.Tracks = make([]*proto.Track, 0, amount)
-				for i := 0; i < amount; i++ {
-					tracks.Tracks = append(tracks.Tracks, track)
-				}
-				return tracks
-			}(),
-			expectedError: true,
-		},
-	}
-
-	for _, test := range tests {
-		currentTest := test
-		t.Run(currentTest.name, func(t *testing.T) {
-			currentTest.mock()
-			result, err := repository.RandomTracks(currentTest.amount, userID, currentTest.isAuthorized)
-			if currentTest.expectedError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, currentTest.expected, result)
-			}
-		})
-	}
-}
-
-//nolint:cyclop
 func TestMusicStorage_RandomAlbums(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	album := &proto.Album{
 		ID:             1,
@@ -531,12 +243,13 @@ func TestMusicStorage_RandomAlbums(t *testing.T) {
 
 //nolint:cyclop
 func TestMusicStorage_RandomArtists(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	tracks := make([]*proto.Track, 0)
 	albums := make([]*proto.Album, 0)
@@ -729,12 +442,13 @@ func TestMusicStorage_RandomArtists(t *testing.T) {
 }
 
 func TestMusicStorage_ArtistInfo(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	artist := &proto.Artist{
 		ID:     1,
@@ -822,12 +536,13 @@ func TestMusicStorage_ArtistInfo(t *testing.T) {
 
 //nolint:cyclop
 func TestMusicStorage_ArtistTracks(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const userID = 1
 
@@ -1110,14 +825,15 @@ func TestMusicStorage_ArtistTracks(t *testing.T) {
 	}
 }
 
-//nolint:cyclop
+//nolint:cyclop,varnamelen
 func TestMusicStorage_ArtistAlbums(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	album := &proto.Album{
 		ID:             1,
@@ -1315,12 +1031,13 @@ func TestMusicStorage_ArtistAlbums(t *testing.T) {
 }
 
 func TestMusicStorage_IncrementListenCount(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	var trackID int64 = 1
 
@@ -1360,12 +1077,13 @@ func TestMusicStorage_IncrementListenCount(t *testing.T) {
 }
 
 func TestMusicStorage_AlbumData(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	album := &proto.AlbumPageResponse{
 		AlbumID:      1,
@@ -1445,12 +1163,13 @@ func TestMusicStorage_AlbumData(t *testing.T) {
 
 //nolint:cyclop
 func TestMusicStorage_AlbumTracks(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const userID = 1
 
@@ -1656,12 +1375,13 @@ func TestMusicStorage_AlbumTracks(t *testing.T) {
 
 //nolint:cyclop
 func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const userID = 1
 
@@ -1895,14 +1615,15 @@ func TestMusicStorage_FindTracksByFullWord(t *testing.T) {
 	}
 }
 
-//nolint:cyclop
+//nolint:cyclop,varnamelen
 func TestMusicStorage_FindTracksByPartial(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const userID = 1
 
@@ -2138,12 +1859,13 @@ func TestMusicStorage_FindTracksByPartial(t *testing.T) {
 
 //nolint:cyclop
 func TestMusicStorage_FindArtists(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	tracks := make([]*proto.Track, 0)
 	albums := make([]*proto.Album, 0)
@@ -2275,14 +1997,15 @@ func TestMusicStorage_FindArtists(t *testing.T) {
 	}
 }
 
-//nolint:cyclop
+//nolint:cyclop,varnamelen
 func TestMusicStorage_FindAlbums(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	album := &proto.Album{
 		ID:             1,
@@ -2438,12 +2161,13 @@ func TestMusicStorage_FindAlbums(t *testing.T) {
 }
 
 func TestMusicStorage_IsPlaylistOwner(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	var (
 		playlistID int64
@@ -2504,12 +2228,13 @@ func TestMusicStorage_IsPlaylistOwner(t *testing.T) {
 
 //nolint:cyclop
 func TestMusicStorage_PlaylistTracks(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const userID = 1
 
@@ -2739,12 +2464,13 @@ func TestMusicStorage_PlaylistTracks(t *testing.T) {
 }
 
 func TestMusicStorage_PlaylistInfo(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	playlist := &proto.PlaylistData{
 		PlaylistID:   1,
@@ -2808,12 +2534,13 @@ func TestMusicStorage_PlaylistInfo(t *testing.T) {
 
 //nolint:cyclop
 func TestMusicStorage_UserPlaylists(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	playlist := &proto.PlaylistData{
 		PlaylistID: 1,
@@ -2932,12 +2659,13 @@ func TestMusicStorage_UserPlaylists(t *testing.T) {
 }
 
 func TestMusicStorage_DoesPlaylistExist(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const playlistID int64 = 1
 
@@ -2989,12 +2717,13 @@ func TestMusicStorage_DoesPlaylistExist(t *testing.T) {
 }
 
 func TestMusicStorage_AddTrackToFavorite(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const (
 		userID = iota
@@ -3036,12 +2765,13 @@ func TestMusicStorage_AddTrackToFavorite(t *testing.T) {
 }
 
 func TestMusicStorage_DeleteTrackFromFavorites(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const (
 		userID = iota
@@ -3083,12 +2813,13 @@ func TestMusicStorage_DeleteTrackFromFavorites(t *testing.T) {
 }
 
 func TestMusicStorage_IsTrackInFavorites(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const (
 		userID = iota
@@ -3144,12 +2875,13 @@ func TestMusicStorage_IsTrackInFavorites(t *testing.T) {
 
 //nolint:cyclop
 func TestMusicStorage_GetFavorites(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const userID = 1
 
@@ -3334,12 +3066,13 @@ func TestMusicStorage_GetFavorites(t *testing.T) {
 }
 
 func TestMusicStorage_IsPlaylistPublic(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	postgresDB, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 		return
 	}
-	repository := NewMusicStorage(db)
+	redisDB, _ := redismock.NewClientMock()
+	repository := NewMusicStorage(postgresDB, redisDB)
 
 	const playlistID = 1
 
@@ -3395,4 +3128,3 @@ func TestMusicStorage_IsPlaylistPublic(t *testing.T) {
 		})
 	}
 }
-*/

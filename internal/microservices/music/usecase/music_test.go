@@ -1,7 +1,8 @@
 package usecase
 
-/*import (
+import (
 	"2021_2_LostPointer/internal/constants"
+	"2021_2_LostPointer/internal/models"
 	"context"
 	"errors"
 	"testing"
@@ -13,65 +14,6 @@ package usecase
 	"2021_2_LostPointer/internal/microservices/music/mock"
 	"2021_2_LostPointer/internal/microservices/music/proto"
 )
-
-func TestMusicService_RandomTracks(t *testing.T) {
-	tests := []struct {
-		name        string
-		storageMock *mock.MockStorage
-		input       *proto.RandomTracksOptions
-		expected    *proto.Tracks
-		expectedErr bool
-		err         error
-	}{
-		{
-			name: "Success",
-			storageMock: &mock.MockStorage{
-				RandomTracksFunc: func(int64, int64, bool) (*proto.Tracks, error) {
-					return &proto.Tracks{
-						Tracks: []*proto.Track{},
-					}, nil
-				},
-			},
-			input: &proto.RandomTracksOptions{
-				Amount:       1,
-				IsAuthorized: true,
-			},
-			expected: &proto.Tracks{
-				Tracks: []*proto.Track{},
-			},
-		},
-		{
-			name: "Error 500. mock.RandomTracks returned error",
-			storageMock: &mock.MockStorage{
-				RandomTracksFunc: func(int64, int64, bool) (*proto.Tracks, error) {
-					return nil, errors.New("error")
-				},
-			},
-			input: &proto.RandomTracksOptions{
-				Amount:       1,
-				IsAuthorized: true,
-			},
-			expectedErr: true,
-			err:         status.Error(codes.Internal, "error"),
-		},
-	}
-
-	for _, test := range tests {
-		currentTest := test
-		t.Run(currentTest.name, func(t *testing.T) {
-			storage := NewMusicService(currentTest.storageMock)
-
-			res, err := storage.RandomTracks(context.Background(), currentTest.input)
-			if currentTest.expectedErr {
-				assert.Error(t, err)
-				assert.Equal(t, err, currentTest.err)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, currentTest.expected, res)
-			}
-		})
-	}
-}
 
 func TestMusicService_RandomAlbums(t *testing.T) {
 	tests := []struct {
@@ -897,6 +839,12 @@ func TestMusicService_AddTrackToFavorites(t *testing.T) {
 				AddTrackToFavoritesFunc: func(int64, int64) error {
 					return nil
 				},
+				GetFavoriteTracksIDFunc: func(int64) ([]string, error) {
+					return nil, nil
+				},
+				StoreCompilationFunc: func(int64, *models.Selection) error {
+					return nil
+				},
 			},
 			input: &proto.AddTrackToFavoritesOptions{
 				UserID:  1,
@@ -993,6 +941,12 @@ func TestMusicService_DeleteTrackFromFavorites(t *testing.T) {
 					return true, nil
 				},
 				DeleteTrackFromFavoritesFunc: func(int64, int64) error {
+					return nil
+				},
+				GetFavoriteTracksIDFunc: func(int64) ([]string, error) {
+					return nil, nil
+				},
+				StoreCompilationFunc: func(int64, *models.Selection) error {
 					return nil
 				},
 			},
@@ -1127,4 +1081,3 @@ func TestMusicService_GetFavoriteTracks(t *testing.T) {
 		})
 	}
 }
-*/

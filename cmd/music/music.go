@@ -3,12 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"log"
 	"net"
 	"os"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 

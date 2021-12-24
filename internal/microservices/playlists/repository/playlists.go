@@ -23,6 +23,7 @@ func (storage *PlaylistsStorage) CreatePlaylist(userID int64, title string, artw
 
 	var id int64
 	title = sanitize.HTML(title)
+
 	err := storage.db.QueryRow(query, title, userID, artwork, artworkColor, isPublic).Scan(&id)
 	if err != nil {
 		return nil, err
@@ -46,7 +47,7 @@ func (storage *PlaylistsStorage) GetOldPlaylistSettings(playlistID int64) (strin
 func (storage *PlaylistsStorage) DeletePlaylist(playlistID int64) error {
 	query := `DELETE FROM playlists WHERE id=$1`
 
-	err := storage.db.QueryRow(query, playlistID).Err()
+	_, err := storage.db.Exec(query, playlistID)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func (storage *PlaylistsStorage) DeletePlaylist(playlistID int64) error {
 func (storage *PlaylistsStorage) AddTrack(playlistID int64, trackID int64) error {
 	query := `INSERT INTO playlist_tracks(playlist, track) VALUES ($1, $2)`
 
-	err := storage.db.QueryRow(query, playlistID, trackID).Err()
+	_, err := storage.db.Exec(query, playlistID, trackID)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,6 @@ func (storage *PlaylistsStorage) AddTrack(playlistID int64, trackID int64) error
 	return nil
 }
 
-//nolint:rowserrcheck
 func (storage *PlaylistsStorage) IsAdded(playlistID int64, trackID int64) (bool, error) {
 	query := `SELECT * FROM playlist_tracks WHERE playlist=$1 AND track=$2`
 
@@ -89,7 +89,7 @@ func (storage *PlaylistsStorage) IsAdded(playlistID int64, trackID int64) (bool,
 func (storage *PlaylistsStorage) DeleteTrack(playlistID int64, trackID int64) error {
 	query := `DELETE FROM playlist_tracks WHERE playlist=$1 AND track=$2`
 
-	err := storage.db.QueryRow(query, playlistID, trackID).Err()
+	_, err := storage.db.Exec(query, playlistID, trackID)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func (storage *PlaylistsStorage) UpdatePlaylistTitle(playlistID int64, title str
 	query := `UPDATE playlists SET title=$1 WHERE id=$2`
 
 	title = sanitize.HTML(title)
-	err := storage.db.QueryRow(query, title, playlistID).Err()
+	_, err := storage.db.Exec(query, title, playlistID)
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (storage *PlaylistsStorage) UpdatePlaylistTitle(playlistID int64, title str
 func (storage *PlaylistsStorage) UpdatePlaylistArtwork(playlistID int64, artwork string, artworkColor string) error {
 	query := `UPDATE playlists SET artwork=$1, artwork_color=$2 WHERE id=$3`
 
-	err := storage.db.QueryRow(query, artwork, artworkColor, playlistID).Err()
+	_, err := storage.db.Exec(query, artwork, artworkColor, playlistID)
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func (storage *PlaylistsStorage) UpdatePlaylistArtwork(playlistID int64, artwork
 func (storage *PlaylistsStorage) DeletePlaylistArtwork(playlistID int64) error {
 	query := `UPDATE playlists SET artwork=$1, artwork_color=$2 WHERE id=$3`
 
-	err := storage.db.QueryRow(query, constants.PlaylistArtworkDefaultFilename, constants.PlaylistArtworkDefaultColor, playlistID).Err()
+	_, err := storage.db.Exec(query, constants.PlaylistArtworkDefaultFilename, constants.PlaylistArtworkDefaultColor, playlistID)
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func (storage *PlaylistsStorage) DeletePlaylistArtwork(playlistID int64) error {
 func (storage *PlaylistsStorage) UpdatePlaylistAccess(playlistID int64, isPublic bool) error {
 	query := `UPDATE playlists SET is_public=$1 WHERE id=$2`
 
-	err := storage.db.QueryRow(query, isPublic, playlistID).Err()
+	_, err := storage.db.Exec(query, isPublic, playlistID)
 	if err != nil {
 		return err
 	}

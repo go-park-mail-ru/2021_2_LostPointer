@@ -61,7 +61,7 @@ func (storage *UserSettingsStorage) UpdateEmail(userID int64, email string) erro
 	query := `UPDATE users SET email=$1 WHERE id=$2`
 
 	sanitizedEmail := sanitize.HTML(email)
-	err := storage.db.QueryRow(query, strings.ToLower(sanitizedEmail), userID).Err()
+	_, err := storage.db.Exec(query, strings.ToLower(sanitizedEmail), userID)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (storage *UserSettingsStorage) UpdateNickname(userID int64, nickname string
 	query := `UPDATE users SET nickname=$1 WHERE id=$2`
 
 	sanitizedNickname := sanitize.HTML(nickname)
-	err := storage.db.QueryRow(query, sanitizedNickname, userID).Err()
+	_, err := storage.db.Exec(query, sanitizedNickname, userID)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (storage *UserSettingsStorage) UpdateNickname(userID int64, nickname string
 func (storage *UserSettingsStorage) UpdateAvatar(userID int64, fileName string) error {
 	query := `UPDATE users SET avatar=$1 WHERE id=$2`
 
-	err := storage.db.QueryRow(query, fileName, userID).Err()
+	_, err := storage.db.Exec(query, fileName, userID)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (storage *UserSettingsStorage) UpdatePassword(userID int64, password string
 	if err != nil {
 		return err
 	}
-	err = storage.db.QueryRow(query, hashedPassword, salt, userID).Err()
+	_, err = storage.db.Exec(query, hashedPassword, salt, userID)
 	if err != nil {
 		return err
 	}

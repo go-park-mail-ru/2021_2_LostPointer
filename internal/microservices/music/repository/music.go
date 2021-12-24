@@ -200,7 +200,6 @@ func (storage *MusicStorage) ArtistTracks(artistID int64, userID int64, isAuthor
 	if err != nil {
 		return nil, err
 	}
-
 	defer func() {
 		err = rows.Close()
 		if err != nil {
@@ -272,7 +271,7 @@ func (storage *MusicStorage) ArtistAlbums(artistID int64, amount int64) ([]*prot
 func (storage *MusicStorage) IncrementListenCount(trackID int64) error {
 	query := `UPDATE tracks SET listen_count = listen_count + 1 WHERE id=$1`
 
-	err := storage.db.QueryRow(query, trackID).Err()
+	_, err := storage.db.Exec(query, trackID)
 	if err != nil {
 		return err
 	}
@@ -705,7 +704,7 @@ func (storage *MusicStorage) DoesPlaylistExist(playlistID int64) (bool, error) {
 func (storage *MusicStorage) AddTrackToFavorites(userID int64, trackID int64) error {
 	query := `INSERT INTO likes(user_id, track_id) VALUES ($1, $2)`
 
-	err := storage.db.QueryRow(query, userID, trackID).Err()
+	_, err := storage.db.Exec(query, userID, trackID)
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,7 @@ const (
 	redisKey     = "top10"
 	userID       = 261
 	title        = "LostPointer top 10"
-	artwork      = "top_10_100px.webp"
+	artwork      = "top_10_384px"
 	artworkColor = "#e60f5a"
 	isPublic     = true
 )

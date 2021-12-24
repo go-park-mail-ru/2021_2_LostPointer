@@ -68,6 +68,15 @@ services:
       lp_network:
         ipv4_address: 10.5.0.6
 
+  cron:
+    image: vershovbmstu/lostpointer_deploy_cron:latest
+    env_file:
+      - .env-prod
+    restart: always
+    networks:
+      lp_network:
+        ipv4_address: 10.5.0.12
+
   db:
     container_name: postgres
     image: postgres:latest

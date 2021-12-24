@@ -20,7 +20,7 @@ const (
 	redisKey     = "top10"
 	userID       = 261
 	title        = "LostPointer top 10"
-	artwork      = "top_10_384px"
+	artwork      = "top_10"
 	artworkColor = "#e60f5a"
 	isPublic     = true
 )
@@ -180,7 +180,7 @@ func CreatePlaylist() {
 func main() {
 	c := cron.New()
 
-	err := c.AddFunc("5 * * * *", CreatePlaylist)
+	err := c.AddFunc("1 * * * *", CreatePlaylist)
 	if err != nil {
 		log.Fatal(err)
 	}

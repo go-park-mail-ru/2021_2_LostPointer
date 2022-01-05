@@ -600,7 +600,8 @@ func (storage *MusicStorage) PlaylistTracks(playlistID int64, userID int64) ([]*
 			SELECT track
 			FROM playlist_tracks
 			WHERE playlist=$2
-		)`
+		)
+		`
 
 	rows, err := storage.db.Query(query, userID, playlistID)
 	if err != nil {
@@ -830,7 +831,9 @@ func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks [
 			return selections, err
 		}
 
-		favoriteGenres = append(favoriteGenres, genreID)
+		if genreID != "52" {
+			favoriteGenres = append(favoriteGenres, genreID)
+		}
 		favoriteArtists = append(favoriteArtists, artistID)
 	}
 	if err = rows.Err(); err != nil {
@@ -846,12 +849,19 @@ func (storage *MusicStorage) GetTracksCompilation(userID int64, favoriteTracks [
 	favoriteTracksStr := strings.Join(favoriteTracks, ", ")
 
 	// Get trackID selection
-	query = `SELECT DISTINCT id FROM tracks WHERE (artist IN (` +
-		favoriteArtistsStr +
-		`) OR genre IN (` +
-		favoriteGenresStr +
-		`)) AND id NOT IN (` +
-		favoriteTracksStr + `)`
+	if len(favoriteGenres) != 0 {
+		query = `SELECT DISTINCT id FROM tracks WHERE (artist IN (` +
+			favoriteArtistsStr +
+			`) OR genre IN (` +
+			favoriteGenresStr +
+			`)) AND id NOT IN (` +
+			favoriteTracksStr + `)`
+	} else {
+		query = `SELECT DISTINCT id FROM tracks WHERE (artist IN (` +
+			favoriteArtistsStr +
+			`)) AND id NOT IN (` +
+			favoriteTracksStr + `)`
+	}
 	rows, err = storage.db.Query(query)
 	if err != nil {
 		return selections, err
